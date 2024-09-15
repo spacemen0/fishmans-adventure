@@ -30,14 +30,14 @@ fn init_world(
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     commands.spawn((
-        SpriteSheetBundle {
+        SpriteBundle {
             texture: handle.image.clone().unwrap(),
-            atlas: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 0,
-            },
             transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             ..default()
+        },
+        TextureAtlas {
+            layout: handle.layout.clone().unwrap(),
+            index: 0,
         },
         Player,
         Health(PLAYER_HEALTH),
@@ -46,14 +46,14 @@ fn init_world(
         GameEntity,
     ));
     commands.spawn((
-        SpriteSheetBundle {
+        SpriteBundle {
             texture: handle.image.clone().unwrap(),
-            atlas: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 17,
-            },
             transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             ..default()
+        },
+        TextureAtlas {
+            layout: handle.layout.clone().unwrap(),
+            index: 17,
         },
         Gun,
         GunTimer(Stopwatch::new()),
@@ -69,15 +69,15 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
         let x = rng.gen_range(-WORLD_W..WORLD_W);
         let y = rng.gen_range(-WORLD_H..WORLD_H);
         commands.spawn((
-            SpriteSheetBundle {
+            SpriteBundle {
                 texture: handle.image.clone().unwrap(),
-                atlas: TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
-                    index: rng.gen_range(24..=25),
-                },
                 transform: Transform::from_translation(vec3(x, y, 0.0))
                     .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: rng.gen_range(24..=25),
             },
             GameEntity,
         ));

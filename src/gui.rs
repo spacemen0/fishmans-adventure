@@ -59,7 +59,7 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
                         margin: UiRect::px(10.0, 10.0, 10.0, 0.0),
                         ..default()
                     },
-                    background_color: BackgroundColor::from(Color::BLACK.with_a(0.9)),
+                    background_color: BackgroundColor::from(Color::BLACK.with_alpha(0.9)),
                     ..default()
                 })
                 .with_children(|parent| {

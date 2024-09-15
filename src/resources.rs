@@ -35,7 +35,7 @@ fn load_assets(
     handle.image = Some(asset_server.load(SPRITE_SHEET_PATH));
 
     let layout = TextureAtlasLayout::from_grid(
-        Vec2::new(TILE_W as f32, TILE_H as f32),
+        UVec2::new(TILE_W, TILE_H),
         SPRITE_SHEET_W,
         SPRITE_SHEET_H,
         None,

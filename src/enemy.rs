@@ -1,5 +1,5 @@
-use std::f32::consts::PI;
 use bevy::utils::Duration;
+use std::f32::consts::PI;
 
 use bevy::math::vec3;
 use bevy::{prelude::*, time::common_conditions::on_timer};
@@ -84,15 +84,16 @@ fn spawn_enemies(
         let (x, y) = get_random_position_around(player_pos);
         let enemy_type = EnemyType::get_rand_enemy();
         commands.spawn((
-            SpriteSheetBundle {
+            SpriteBundle {
                 texture: handle.image.clone().unwrap(),
-                atlas: TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
-                    index: enemy_type.get_base_sprite_index(),
-                },
+
                 transform: Transform::from_translation(vec3(x, y, 1.0))
                     .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: enemy_type.get_base_sprite_index(),
             },
             Enemy::default(),
             enemy_type,

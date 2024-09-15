@@ -1,5 +1,5 @@
-use std::f32::consts::PI;
 use bevy::utils::Instant;
+use std::f32::consts::PI;
 
 use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
@@ -109,15 +109,15 @@ fn handle_gun_input(
                 bullet_direction.z,
             );
             commands.spawn((
-                SpriteSheetBundle {
+                SpriteBundle {
                     texture: handle.image.clone().unwrap(),
-                    atlas: TextureAtlas {
-                        layout: handle.layout.clone().unwrap(),
-                        index: 16,
-                    },
                     transform: Transform::from_translation(vec3(gun_pos.x, gun_pos.y, 1.0))
                         .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                     ..default()
+                },
+                TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 16,
                 },
                 Bullet,
                 BulletDirection(dir),

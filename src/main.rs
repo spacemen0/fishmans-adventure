@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::window::close_on_esc;
 
 use hell_game::animation::AnimationPlugin;
 use hell_game::camera::FollowCameraPlugin;
@@ -14,7 +13,6 @@ use hell_game::*;
 
 fn main() {
     App::new()
-        .init_state::<GameState>()
         .add_plugins(
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())
@@ -29,7 +27,7 @@ fn main() {
                     ..default()
                 }),
         )
-        .insert_resource(ClearColor(Color::rgb_u8(
+        .insert_resource(ClearColor(Color::srgb_u8(
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
         .add_plugins(FollowCameraPlugin)
@@ -41,7 +39,7 @@ fn main() {
         .add_plugins(WorldPlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(CollisionPlugin)
+        .init_state::<GameState>()
         .insert_resource(Msaa::Off)
-        .add_systems(Update, close_on_esc)
         .run();
 }
