@@ -1,4 +1,3 @@
-use bevy::utils::Instant;
 use std::f32::consts::PI;
 
 use bevy::math::{vec2, vec3};
@@ -19,8 +18,6 @@ pub struct GunTimer(pub Stopwatch);
 #[derive(Component)]
 pub struct Bullet;
 #[derive(Component)]
-pub struct SpawnInstant(Instant);
-#[derive(Component)]
 struct BulletDirection(Vec3);
 
 impl Plugin for GunPlugin {
@@ -30,22 +27,10 @@ impl Plugin for GunPlugin {
             (
                 update_gun_transform,
                 update_bullets,
-                handle_gun_input,
-                despawn_old_bullets,
+                handle_gun_firing,
             )
                 .run_if(in_state(GameState::InGame)),
         );
-    }
-}
-
-fn despawn_old_bullets(
-    mut commands: Commands,
-    bullet_query: Query<(&SpawnInstant, Entity), With<Bullet>>,
-) {
-    for (instant, e) in bullet_query.iter() {
-        if instant.0.elapsed().as_secs_f32() > BULLET_TIME_SECS {
-            commands.entity(e).despawn();
-        }
     }
 }
 
@@ -78,11 +63,10 @@ fn update_gun_transform(
     gun_transform.translation.z = 15.0;
 }
 
-fn handle_gun_input(
+fn handle_gun_firing(
     mut commands: Commands,
     time: Res<Time>,
     mut gun_query: Query<(&Transform, &mut GunTimer), With<Gun>>,
-    mouse_button_input: Res<ButtonInput<MouseButton>>,
     handle: Res<GlobalTextureAtlas>,
 ) {
     if gun_query.is_empty() {
@@ -93,10 +77,6 @@ fn handle_gun_input(
     let gun_pos = gun_transform.translation.truncate();
     gun_timer.0.tick(time.delta());
 
-    if !mouse_button_input.pressed(MouseButton::Left) {
-        return;
-    }
-
     let mut rng = rand::thread_rng();
     let bullet_direction = gun_transform.local_x();
     if gun_timer.0.elapsed_secs() >= BULLET_SPAWN_INTERVAL {
@@ -104,8 +84,8 @@ fn handle_gun_input(
 
         for _ in 0..NUM_BULLETS_PER_SHOT {
             let dir = vec3(
-                bullet_direction.x + rng.gen_range(-0.5..0.5),
-                bullet_direction.y + rng.gen_range(-0.5..0.5),
+                bullet_direction.x + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
+                bullet_direction.y + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
                 bullet_direction.z,
             );
             commands.spawn((
@@ -121,7 +101,6 @@ fn handle_gun_input(
                 },
                 Bullet,
                 BulletDirection(dir),
-                SpawnInstant(Instant::now()),
             ));
         }
     }

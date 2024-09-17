@@ -64,7 +64,8 @@ fn update_enemy_kd_tree(
 }
 
 fn handle_enemy_bullet_collision(
-    bullet_query: Query<&Transform, With<Bullet>>,
+    mut commands: Commands,
+    bullet_query: Query<(&Transform, Entity), With<Bullet>>,
     tree: Res<EnemyKdTree>,
     mut enemy_query: Query<(&Transform, &mut Enemy), With<Enemy>>,
 ) {
@@ -73,12 +74,13 @@ fn handle_enemy_bullet_collision(
     }
 
     for b_t in bullet_query.iter() {
-        let pos = b_t.translation;
-        let enemies = tree.0.within_radius(&[pos.x, pos.y], 50.0);
+        let pos = b_t.0.translation;
+        let enemies_in_radius = tree.0.within_radius(&[pos.x, pos.y], 30.0);
 
-        for e in enemies {
-            if let Ok((_, mut enemy)) = enemy_query.get_mut(e.entity) {
+        if let Some(enemy) = enemies_in_radius.first() {
+            if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
                 enemy.health -= BULLET_DAMAGE;
+                commands.entity(b_t.1).despawn();
             }
         }
     }
