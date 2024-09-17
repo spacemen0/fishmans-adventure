@@ -14,6 +14,27 @@ pub struct GlobalTextureAtlas {
 #[derive(Resource)]
 pub struct CursorPosition(pub Option<Vec2>);
 
+#[derive(Resource)]
+pub struct Wave {
+    pub number: u32,
+    pub enemies_left: u32,
+    pub enemies_total: u32,
+    pub requires_portal: bool,
+    pub enemies_spawned: u32,
+}
+
+impl Default for Wave {
+    fn default() -> Self {
+        Self {
+            number: 1,
+            enemies_left: 10,
+            enemies_total: 10,
+            requires_portal: false,
+            enemies_spawned: 0,
+        }
+    }
+}
+
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GlobalTextureAtlas::default())

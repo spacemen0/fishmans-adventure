@@ -9,6 +9,7 @@ use crate::animation::AnimationTimer;
 use crate::player::Player;
 use crate::state::GameState;
 use crate::world::GameEntity;
+use crate::resources::Wave;
 use crate::*;
 
 pub struct EnemyPlugin;
@@ -39,7 +40,7 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-fn despawn_dead_enemies(mut commands: Commands, enemy_query: Query<(&Enemy, Entity), With<Enemy>>) {
+fn despawn_dead_enemies(mut commands: Commands, enemy_query: Query<(&Enemy, Entity), With<Enemy>>, mut wave: ResMut<Wave>) {
     if enemy_query.is_empty() {
         return;
     }
@@ -47,6 +48,7 @@ fn despawn_dead_enemies(mut commands: Commands, enemy_query: Query<(&Enemy, Enti
     for (enemy, entity) in enemy_query.iter() {
         if enemy.health <= 0.0 {
             commands.entity(entity).despawn();
+            wave.enemies_left -= 1;
         }
     }
 }
@@ -70,17 +72,23 @@ fn spawn_enemies(
     mut commands: Commands,
     handle: Res<GlobalTextureAtlas>,
     player_query: Query<&Transform, With<Player>>,
-    enemy_query: Query<&Transform, (With<Enemy>, Without<Player>)>,
-) {
-    let num_enemies = enemy_query.iter().len();
-    let enemy_spawn_count = (MAX_NUM_ENEMIES - num_enemies).min(SPAWN_RATE_PER_SECOND);
+    mut wave: ResMut<Wave>,
+) { 
 
-    if num_enemies >= MAX_NUM_ENEMIES || player_query.is_empty() {
+    if wave.enemies_left == 0 {
+        let wave_count = calculate_enemies_per_wave(wave.number);
+        wave.number += 1;
+        wave.enemies_left = wave_count;
+        wave.enemies_total = wave_count;
+        wave.enemies_spawned = 0;
+    }
+
+    if wave.enemies_spawned >= wave.enemies_total || player_query.is_empty() {
         return;
     }
 
     let player_pos = player_query.single().translation.truncate();
-    for _ in 0..enemy_spawn_count {
+    for _ in 0..wave.enemies_left.min(SPAWN_RATE_PER_SECOND as u32) {
         let (x, y) = get_random_position_around(player_pos);
         let enemy_type = EnemyType::get_rand_enemy();
         commands.spawn((
@@ -100,6 +108,7 @@ fn spawn_enemies(
             AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
             GameEntity,
         ));
+        wave.enemies_spawned += 1;
     }
 }
 
@@ -115,6 +124,10 @@ fn get_random_position_around(pos: Vec2) -> (f32, f32) {
     let random_y = pos.y + offset_y;
 
     (random_x, random_y)
+}
+
+fn calculate_enemies_per_wave(wave: u32) -> u32 {
+    10 * 2_u32.pow(wave)
 }
 
 impl Default for Enemy {

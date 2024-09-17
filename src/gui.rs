@@ -5,6 +5,7 @@ use crate::enemy::Enemy;
 use crate::player::{Health, Player};
 use crate::state::GameState;
 use crate::world::GameEntity;
+use crate::resources::Wave;
 
 pub struct GuiPlugin;
 
@@ -84,18 +85,22 @@ fn update_debug_text(
     diagnostics: Res<DiagnosticsStore>,
     enemy_query: Query<(), With<Enemy>>,
     player_query: Query<&Health, With<Player>>,
+    wave: Res<Wave>,
 ) {
     if query.is_empty() || player_query.is_empty() || enemy_query.is_empty() {
         return;
     }
 
-    let num_enemies = enemy_query.iter().count();
+    //let num_enemies = enemy_query.iter().count();
     let player_health = player_query.single().0;
+    let current_wave = wave.number;
+    let enemies_total = wave.enemies_total;
+    let enemies_remaining = wave.enemies_left;
     let mut text = query.single_mut();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(value) = fps.smoothed() {
             text.sections[0].value =
-                format!("Fps: {value:.2}\nEnemies: {num_enemies}\nHealth: {player_health}");
+                format!("Fps: {value:.2}\nWave: {current_wave}\n Enemies left: {enemies_remaining}/{enemies_total} \nHealth: {player_health}");
         }
     }
 }

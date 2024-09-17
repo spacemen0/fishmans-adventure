@@ -12,20 +12,20 @@ pub const SPRITE_SHEET_H: u32 = 8;
 
 // World
 pub const NUM_WORLD_DECORATIONS: usize = 500;
-pub const WORLD_W: f32 = 3000.0;
-pub const WORLD_H: f32 = 2500.0;
+pub const WORLD_W: f32 = 1000.0;
+pub const WORLD_H: f32 = 500.0;
 
 // Player
-pub const PLAYER_SPEED: f32 = 4.0;
+pub const PLAYER_SPEED: f32 = 8.0;
 pub const PLAYER_HEALTH: f32 = 100.0;
 
 // Enemy
 pub const MAX_NUM_ENEMIES: usize = 2000;
 pub const ENEMY_DAMAGE: f32 = 1.0;
-pub const SPAWN_RATE_PER_SECOND: usize = 500;
+pub const SPAWN_RATE_PER_SECOND: usize = 1000;
 pub const ENEMY_HEALTH: f32 = 100.0;
 pub const ENEMY_SPAWN_INTERVAL: f32 = 1.0;
-pub const ENEMY_SPEED: f32 = 1.0;
+pub const ENEMY_SPEED: f32 = 6.0;
 
 // Kd-tree
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
