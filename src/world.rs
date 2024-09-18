@@ -29,6 +29,7 @@ fn init_world(
     handle: Res<GlobalTextureAtlas>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
+    commands.insert_resource(Wave::default());
     commands.spawn((
         SpriteBundle {
             texture: handle.image.clone().unwrap(),

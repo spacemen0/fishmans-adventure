@@ -2,7 +2,6 @@ use bevy::math::vec3;
 use bevy::prelude::*;
 
 use crate::state::GameState;
-use crate::resources::Wave;
 use crate::*;
 
 pub struct PlayerPlugin;
@@ -43,7 +42,6 @@ fn handle_player_enemy_collision_events(
     if player_query.is_empty() {
         return;
     }
-
     let mut health = player_query.single_mut();
     for _ in events.read() {
         health.0 -= ENEMY_DAMAGE;
@@ -51,18 +49,14 @@ fn handle_player_enemy_collision_events(
 }
 
 fn handle_player_death(
-    player_query: Query<&Health, With<Player>>,
+    player_query: Query<(&Health, Entity), With<Player>>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut wave: ResMut<Wave>,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let health = player_query.single();
-    if health.0 <= 0.0 {
-        wave.enemies_left = 10;
-        wave.enemies_spawned = 0;
-        wave.enemies_total = 10;
+    let player = player_query.single();
+    if player.0 .0 <= 0.0 {
         next_state.set(GameState::MainMenu);
     }
 }
