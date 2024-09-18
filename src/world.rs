@@ -90,6 +90,8 @@ fn despawn_all_game_entities(
     all_entities: Query<Entity, With<GameEntity>>,
 ) {
     for e in all_entities.iter() {
-        commands.entity(e).despawn_recursive();
+        if let Some(entity) = commands.get_entity(e) {
+            entity.despawn_recursive();
+        }
     }
 }
