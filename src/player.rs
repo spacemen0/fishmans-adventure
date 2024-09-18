@@ -43,8 +43,16 @@ fn handle_player_enemy_collision_events(
         return;
     }
     let mut health = player_query.single_mut();
+
+    if health.0 <= 0.0 {
+        events.clear();
+        return;
+    }
+
     for _ in events.read() {
-        health.0 -= ENEMY_DAMAGE;
+        if health.0 > 0.0 {
+            health.0 -= ENEMY_DAMAGE;
+        }
     }
 }
 
