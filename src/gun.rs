@@ -72,9 +72,11 @@ fn despawn_old_bullets(
 ) {
     for (instant, e) in bullet_query.iter() {
         if instant.0.elapsed().as_secs_f32() > BULLET_TIME_SECS {
-            if let Some(entity) = commands.get_entity(e) {
-                entity.despawn_recursive();
-            }
+            commands.add(move |world: &mut World| {
+                if let Some(entity) = world.get_entity_mut(e) {
+                    entity.despawn();
+                }
+            });
         }
     }
 }

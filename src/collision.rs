@@ -80,9 +80,11 @@ fn handle_enemy_bullet_collision(
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
                 enemy.health -= BULLET_DAMAGE;
-                if let Some(entity) = commands.get_entity(b_t.1) {
-                    entity.despawn_recursive();
-                }
+                commands.add(move |world: &mut World| {
+                    if let Some(entity) = world.get_entity_mut(b_t.1) {
+                        entity.despawn();
+                    }
+                });
             }
         }
     }
