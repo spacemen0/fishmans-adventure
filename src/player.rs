@@ -93,7 +93,11 @@ fn handle_player_input(
     delta = delta.normalize();
 
     if delta.is_finite() && (w_key || a_key || s_key || d_key) {
-        transform.translation += vec3(delta.x, delta.y, 0.0) * PLAYER_SPEED;
+        let desired_position = transform.translation.xy() + delta * PLAYER_SPEED;
+        let clamped_x = desired_position.x.clamp(-WORLD_W, WORLD_W);
+        let clamped_y = desired_position.y.clamp(-WORLD_H, WORLD_H);
+        transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
+
         transform.translation.z = 10.0;
         *player_state = PlayerState::Run;
     } else {

@@ -7,9 +7,9 @@ use rand::Rng;
 
 use crate::animation::AnimationTimer;
 use crate::player::Player;
+use crate::resources::Wave;
 use crate::state::GameState;
 use crate::world::GameEntity;
-use crate::resources::Wave;
 use crate::*;
 
 pub struct EnemyPlugin;
@@ -40,7 +40,11 @@ impl Plugin for EnemyPlugin {
     }
 }
 
-fn despawn_dead_enemies(mut commands: Commands, enemy_query: Query<(&Enemy, Entity), With<Enemy>>, mut wave: ResMut<Wave>) {
+fn despawn_dead_enemies(
+    mut commands: Commands,
+    enemy_query: Query<(&Enemy, Entity), With<Enemy>>,
+    mut wave: ResMut<Wave>,
+) {
     if enemy_query.is_empty() {
         return;
     }
@@ -73,8 +77,7 @@ fn spawn_enemies(
     handle: Res<GlobalTextureAtlas>,
     player_query: Query<&Transform, With<Player>>,
     mut wave: ResMut<Wave>,
-) { 
-
+) {
     if wave.enemies_left == 0 {
         let wave_count = calculate_enemies_per_wave(wave.number);
         wave.number += 1;
@@ -115,7 +118,7 @@ fn spawn_enemies(
 fn get_random_position_around(pos: Vec2) -> (f32, f32) {
     let mut rng = rand::thread_rng();
     let angle = rng.gen_range(0.0..PI * 2.0);
-    let dist = rng.gen_range(1000.0..5000.0);
+    let dist = rng.gen_range(1000.0..3000.0);
 
     let offset_x = angle.cos() * dist;
     let offset_y = angle.sin() * dist;
@@ -123,7 +126,10 @@ fn get_random_position_around(pos: Vec2) -> (f32, f32) {
     let random_x = pos.x + offset_x;
     let random_y = pos.y + offset_y;
 
-    (random_x, random_y)
+    (
+        random_x.clamp(-WORLD_W, WORLD_W),
+        random_y.clamp(-WORLD_H, WORLD_H),
+    )
 }
 
 fn calculate_enemies_per_wave(wave: u32) -> u32 {

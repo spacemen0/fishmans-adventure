@@ -3,9 +3,9 @@ use bevy::prelude::*;
 
 use crate::enemy::Enemy;
 use crate::player::{Health, Player};
+use crate::resources::Wave;
 use crate::state::GameState;
 use crate::world::GameEntity;
-use crate::resources::Wave;
 
 pub struct GuiPlugin;
 
@@ -52,7 +52,7 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .spawn(NodeBundle {
                     style: Style {
                         width: Val::Px(345.0),
-                        height: Val::Px(125.0),
+                        height: Val::Px(225.0),
                         align_items: AlignItems::Center,
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Center,
@@ -100,7 +100,7 @@ fn update_debug_text(
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(value) = fps.smoothed() {
             text.sections[0].value =
-                format!("Fps: {value:.2}\nWave: {current_wave}\n Enemies left: {enemies_remaining}/{enemies_total} \nHealth: {player_health}");
+                format!("Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}/{enemies_total} \nHealth: {player_health}");
         }
     }
 }

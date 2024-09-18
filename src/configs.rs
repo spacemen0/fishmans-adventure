@@ -12,8 +12,8 @@ pub const SPRITE_SHEET_H: u32 = 8;
 
 // World
 pub const NUM_WORLD_DECORATIONS: usize = 500;
-pub const WORLD_W: f32 = 1000.0;
-pub const WORLD_H: f32 = 500.0;
+pub const WORLD_W: f32 = 4000.0;
+pub const WORLD_H: f32 = 2000.0;
 
 // Player
 pub const PLAYER_SPEED: f32 = 8.0;
