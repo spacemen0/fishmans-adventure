@@ -27,6 +27,11 @@ impl Plugin for GuiPlugin {
             .add_systems(
                 Update,
                 update_debug_text.run_if(in_state(GameState::InGame)),
+            )
+            .add_systems(
+                Update,
+                handle_pause_input
+                    .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
             );
     }
 }
@@ -162,5 +167,23 @@ fn handle_main_menu_buttons(
 fn despawn_main_menu(mut commands: Commands, menu_items_query: Query<Entity, With<MainMenuItem>>) {
     for e in menu_items_query.iter() {
         commands.entity(e).despawn_recursive();
+    }
+}
+
+fn handle_pause_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<GameState>>,
+    current_state: Res<State<GameState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        match current_state.get() {
+            GameState::InGame => {
+                next_state.set(GameState::Paused);
+            }
+            GameState::Paused => {
+                next_state.set(GameState::InGame);
+            }
+            _ => {}
+        }
     }
 }

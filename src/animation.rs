@@ -25,7 +25,7 @@ impl Plugin for AnimationPlugin {
                 flip_player_sprite_x,
                 flip_enemy_sprite_x,
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
         );
     }
 }
