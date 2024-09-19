@@ -28,20 +28,21 @@ cargo run
 
 ### Gameplay Mechanics
 
-- [ ] **Automatic Player Fire**
+- [x] **Automatic Player Fire**
   - [ ] Implement automatic firing mechanism for the player.
-  - [ ] Define fire rate and control options for automatic firing.
+  - [x] Define fire rate and control options for automatic firing.
 
 - [ ] **Re-engineer Enemy Spawning Logic**
-  - [ ] Implement wave-based spawning system.
+  - [x] Implement wave-based spawning system.
   - [ ] Define wave progression and difficulty scaling.
   - [ ] Add enemy spawn patterns for different waves.
 
 - [ ] **Enemy Projectiles and Collision**
   - [ ] Add functionality for enemies to fire projectiles.
   - [ ] Implement collision detection between player and enemy projectiles.
-  - [ ] Implement invincible time
-
+  - [ ] Prevent overlap between sprites of specific entities
+- [x] Implement invincible time
+  
 - [ ] **Enhance Enemy Diversity**
   - [ ] Create new enemy types with varying behaviors.
   - [ ] Define attributes and projectiles firing abilities for each new enemy type.
@@ -55,15 +56,15 @@ cargo run
 
 ### User Interface
 - [ ] **On-Screen Information**
-  - [ ] Display wave counts on screen.
+  - [x] Display wave counts on screen.
   - [ ] Implement switch to toggle on/off on-screen debug messages.
 
 - [ ] **Loot Display GUI**
   - [ ] Design and implement GUI elements for displaying loot information.
   - [ ] Add functionality for showing item details and usage options.
 
-- [ ] **Pause Game and Settings**
-  - [ ] Implement pause game functionality and render pause game screen
+- [x] **Pause Game and Settings**
+  - [x] Implement pause game functionality and render pause game screen
 ### World and NPC Features
 - [ ] **Portal to NPC Town**
   - [ ] Design and implement a portal or transition system to the NPC town.
@@ -76,4 +77,7 @@ cargo run
   - [ ] Develop a trading system for buying and selling loot.
   - [ ] Implement NPC interactions for trade.
   - [ ] Define tradeable items and pricing mechanisms.
+
+### Bug Fix
+- [ ] Health should reset when starting new game
 

@@ -48,6 +48,7 @@ fn handle_enemy_player_collision(
 
     let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
     let player_pos = translation.translation;
+
     if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
         let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
 
