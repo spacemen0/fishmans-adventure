@@ -2,6 +2,7 @@ use bevy::utils::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
+use player::{InvulnerableTimer, PlayerState};
 
 use crate::player::{Player, PlayerEnemyCollisionEvent};
 use crate::*;
@@ -33,7 +34,7 @@ impl Plugin for CollisionPlugin {
 }
 
 fn handle_enemy_player_collision(
-    player_query: Query<&Transform, With<Player>>,
+    mut player_query: Query<(&Transform, &mut PlayerState, &mut InvulnerableTimer), With<Player>>,
     tree: Res<EnemyKdTree>,
     mut ew: EventWriter<PlayerEnemyCollisionEvent>,
 ) {
@@ -41,10 +42,29 @@ fn handle_enemy_player_collision(
         return;
     }
 
-    let player_pos = player_query.single().translation;
-    let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
-    for _ in enemies.iter() {
-        ew.send(PlayerEnemyCollisionEvent);
+    let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
+    let player_pos = translation.translation;
+    if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
+        let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
+
+        if !enemies.is_empty() {
+            for _ in enemies.iter() {
+                ew.send(PlayerEnemyCollisionEvent);
+            }
+            match *player_state {
+                PlayerState::Idle => {
+                    *player_state = PlayerState::IdleInvulnerable;
+                    println!("{:?}", *player_state);
+                }
+                PlayerState::Run => {
+                    *player_state = PlayerState::RunInvulnerable;
+                    println!("{:?}", *player_state);
+                }
+                _ => unreachable!(),
+            }
+
+            invulnerable_timer.0.reset();
+        }
     }
 }
 

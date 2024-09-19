@@ -51,6 +51,8 @@ fn animate_player(
         let base_sprite_index = match state {
             PlayerState::Idle => 0,
             PlayerState::Run => 4,
+            PlayerState::IdleInvulnerable => 0,
+            PlayerState::RunInvulnerable => 4,
         };
         atlas.index = base_sprite_index + (atlas.index + 1) % 4;
     }

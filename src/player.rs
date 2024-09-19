@@ -1,5 +1,6 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
+use bevy::time::Stopwatch;
 
 use crate::state::GameState;
 use crate::*;
@@ -10,12 +11,16 @@ pub struct PlayerPlugin;
 pub struct Player;
 #[derive(Component)]
 pub struct Health(pub f32);
+#[derive(Component)]
+pub struct InvulnerableTimer(pub Stopwatch);
 
-#[derive(Component, Default)]
+#[derive(Component, Default, Debug)]
 pub enum PlayerState {
     #[default]
     Idle,
     Run,
+    IdleInvulnerable,
+    RunInvulnerable,
 }
 
 #[derive(Event)]
@@ -29,6 +34,7 @@ impl Plugin for PlayerPlugin {
                 handle_player_death,
                 handle_player_input,
                 handle_player_enemy_collision_events,
+                handle_player_invulnerable_timer,
             )
                 .run_if(in_state(GameState::InGame)),
         );
@@ -47,7 +53,6 @@ fn handle_player_enemy_collision_events(
         if health.0 > 0.0 {
             health.0 -= ENEMY_DAMAGE;
         }
-        
     }
 }
 
@@ -64,8 +69,34 @@ fn handle_player_death(
     }
 }
 
+fn handle_player_invulnerable_timer(
+    time: Res<Time>,
+    mut player_query: Query<(&mut PlayerState, &mut InvulnerableTimer), With<Player>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+    let (mut player_state, mut invulnerable_timer) = player_query.single_mut();
+    match player_state.as_ref() {
+        PlayerState::Idle => (),
+        PlayerState::IdleInvulnerable | PlayerState::RunInvulnerable => {
+            if invulnerable_timer.0.elapsed_secs() >= PLAYER_INVULNERABLE_TIME {
+                invulnerable_timer.0.reset();
+                *player_state = match *player_state {
+                    PlayerState::IdleInvulnerable => PlayerState::Idle,
+                    PlayerState::RunInvulnerable => PlayerState::Run,
+                    _ => unreachable!(), // Other states shouldn't be reached here
+                };
+            }
+            invulnerable_timer.0.tick(time.delta());
+        }
+        PlayerState::Run => (),
+    }
+}
+
 fn handle_player_input(
     mut player_query: Query<(&mut Transform, &mut PlayerState), With<Player>>,
+
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if player_query.is_empty() {
@@ -101,8 +132,18 @@ fn handle_player_input(
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
 
         transform.translation.z = 10.0;
-        *player_state = PlayerState::Run;
+        *player_state = match *player_state {
+            PlayerState::Idle => PlayerState::Run,
+            PlayerState::Run => PlayerState::Run,
+            PlayerState::IdleInvulnerable => PlayerState::RunInvulnerable,
+            PlayerState::RunInvulnerable => PlayerState::RunInvulnerable,
+        }
     } else {
-        *player_state = PlayerState::Idle;
+        *player_state = match *player_state {
+            PlayerState::Idle => PlayerState::Idle,
+            PlayerState::Run => PlayerState::Idle,
+            PlayerState::IdleInvulnerable => PlayerState::IdleInvulnerable,
+            PlayerState::RunInvulnerable => PlayerState::IdleInvulnerable,
+        }
     }
 }

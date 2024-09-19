@@ -1,6 +1,7 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use player::InvulnerableTimer;
 use rand::Rng;
 
 use crate::animation::AnimationTimer;
@@ -42,6 +43,7 @@ fn init_world(
         },
         Player,
         Health(PLAYER_HEALTH),
+        InvulnerableTimer(Stopwatch::new()),
         PlayerState::default(),
         AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
         GameEntity,

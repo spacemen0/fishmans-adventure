@@ -18,6 +18,7 @@ pub const WORLD_H: f32 = 2000.0;
 // Player
 pub const PLAYER_SPEED: f32 = 8.0;
 pub const PLAYER_HEALTH: f32 = 100.0;
+pub const PLAYER_INVULNERABLE_TIME: f32 = 0.5;
 
 // Enemy
 pub const MAX_NUM_ENEMIES: usize = 2000;
