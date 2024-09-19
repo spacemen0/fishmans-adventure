@@ -44,25 +44,16 @@ fn handle_enemy_player_collision(
 
     let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
     let player_pos = translation.translation;
+
     if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
         let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
-
-        if !enemies.is_empty() {
-            for _ in enemies.iter() {
-                ew.send(PlayerEnemyCollisionEvent);
-            }
-            match *player_state {
-                PlayerState::Idle => {
-                    *player_state = PlayerState::IdleInvulnerable;
-                    println!("{:?}", *player_state);
-                }
-                PlayerState::Run => {
-                    *player_state = PlayerState::RunInvulnerable;
-                    println!("{:?}", *player_state);
-                }
+        if let Some(_first_enemy) = enemies.first() {
+            ew.send(PlayerEnemyCollisionEvent);
+            *player_state = match *player_state {
+                PlayerState::Idle => PlayerState::IdleInvulnerable,
+                PlayerState::Run => PlayerState::RunInvulnerable,
                 _ => unreachable!(),
-            }
-
+            };
             invulnerable_timer.0.reset();
         }
     }
