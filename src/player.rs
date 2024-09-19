@@ -24,7 +24,9 @@ pub enum PlayerState {
 }
 
 #[derive(Event)]
-pub struct PlayerEnemyCollisionEvent;
+pub struct PlayerEnemyCollisionEvent {
+    pub damage: f32,
+}
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -42,19 +44,21 @@ impl Plugin for PlayerPlugin {
 }
 
 fn handle_player_enemy_collision_events(
-    mut player_query: Query<&mut Health, With<Player>>,
+    mut player_query: Query<(&mut Health, &PlayerState), With<Player>>,
     mut events: EventReader<PlayerEnemyCollisionEvent>,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let mut health = player_query.single_mut();
-    for _ in events.read() {
+    let (mut health, _player_state) = player_query.single_mut();
+    for event in events.read() {
+        println!("{}", event.damage);
         if health.0 > 0.0 {
-            health.0 -= ENEMY_DAMAGE;
+            health.0 -= event.damage;
         }
     }
 }
+
 
 fn handle_player_death(
     player_query: Query<(&Health, Entity), With<Player>>,

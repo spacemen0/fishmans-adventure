@@ -6,7 +6,8 @@ use player::{InvulnerableTimer, PlayerState};
 
 use crate::player::{Player, PlayerEnemyCollisionEvent};
 use crate::*;
-use crate::{enemy::Enemy, gun::Bullet, state::GameState};
+use crate::{enemy::Enemy, gun::Bullet, state::GameState, enemy::Trail};
+
 
 pub struct CollisionPlugin;
 
@@ -14,7 +15,9 @@ pub struct CollisionPlugin;
 struct Collidable {
     pos: Vec2,
     entity: Entity,
+    damage: f32,
 }
+
 #[derive(Resource)]
 struct EnemyKdTree(KdTree<Collidable>);
 
@@ -25,6 +28,7 @@ impl Plugin for CollisionPlugin {
             (
                 handle_enemy_bullet_collision,
                 handle_enemy_player_collision,
+                handle_player_trail_collision,
                 update_enemy_kd_tree
                     .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
             )
@@ -48,40 +52,78 @@ fn handle_enemy_player_collision(
         let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
 
         if !enemies.is_empty() {
-            for _ in enemies.iter() {
-                ew.send(PlayerEnemyCollisionEvent);
-            }
-            match *player_state {
-                PlayerState::Idle => {
-                    *player_state = PlayerState::IdleInvulnerable;
-                    println!("{:?}", *player_state);
+            for enemy in enemies.iter() {
+                if enemy.damage > 0.0 {
+                    ew.send(PlayerEnemyCollisionEvent { damage: enemy.damage });
                 }
-                PlayerState::Run => {
-                    *player_state = PlayerState::RunInvulnerable;
-                    println!("{:?}", *player_state);
-                }
-                _ => unreachable!(),
             }
-
-            invulnerable_timer.0.reset();
+            if enemies.iter().any(|e| e.damage > 0.0) {
+                match *player_state {
+                    PlayerState::Idle => {
+                        *player_state = PlayerState::IdleInvulnerable;
+                        println!("{:?}", *player_state);
+                    }
+                    PlayerState::Run => {
+                        *player_state = PlayerState::RunInvulnerable;
+                        println!("{:?}", *player_state);
+                    }
+                    _ => unreachable!(),
+                }
+                invulnerable_timer.0.reset();
+            }
         }
     }
 }
 
+
+fn handle_player_trail_collision(
+    mut player_query: Query<(&Transform, &mut PlayerState, &mut InvulnerableTimer), With<Player>>,
+    trail_query: Query<(&Transform, &Trail)>,
+    mut ew: EventWriter<PlayerEnemyCollisionEvent>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+
+    let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
+    let player_pos = translation.translation.xy();
+
+    if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
+        for (trail_transform, trail) in trail_query.iter() {
+            let trail_pos = trail_transform.translation.xy();
+            if player_pos.distance(trail_pos) <= trail.radius {
+                ew.send(PlayerEnemyCollisionEvent { damage: trail.damage });
+                *player_state = match *player_state {
+                    PlayerState::Idle => PlayerState::IdleInvulnerable,
+                    PlayerState::Run => PlayerState::RunInvulnerable,
+                    _ => unreachable!(),
+                };
+                invulnerable_timer.0.reset();
+                break; 
+            }
+        }
+    }
+}
+
+
+
+
 fn update_enemy_kd_tree(
     mut tree: ResMut<EnemyKdTree>,
-    enemy_query: Query<(&Transform, Entity), With<Enemy>>,
+    enemy_query: Query<(&Transform, Entity, &Enemy), With<Enemy>>,
 ) {
     let mut items = Vec::new();
-    for (t, e) in enemy_query.iter() {
+    for (t, e, enemy) in enemy_query.iter() {
         items.push(Collidable {
             entity: e,
             pos: t.translation.truncate(),
+            damage: enemy.damage,
         })
     }
 
     tree.0 = KdTree::build_by_ordered_float(items);
 }
+
 
 fn handle_enemy_bullet_collision(
     mut commands: Commands,
