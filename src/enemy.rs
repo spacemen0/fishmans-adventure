@@ -26,6 +26,7 @@ pub struct Enemy {
 pub enum EnemyType {
     Green,
     Toxic,
+    Charger,
 }
 
 #[derive(Component, Clone)]
@@ -34,7 +35,23 @@ pub enum EnemyTrait {
         timer: Timer,
         trail_damage: f32,
     },
+    Charge {
+        state: ChargeState,
+        charge_timer: Timer,
+        charge_distance: f32,
+        charge_speed: f32,
+        target_position: Option<Vec2>,
+    },
 }
+
+#[derive(Clone)]
+pub enum ChargeState {
+    Approaching,
+    Preparing,
+    Charging,
+    Cooldown,
+}
+
 
 #[derive(Component)]
 pub struct Trail {
@@ -50,8 +67,8 @@ impl Plugin for EnemyPlugin {
             (
                 spawn_enemies.run_if(on_timer(Duration::from_secs_f32(ENEMY_SPAWN_INTERVAL))),
                 update_enemy_transform,
-                despawn_dead_enemies,
                 apply_enemy_traits,
+                despawn_dead_enemies,
                 update_trails,
             )
                 .run_if(in_state(GameState::InGame)),
@@ -86,8 +103,10 @@ fn update_enemy_transform(
 
     let player_pos = player_query.single().translation;
     for (enemy, mut transform) in enemy_query.iter_mut() {
-        let dir = (player_pos - transform.translation).normalize();
-        transform.translation += dir * enemy.speed;
+        if !enemy.traits.iter().any(|t| matches!(t, EnemyTrait::Charge { .. })) {
+            let dir = (player_pos - transform.translation).normalize();
+            transform.translation += dir * enemy.speed;
+        }
     }
 }
 
@@ -177,9 +196,17 @@ fn update_trails(
 fn apply_enemy_traits(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemy_query: Query<(Entity, &mut Enemy, &Transform)>,
+    mut enemy_query: Query<(&mut Enemy, &mut Transform, &mut TextureAtlas)>,
+    player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
 ) {
-    for (_entity, mut enemy, transform) in enemy_query.iter_mut() {
+    let player_pos = player_query.single().translation;
+
+    for (mut enemy, mut transform, mut texture_atlas) in enemy_query.iter_mut() {
+        let enemy_speed = enemy.speed; 
+        let mut movement = Vec3::ZERO;
+        let mut is_charging = false;
+        let mut charge_state = None;
+
         for trait_ in enemy.traits.iter_mut() {
             match trait_ {
                 EnemyTrait::LeaveTrail { timer, trail_damage } => {
@@ -188,10 +215,60 @@ fn apply_enemy_traits(
                         spawn_trail(&mut commands, transform.translation, *trail_damage);
                     }
                 }
+                EnemyTrait::Charge { state, charge_timer, charge_distance, charge_speed, target_position } => {
+                    is_charging = true;
+                    charge_state = Some((state, charge_timer, *charge_distance, *charge_speed, target_position));
+                }
             }
         }
+
+        if let Some((state, charge_timer, charge_distance, charge_speed, target_position)) = charge_state {
+            match state {
+                ChargeState::Approaching => {
+                    let dir = (player_pos.xy() - transform.translation.xy()).normalize();
+                    movement = dir.extend(0.0) * enemy_speed;
+                    if transform.translation.xy().distance(player_pos.xy()) <= charge_distance {
+                        *state = ChargeState::Preparing;
+                        charge_timer.reset();
+                    }
+                }
+                ChargeState::Preparing => {
+                    texture_atlas.index = 17;
+                    charge_timer.tick(time.delta());
+                    if charge_timer.just_finished() {
+                        *state = ChargeState::Charging;
+                        *target_position = Some(player_pos.xy());
+                    }
+                }
+                ChargeState::Charging => {
+                    if let Some(target) = *target_position {
+                        let dir = (target - transform.translation.xy()).normalize();
+                        movement = dir.extend(0.0) * charge_speed;
+                        if transform.translation.xy().distance(target) < 10.0 {
+                            *state = ChargeState::Cooldown;
+                            charge_timer.reset();
+                        }
+                    }
+                }
+                ChargeState::Cooldown => {
+                    texture_atlas.index = 17;
+                    charge_timer.tick(time.delta());
+                    if charge_timer.just_finished() {
+                        *state = ChargeState::Approaching;
+                    }
+                }
+            }
+        }
+
+        if !is_charging {
+            let dir = (player_pos - transform.translation).normalize();
+            movement = dir * enemy_speed;
+        }
+
+        transform.translation += movement;
     }
 }
+
 
 fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
     commands.spawn((
@@ -219,6 +296,7 @@ impl EnemyType {
         let rand_index = rng.gen_range(0..5);
         match rand_index {
             0 => Self::Green,
+            1 => Self::Charger,
             _ => Self::Toxic,
         }
     }
@@ -227,6 +305,7 @@ impl EnemyType {
         match self {
             EnemyType::Green => 8,
             EnemyType::Toxic => 12,
+            EnemyType::Charger => 20,
         }
     }
 
@@ -245,6 +324,18 @@ impl EnemyType {
                 traits: vec![EnemyTrait::LeaveTrail {
                     timer: Timer::from_seconds(0.1, TimerMode::Repeating),
                     trail_damage: 2.0,
+                }],
+            },
+            EnemyType::Charger => EnemyConfig {
+                health: 80.0,
+                speed: 4.0,
+                damage: 8.0,
+                traits: vec![EnemyTrait::Charge {
+                    state: ChargeState::Approaching,
+                    charge_timer: Timer::from_seconds(1.5, TimerMode::Once),
+                    charge_distance: 200.0,
+                    charge_speed: 15.0,
+                    target_position: None,
                 }],
             }
         }
