@@ -5,7 +5,7 @@ use crate::enemy::Enemy;
 use crate::player::{Health, Player};
 use crate::resources::Wave;
 use crate::state::GameState;
-use crate::world::GameEntity;
+use crate::world::ShouldDespawn;
 
 pub struct GuiPlugin;
 
@@ -50,7 +50,7 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
                 },
                 ..default()
             },
-            GameEntity,
+            ShouldDespawn,
         ))
         .with_children(|parent| {
             parent

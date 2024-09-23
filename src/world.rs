@@ -1,11 +1,12 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use gun::GunBundle;
 use player::InvulnerableTimer;
 use rand::Rng;
 
 use crate::animation::AnimationTimer;
-use crate::gun::{Gun, GunTimer};
+use crate::gun::{Gun, GunTimer, GunType};
 use crate::player::{Health, Player, PlayerState};
 use crate::*;
 use crate::{state::GameState, GlobalTextureAtlas};
@@ -13,7 +14,7 @@ use crate::{state::GameState, GlobalTextureAtlas};
 pub struct WorldPlugin;
 
 #[derive(Component)]
-pub struct GameEntity;
+pub struct ShouldDespawn;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
@@ -46,21 +47,24 @@ fn init_world(
         InvulnerableTimer(Stopwatch::new()),
         PlayerState::default(),
         AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
-        GameEntity,
+        ShouldDespawn,
     ));
     commands.spawn((
-        SpriteBundle {
-            texture: handle.image.clone().unwrap(),
-            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            ..default()
+        GunBundle {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            gun: Gun,
+            gun_timer: GunTimer(Stopwatch::new(), BULLET_SPAWN_INTERVAL),
+            gun_type: GunType::Default,
+            should_despawn: ShouldDespawn,
         },
         TextureAtlas {
             layout: handle.layout.clone().unwrap(),
             index: 17,
         },
-        Gun,
-        GunTimer(Stopwatch::new()),
-        GameEntity,
     ));
 
     next_state.set(GameState::InGame);
@@ -82,14 +86,14 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
                 layout: handle.layout.clone().unwrap(),
                 index: rng.gen_range(24..=25),
             },
-            GameEntity,
+            ShouldDespawn,
         ));
     }
 }
 
 fn despawn_all_game_entities(
     mut commands: Commands,
-    all_entities: Query<Entity, With<GameEntity>>,
+    all_entities: Query<Entity, With<ShouldDespawn>>,
     next_state: Res<State<GameState>>,
 ) {
     if *next_state.get() != GameState::Paused {

@@ -9,7 +9,7 @@ use crate::animation::AnimationTimer;
 use crate::player::Player;
 use crate::resources::Wave;
 use crate::state::GameState;
-use crate::world::GameEntity;
+use crate::world::ShouldDespawn;
 use crate::*;
 
 pub struct EnemyPlugin;
@@ -51,7 +51,6 @@ pub enum ChargeState {
     Charging,
     Cooldown,
 }
-
 
 #[derive(Component)]
 pub struct Trail {
@@ -103,7 +102,11 @@ fn update_enemy_transform(
 
     let player_pos = player_query.single().translation;
     for (enemy, mut transform) in enemy_query.iter_mut() {
-        if !enemy.traits.iter().any(|t| matches!(t, EnemyTrait::Charge { .. })) {
+        if !enemy
+            .traits
+            .iter()
+            .any(|t| matches!(t, EnemyTrait::Charge { .. }))
+        {
             let dir = (player_pos - transform.translation).normalize();
             transform.translation += dir * enemy.speed;
         }
@@ -133,7 +136,7 @@ fn spawn_enemies(
         let (x, y) = get_random_position_around(player_pos);
         let enemy_type = EnemyType::get_rand_enemy();
         let enemy_config = enemy_type.get_config();
-        
+
         commands.spawn((
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
@@ -153,7 +156,7 @@ fn spawn_enemies(
             },
             enemy_type,
             AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
-            GameEntity,
+            ShouldDespawn,
         ));
         wave.enemies_spawned += 1;
     }
@@ -202,27 +205,44 @@ fn apply_enemy_traits(
     let player_pos = player_query.single().translation;
 
     for (mut enemy, mut transform, mut texture_atlas) in enemy_query.iter_mut() {
-        let enemy_speed = enemy.speed; 
+        let enemy_speed = enemy.speed;
         let mut movement = Vec3::ZERO;
         let mut is_charging = false;
         let mut charge_state = None;
 
         for trait_ in enemy.traits.iter_mut() {
             match trait_ {
-                EnemyTrait::LeaveTrail { timer, trail_damage } => {
+                EnemyTrait::LeaveTrail {
+                    timer,
+                    trail_damage,
+                } => {
                     timer.tick(time.delta());
                     if timer.just_finished() {
                         spawn_trail(&mut commands, transform.translation, *trail_damage);
                     }
                 }
-                EnemyTrait::Charge { state, charge_timer, charge_distance, charge_speed, target_position } => {
+                EnemyTrait::Charge {
+                    state,
+                    charge_timer,
+                    charge_distance,
+                    charge_speed,
+                    target_position,
+                } => {
                     is_charging = true;
-                    charge_state = Some((state, charge_timer, *charge_distance, *charge_speed, target_position));
+                    charge_state = Some((
+                        state,
+                        charge_timer,
+                        *charge_distance,
+                        *charge_speed,
+                        target_position,
+                    ));
                 }
             }
         }
 
-        if let Some((state, charge_timer, charge_distance, charge_speed, target_position)) = charge_state {
+        if let Some((state, charge_timer, charge_distance, charge_speed, target_position)) =
+            charge_state
+        {
             match state {
                 ChargeState::Approaching => {
                     let dir = (player_pos.xy() - transform.translation.xy()).normalize();
@@ -269,12 +289,11 @@ fn apply_enemy_traits(
     }
 }
 
-
 fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
-                color: Color::srgba(0.0, 0.8, 0.0, 0.5), 
+                color: Color::srgba(0.0, 0.8, 0.0, 0.5),
                 custom_size: Some(Vec2::new(20.0, 20.0)),
                 ..default()
             },
@@ -286,7 +305,7 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
             lifetime: Timer::from_seconds(5.0, TimerMode::Once),
             radius: 10.0,
         },
-        GameEntity,
+        ShouldDespawn,
     ));
 }
 
@@ -337,7 +356,7 @@ impl EnemyType {
                     charge_speed: 15.0,
                     target_position: None,
                 }],
-            }
+            },
         }
     }
 }

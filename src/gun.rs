@@ -5,6 +5,7 @@ use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use rand::Rng;
+use world::ShouldDespawn;
 
 use crate::player::Player;
 use crate::state::GameState;
@@ -15,13 +16,29 @@ pub struct GunPlugin;
 #[derive(Component)]
 pub struct Gun;
 #[derive(Component)]
-pub struct GunTimer(pub Stopwatch);
+pub struct GunTimer(pub Stopwatch, pub f32);
+
+#[derive(Component, Clone)]
+pub enum GunType {
+    Default,
+    Gun1,
+    Gun2,
+}
 #[derive(Component)]
 pub struct Bullet;
 #[derive(Component)]
 pub struct SpawnInstant(Instant);
 #[derive(Component)]
 struct BulletDirection(Vec3);
+
+#[derive(Bundle)]
+pub struct GunBundle {
+    pub gun: Gun,
+    pub gun_timer: GunTimer,
+    pub gun_type: GunType,
+    pub should_despawn: ShouldDespawn,
+    pub sprite_bundle: SpriteBundle,
+}
 
 impl Plugin for GunPlugin {
     fn build(&self, app: &mut App) {
@@ -83,54 +100,73 @@ fn despawn_old_bullets(
 fn handle_gun_firing(
     mut commands: Commands,
     time: Res<Time>,
-    mut gun_query: Query<(&Transform, &mut GunTimer), With<Gun>>,
+    mut gun_query: Query<(&Transform, &mut GunTimer, &GunType), With<Gun>>,
     handle: Res<GlobalTextureAtlas>,
 ) {
     if gun_query.is_empty() {
         return;
     }
 
-    let (gun_transform, mut gun_timer) = gun_query.single_mut();
-    let gun_pos = gun_transform.translation.truncate();
+    let (gun_transform, mut gun_timer, gun_type) = gun_query.single_mut();
+
     gun_timer.0.tick(time.delta());
 
-    let mut rng = rand::thread_rng();
-    let bullet_direction = gun_transform.local_x();
-    if gun_timer.0.elapsed_secs() >= BULLET_SPAWN_INTERVAL {
+    if gun_timer.0.elapsed_secs() >= gun_timer.1 {
         gun_timer.0.reset();
-
-        for _ in 0..NUM_BULLETS_PER_SHOT {
-            let dir = vec3(
-                bullet_direction.x + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
-                bullet_direction.y + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
-                bullet_direction.z,
-            );
-            commands.spawn((
-                SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_translation(vec3(gun_pos.x, gun_pos.y, 1.0))
-                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
-                TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
-                    index: 16,
-                },
-                Bullet,
-                BulletDirection(dir),
-                SpawnInstant(Instant::now()),
-            ));
+        let gun_pos = gun_transform.translation.truncate();
+        let mut rng = rand::thread_rng();
+        let bullet_direction = gun_transform.local_x();
+        match gun_type {
+            GunType::Default => {
+                for _ in 0..NUM_BULLETS_PER_SHOT {
+                    let dir = vec3(
+                        bullet_direction.x + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
+                        bullet_direction.y + rng.gen_range(-BULLET_SPREAD..BULLET_SPREAD),
+                        bullet_direction.z,
+                    );
+                    commands.spawn((
+                        SpriteBundle {
+                            texture: handle.image.clone().unwrap(),
+                            transform: Transform::from_translation(vec3(gun_pos.x, gun_pos.y, 1.0))
+                                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                            ..default()
+                        },
+                        TextureAtlas {
+                            layout: handle.layout.clone().unwrap(),
+                            index: 16,
+                        },
+                        Bullet,
+                        BulletDirection(dir),
+                        gun_type.clone(),
+                        SpawnInstant(Instant::now()),
+                    ));
+                }
+            }
+            GunType::Gun1 => {
+                todo!()
+            }
+            GunType::Gun2 => {
+                todo!()
+            }
         }
     }
 }
 
-fn update_bullets(mut bullet_query: Query<(&mut Transform, &BulletDirection), With<Bullet>>) {
+fn update_bullets(
+    mut bullet_query: Query<(&mut Transform, &BulletDirection, &GunType), With<Bullet>>,
+) {
     if bullet_query.is_empty() {
         return;
     }
 
-    for (mut t, dir) in bullet_query.iter_mut() {
-        t.translation += dir.0.normalize() * Vec3::splat(BULLET_SPEED);
-        t.translation.z = 10.0;
+    for (mut t, dir, gun_type) in bullet_query.iter_mut() {
+        match gun_type {
+            GunType::Default => {
+                t.translation += dir.0.normalize() * Vec3::splat(BULLET_SPEED);
+                t.translation.z = 10.0;
+            }
+            GunType::Gun1 => todo!(),
+            GunType::Gun2 => todo!(),
+        }
     }
 }
