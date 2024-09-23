@@ -1,11 +1,12 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
-use gun::GunBundle;
-use player::InvulnerableTimer;
+use gun::{BulletStats, GunBundle, GunStats};
+use player::{InvulnerableTimer, PlayerInventory};
 use rand::Rng;
 
 use crate::animation::AnimationTimer;
+use crate::gun::GunType;
 use crate::player::{Health, Player, PlayerState};
 use crate::*;
 use crate::{state::GameState, GlobalTextureAtlas};
@@ -31,37 +32,80 @@ fn init_world(
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     commands.insert_resource(Wave::default());
-    commands.spawn((
-        SpriteBundle {
-            texture: handle.image.clone().unwrap(),
-            transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            ..default()
-        },
-        TextureAtlas {
-            layout: handle.layout.clone().unwrap(),
-            index: 0,
-        },
-        Player,
-        Health(PLAYER_HEALTH),
-        InvulnerableTimer(Stopwatch::new()),
-        PlayerState::default(),
-        AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
-        InGameEntity,
-    ));
-    commands.spawn((
-        GunBundle {
-            sprite_bundle: SpriteBundle {
+    // Spawn player
+    let player_entity = commands
+        .spawn((
+            SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
             },
-            ..default()
-        },
-        TextureAtlas {
-            layout: handle.layout.clone().unwrap(),
-            index: 17,
-        },
-    ));
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 0,
+            },
+            Player,
+            Health(PLAYER_HEALTH),
+            InvulnerableTimer(Stopwatch::new()),
+            PlayerState::default(),
+            AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
+            InGameEntity,
+        ))
+        .id();
+
+    // Spawn first gun
+    let gun1 = commands
+        .spawn((
+            GunBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    ..default()
+                },
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 17,
+            },
+        ))
+        .id();
+
+    // Spawn second gun
+    let gun2 = commands
+        .spawn((
+            GunBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                gun_type: GunType::Gun1,
+                gun_stats: GunStats {
+                    bullets_per_shot: 20,
+                    firing_interval: 0.1,
+                    bullet_spread: 0.1,
+                },
+                bullet_stats: BulletStats {
+                    speed: 30.0,
+                    damage: 100.0,
+                    lifespan: 0.2,
+                },
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 56,
+            },
+        ))
+        .id();
+
+    // Add both guns to the player's inventory
+    commands.entity(player_entity).insert(PlayerInventory {
+        guns: vec![gun1, gun2],
+        active_gun_index: 0, // Start with the first gun
+    });
 
     next_state.set(GameState::InGame);
 }

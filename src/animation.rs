@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     enemy::{Enemy, EnemyType},
     gun::Gun,
-    player::{Player, PlayerState},
+    player::{Player, PlayerInventory, PlayerState},
     state::GameState,
     CursorPosition,
 };
@@ -110,18 +110,23 @@ fn flip_enemy_sprite_x(
 
 fn flip_gun_sprite_y(
     cursor_position: Res<CursorPosition>,
+    player_query: Query<&PlayerInventory, With<Player>>,
     mut gun_query: Query<(&mut Sprite, &Transform), With<Gun>>,
 ) {
-    if gun_query.is_empty() {
-        return;
-    }
-
-    let (mut sprite, transform) = gun_query.single_mut();
-    if let Some(cursor_position) = cursor_position.0 {
-        if cursor_position.x > transform.translation.x {
-            sprite.flip_y = false;
-        } else {
-            sprite.flip_y = true;
+    // Check if player has an active gun
+    if let Ok(inventory) = player_query.get_single() {
+        if let Some(active_gun) = inventory.guns.get(inventory.active_gun_index) {
+            // Get the sprite and transform of the active gun
+            if let Ok((mut sprite, transform)) = gun_query.get_mut(*active_gun) {
+                if let Some(cursor_position) = cursor_position.0 {
+                    // Flip the gun sprite based on cursor position relative to gun
+                    if cursor_position.x > transform.translation.x {
+                        sprite.flip_y = false;
+                    } else {
+                        sprite.flip_y = true;
+                    }
+                }
+            }
         }
     }
 }

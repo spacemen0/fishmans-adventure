@@ -12,6 +12,12 @@ pub struct Player;
 #[derive(Component)]
 pub struct Health(pub f32);
 #[derive(Component)]
+pub struct PlayerInventory {
+    pub guns: Vec<Entity>,
+    pub active_gun_index: usize,
+}
+
+#[derive(Component)]
 pub struct InvulnerableTimer(pub Stopwatch);
 
 #[derive(Component, Default, Debug)]

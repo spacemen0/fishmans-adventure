@@ -4,6 +4,7 @@ use std::time::Instant;
 use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use player::PlayerInventory;
 use rand::Rng;
 use world::InGameEntity;
 
@@ -91,6 +92,7 @@ impl Plugin for GunPlugin {
                 update_bullets,
                 handle_gun_firing,
                 despawn_old_bullets,
+                switch_gun,
             )
                 .run_if(in_state(GameState::InGame)),
         );
@@ -99,31 +101,39 @@ impl Plugin for GunPlugin {
 
 fn update_gun_transform(
     cursor_pos: Res<CursorPosition>,
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<(&Transform, &PlayerInventory), With<Player>>,
     mut gun_query: Query<&mut Transform, (With<Gun>, Without<Player>)>,
 ) {
     if player_query.is_empty() || gun_query.is_empty() {
         return;
     }
 
-    let player_pos = player_query.single().translation.truncate();
+    let (player_transform, gun_inventory) = player_query.single();
+    let player_pos = player_transform.translation.truncate();
+
+    // Get cursor position or default to player's position
     let cursor_pos = match cursor_pos.0 {
         Some(pos) => pos,
         None => player_pos,
     };
-    let mut gun_transform = gun_query.single_mut();
 
-    let angle = (player_pos.y - cursor_pos.y).atan2(player_pos.x - cursor_pos.x) + PI;
-    gun_transform.rotation = Quat::from_rotation_z(angle);
+    // Retrieve the active gun from the player's inventory
+    if let Some(active_gun_entity) = gun_inventory.guns.get(gun_inventory.active_gun_index) {
+        if let Ok(mut gun_transform) = gun_query.get_mut(*active_gun_entity) {
+            let angle = (player_pos.y - cursor_pos.y).atan2(player_pos.x - cursor_pos.x) + PI;
+            gun_transform.rotation = Quat::from_rotation_z(angle);
 
-    let offset = 20.0;
-    let new_gun_pos = vec2(
-        player_pos.x + offset * angle.cos() - 5.0,
-        player_pos.y + offset * angle.sin() - 10.0,
-    );
+            let offset = 20.0;
+            let new_gun_pos = vec2(
+                player_pos.x + offset * angle.cos() - 5.0,
+                player_pos.y + offset * angle.sin() - 10.0,
+            );
 
-    gun_transform.translation = vec3(new_gun_pos.x, new_gun_pos.y, gun_transform.translation.z);
-    gun_transform.translation.z = 15.0;
+            gun_transform.translation =
+                vec3(new_gun_pos.x, new_gun_pos.y, gun_transform.translation.z);
+            gun_transform.translation.z = 15.0;
+        }
+    }
 }
 
 fn despawn_old_bullets(
@@ -144,57 +154,132 @@ fn despawn_old_bullets(
 fn handle_gun_firing(
     mut commands: Commands,
     time: Res<Time>,
+    player_query: Query<&PlayerInventory, With<Player>>,
     mut gun_query: Query<(&Transform, &mut GunTimer, &GunType, &BulletStats, &GunStats), With<Gun>>,
     handle: Res<GlobalTextureAtlas>,
 ) {
-    if gun_query.is_empty() {
+    if let Ok(inventory) = player_query.get_single() {
+        if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
+            gun_query.get_mut(inventory.guns[inventory.active_gun_index])
+        {
+            gun_timer.0.tick(time.delta());
+
+            if gun_timer.0.elapsed_secs() >= gun_stats.firing_interval {
+                gun_timer.0.reset();
+                let gun_pos = gun_transform.translation.truncate();
+                let mut rng = rand::thread_rng();
+                let bullet_direction = gun_transform.local_x();
+                match gun_type {
+                    GunType::Default => {
+                        for _ in 0..gun_stats.bullets_per_shot {
+                            let dir = vec3(
+                                bullet_direction.x
+                                    + rng.gen_range(
+                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
+                                    ),
+                                bullet_direction.y
+                                    + rng.gen_range(
+                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
+                                    ),
+                                bullet_direction.z,
+                            );
+                            commands.spawn((
+                                SpriteBundle {
+                                    texture: handle.image.clone().unwrap(),
+                                    transform: Transform::from_translation(vec3(
+                                        gun_pos.x, gun_pos.y, 1.0,
+                                    ))
+                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                                    ..default()
+                                },
+                                TextureAtlas {
+                                    layout: handle.layout.clone().unwrap(),
+                                    index: 16,
+                                },
+                                Bullet,
+                                BulletDirection(dir),
+                                BulletStats {
+                                    speed: bullet_stats.speed,
+                                    damage: bullet_stats.damage,
+                                    lifespan: bullet_stats.lifespan,
+                                },
+                                gun_type.clone(),
+                                SpawnInstant(Instant::now()),
+                            ));
+                        }
+                    }
+                    GunType::Gun1 => {
+                        for _ in 0..gun_stats.bullets_per_shot {
+                            let dir = vec3(
+                                bullet_direction.x
+                                    + rng.gen_range(
+                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
+                                    ),
+                                bullet_direction.y
+                                    + rng.gen_range(
+                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
+                                    ),
+                                bullet_direction.z,
+                            );
+                            commands.spawn((
+                                SpriteBundle {
+                                    texture: handle.image.clone().unwrap(),
+                                    transform: Transform::from_translation(vec3(
+                                        gun_pos.x, gun_pos.y, 1.0,
+                                    ))
+                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                                    ..default()
+                                },
+                                TextureAtlas {
+                                    layout: handle.layout.clone().unwrap(),
+                                    index: 59,
+                                },
+                                Bullet,
+                                BulletDirection(dir),
+                                BulletStats {
+                                    speed: bullet_stats.speed,
+                                    damage: bullet_stats.damage,
+                                    lifespan: bullet_stats.lifespan,
+                                },
+                                gun_type.clone(),
+                                SpawnInstant(Instant::now()),
+                            ));
+                        }
+                    }
+                    GunType::Gun2 => todo!(),
+                }
+            }
+        }
+    }
+}
+
+fn switch_gun(
+    mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut gun_query: Query<(&mut Transform, &mut Visibility), (With<Gun>, Without<Player>)>,
+) {
+    if player_query.is_empty() {
         return;
     }
 
-    let (gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats) = gun_query.single_mut();
+    let (mut inventory, player_transform) = player_query.single_mut();
 
-    gun_timer.0.tick(time.delta());
+    if keyboard_input.just_pressed(KeyCode::KeyE) {
+        // Cycle to the next gun in the inventory
+        inventory.active_gun_index = (inventory.active_gun_index + 1) % inventory.guns.len();
+    }
 
-    if gun_timer.0.elapsed_secs() >= gun_stats.firing_interval {
-        gun_timer.0.reset();
-        let gun_pos = gun_transform.translation.truncate();
-        let mut rng = rand::thread_rng();
-        let bullet_direction = gun_transform.local_x();
-        match gun_type {
-            GunType::Default => {
-                for _ in 0..gun_stats.bullets_per_shot {
-                    let dir = vec3(
-                        bullet_direction.x
-                            + rng.gen_range(-gun_stats.bullet_spread..gun_stats.bullet_spread),
-                        bullet_direction.y
-                            + rng.gen_range(-gun_stats.bullet_spread..gun_stats.bullet_spread),
-                        bullet_direction.z,
-                    );
-                    commands.spawn((
-                        SpriteBundle {
-                            texture: handle.image.clone().unwrap(),
-                            transform: Transform::from_translation(vec3(gun_pos.x, gun_pos.y, 1.0))
-                                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                            ..default()
-                        },
-                        TextureAtlas {
-                            layout: handle.layout.clone().unwrap(),
-                            index: 16,
-                        },
-                        Bullet,
-                        BulletDirection(dir),
-                        BulletStats {
-                            speed: bullet_stats.speed,
-                            damage: bullet_stats.damage,
-                            lifespan: bullet_stats.lifespan,
-                        },
-                        gun_type.clone(),
-                        SpawnInstant(Instant::now()),
-                    ));
-                }
+    // Update the visibility of all guns and the position of the active gun
+    for (gun_index, gun_entity) in inventory.guns.iter().enumerate() {
+        if let Ok((mut gun_transform, mut gun_visibility)) = gun_query.get_mut(*gun_entity) {
+            if gun_index == inventory.active_gun_index {
+                // Active gun
+                gun_transform.translation = player_transform.translation;
+                *gun_visibility = Visibility::Visible;
+            } else {
+                // Inactive gun
+                *gun_visibility = Visibility::Hidden;
             }
-            GunType::Gun1 => todo!(),
-            GunType::Gun2 => todo!(),
         }
     }
 }
@@ -215,7 +300,10 @@ fn update_bullets(
                 t.translation += dir.0.normalize() * Vec3::splat(stats.speed);
                 t.translation.z = 10.0;
             }
-            GunType::Gun1 => todo!(),
+            GunType::Gun1 => {
+                t.translation += dir.0.normalize() * Vec3::splat(stats.speed);
+                t.translation.z = 10.0;
+            }
             GunType::Gun2 => todo!(),
         }
     }

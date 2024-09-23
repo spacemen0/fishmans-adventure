@@ -6,8 +6,7 @@ use player::{InvulnerableTimer, PlayerState};
 
 use crate::player::{Player, PlayerEnemyCollisionEvent};
 use crate::*;
-use crate::{enemy::Enemy, gun::Bullet, state::GameState, enemy::Trail};
-
+use crate::{enemy::Enemy, enemy::Trail, gun::Bullet, state::GameState};
 
 pub struct CollisionPlugin;
 
@@ -55,7 +54,9 @@ fn handle_enemy_player_collision(
         if !enemies.is_empty() {
             for enemy in enemies.iter() {
                 if enemy.damage > 0.0 {
-                    ew.send(PlayerEnemyCollisionEvent { damage: enemy.damage });
+                    ew.send(PlayerEnemyCollisionEvent {
+                        damage: enemy.damage,
+                    });
                 }
             }
             if enemies.iter().any(|e| e.damage > 0.0) {
@@ -76,7 +77,6 @@ fn handle_enemy_player_collision(
     }
 }
 
-
 fn handle_player_trail_collision(
     mut player_query: Query<(&Transform, &mut PlayerState, &mut InvulnerableTimer), With<Player>>,
     trail_query: Query<(&Transform, &Trail)>,
@@ -93,21 +93,20 @@ fn handle_player_trail_collision(
         for (trail_transform, trail) in trail_query.iter() {
             let trail_pos = trail_transform.translation.xy();
             if player_pos.distance(trail_pos) <= trail.radius {
-                ew.send(PlayerEnemyCollisionEvent { damage: trail.damage });
+                ew.send(PlayerEnemyCollisionEvent {
+                    damage: trail.damage,
+                });
                 *player_state = match *player_state {
                     PlayerState::Idle => PlayerState::IdleInvulnerable,
                     PlayerState::Run => PlayerState::RunInvulnerable,
                     _ => unreachable!(),
                 };
                 invulnerable_timer.0.reset();
-                break; 
+                break;
             }
         }
     }
 }
-
-
-
 
 fn update_enemy_kd_tree(
     mut tree: ResMut<EnemyKdTree>,
@@ -125,7 +124,6 @@ fn update_enemy_kd_tree(
     tree.0 = KdTree::build_by_ordered_float(items);
 }
 
-
 fn handle_enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(&Transform, Entity), With<Bullet>>,
@@ -136,15 +134,15 @@ fn handle_enemy_bullet_collision(
         return;
     }
 
-    for b_t in bullet_query.iter() {
-        let pos = b_t.0.translation;
+    for (bullet_transform, bullet_entity) in bullet_query.iter() {
+        let pos = bullet_transform.translation;
         let enemies_in_radius = tree.0.within_radius(&[pos.x, pos.y], 30.0);
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
                 enemy.health -= BULLET_DAMAGE;
                 commands.add(move |world: &mut World| {
-                    if let Some(entity) = world.get_entity_mut(b_t.1) {
+                    if let Some(entity) = world.get_entity_mut(bullet_entity) {
                         entity.despawn();
                     }
                 });
