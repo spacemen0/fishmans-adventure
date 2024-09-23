@@ -54,11 +54,10 @@ fn handle_player_enemy_collision_events(
     for event in events.read() {
         println!("{}", event.damage);
         if health.0 > 0.0 {
-            health.0 -= event.damage;
+            health.0 = (health.0 - event.damage).max(0.0);
         }
     }
 }
-
 
 fn handle_player_death(
     player_query: Query<(&Health, Entity), With<Player>>,
@@ -89,7 +88,7 @@ fn handle_player_invulnerable_timer(
                 *player_state = match *player_state {
                     PlayerState::IdleInvulnerable => PlayerState::Idle,
                     PlayerState::RunInvulnerable => PlayerState::Run,
-                    _ => unreachable!(), // Other states shouldn't be reached here
+                    _ => unreachable!(),
                 };
             }
             invulnerable_timer.0.tick(time.delta());
