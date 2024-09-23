@@ -9,7 +9,7 @@ use crate::animation::AnimationTimer;
 use crate::player::Player;
 use crate::resources::Wave;
 use crate::state::GameState;
-use crate::world::ShouldDespawn;
+use crate::world::InGameEntity;
 use crate::*;
 
 pub struct EnemyPlugin;
@@ -156,7 +156,7 @@ fn spawn_enemies(
             },
             enemy_type,
             AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
-            ShouldDespawn,
+            InGameEntity,
         ));
         wave.enemies_spawned += 1;
     }
@@ -305,7 +305,7 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
             lifetime: Timer::from_seconds(5.0, TimerMode::Once),
             radius: 10.0,
         },
-        ShouldDespawn,
+        InGameEntity,
     ));
 }
 

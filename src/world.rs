@@ -6,7 +6,6 @@ use player::InvulnerableTimer;
 use rand::Rng;
 
 use crate::animation::AnimationTimer;
-use crate::gun::{Gun, GunTimer, GunType};
 use crate::player::{Health, Player, PlayerState};
 use crate::*;
 use crate::{state::GameState, GlobalTextureAtlas};
@@ -14,7 +13,7 @@ use crate::{state::GameState, GlobalTextureAtlas};
 pub struct WorldPlugin;
 
 #[derive(Component)]
-pub struct ShouldDespawn;
+pub struct InGameEntity; //entities that spawn with this will be cleared after each game run
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
@@ -47,7 +46,7 @@ fn init_world(
         InvulnerableTimer(Stopwatch::new()),
         PlayerState::default(),
         AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
-        ShouldDespawn,
+        InGameEntity,
     ));
     commands.spawn((
         GunBundle {
@@ -56,10 +55,7 @@ fn init_world(
                 transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
             },
-            gun: Gun,
-            gun_timer: GunTimer(Stopwatch::new(), BULLET_SPAWN_INTERVAL),
-            gun_type: GunType::Default,
-            should_despawn: ShouldDespawn,
+            ..default()
         },
         TextureAtlas {
             layout: handle.layout.clone().unwrap(),
@@ -86,14 +82,14 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
                 layout: handle.layout.clone().unwrap(),
                 index: rng.gen_range(24..=25),
             },
-            ShouldDespawn,
+            InGameEntity,
         ));
     }
 }
 
 fn despawn_all_game_entities(
     mut commands: Commands,
-    all_entities: Query<Entity, With<ShouldDespawn>>,
+    all_entities: Query<Entity, With<InGameEntity>>,
     next_state: Res<State<GameState>>,
 ) {
     if *next_state.get() != GameState::Paused {
