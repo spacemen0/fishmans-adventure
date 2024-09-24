@@ -21,6 +21,7 @@ pub struct Wave {
     pub enemies_total: u32,
     pub requires_portal: bool,
     pub enemies_spawned: u32,
+    pub portal_spawned: bool,
 }
 
 impl Default for Wave {
@@ -31,6 +32,7 @@ impl Default for Wave {
             enemies_total: 10,
             requires_portal: false,
             enemies_spawned: 0,
+            portal_spawned: false,
         }
     }
 }

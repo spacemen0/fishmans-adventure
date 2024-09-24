@@ -10,6 +10,7 @@ use hell_game::player::PlayerPlugin;
 use hell_game::state::GameState;
 use hell_game::world::WorldPlugin;
 use hell_game::*;
+use portal::PortalPlugin;
 
 fn main() {
     App::new()
@@ -39,6 +40,7 @@ fn main() {
         .add_plugins(WorldPlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(CollisionPlugin)
+        .add_plugins(PortalPlugin)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();
