@@ -14,6 +14,8 @@ pub struct Health(pub f32);
 #[derive(Component)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
+    pub health_potions: Vec<Entity>,
+    pub speed_potions: Vec<Entity>,
     pub active_gun_index: usize,
 }
 

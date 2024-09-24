@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use gun::{BulletStats, GunBundle, GunStats};
 use player::{InvulnerableTimer, PlayerInventory};
+use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
 
 use crate::animation::AnimationTimer;
@@ -100,11 +101,59 @@ fn init_world(
             },
         ))
         .id();
+    let potion1 = commands
+        .spawn((
+            PotionBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                potion: potion::Potion,
+                potion_stats: PotionStats {
+                    effect_duration: 2.0,
+                    effect_amount: 10.0,
+                },
+                potion_type: PotionType::Health,
+                in_game_entity: InGameEntity,
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 57,
+            },
+        ))
+        .id();
+    let potion2 = commands
+        .spawn((
+            PotionBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                potion: Potion,
+                potion_stats: PotionStats {
+                    effect_duration: 2.0,
+                    effect_amount: 10.0,
+                },
+                potion_type: PotionType::Speed,
+                in_game_entity: InGameEntity,
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 57,
+            },
+        ))
+        .id();
 
     // Add both guns to the player's inventory
     commands.entity(player_entity).insert(PlayerInventory {
         guns: vec![gun1, gun2],
-        active_gun_index: 0, // Start with the first gun
+        active_gun_index: 0,
+        health_potions: vec![potion1],
+        speed_potions: vec![potion2], // Start with the first gun
     });
 
     next_state.set(GameState::InGame);

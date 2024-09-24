@@ -12,6 +12,7 @@ use hell_game::state::GameState;
 use hell_game::world::WorldPlugin;
 use hell_game::*;
 use portal::PortalPlugin;
+use potion::PotionPlugin;
 
 fn main() {
     App::new()
@@ -43,6 +44,7 @@ fn main() {
         .add_plugins(CollisionPlugin)
         .add_plugins(DialogPlugin)
         .add_plugins(PortalPlugin)
+        .add_plugins(PotionPlugin)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();

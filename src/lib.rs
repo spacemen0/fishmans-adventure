@@ -8,6 +8,7 @@ pub mod gui;
 pub mod gun;
 pub mod player;
 pub mod portal;
+pub mod potion;
 pub mod resources;
 pub mod state;
 pub mod utils;

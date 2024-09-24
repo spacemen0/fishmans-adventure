@@ -2,7 +2,7 @@ use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 
 use crate::enemy::Enemy;
-use crate::player::{Health, Player};
+use crate::player::{Health, Player, PlayerInventory};
 use crate::resources::Wave;
 use crate::state::GameState;
 use crate::world::InGameEntity;
@@ -11,6 +11,8 @@ pub struct GuiPlugin;
 
 #[derive(Component)]
 struct DebugText;
+#[derive(Component)]
+struct PotionDisplay;
 #[derive(Component)]
 struct MainMenuItem;
 
@@ -23,10 +25,13 @@ impl Plugin for GuiPlugin {
                 Update,
                 handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
             )
-            .add_systems(OnEnter(GameState::GameInit), spawn_debug_text)
+            .add_systems(
+                OnEnter(GameState::GameInit),
+                (spawn_debug_text, setup_potion_display),
+            )
             .add_systems(
                 Update,
-                update_debug_text.run_if(in_state(GameState::InGame)),
+                (update_debug_text, update_potion_display).run_if(in_state(GameState::InGame)),
             )
             .add_systems(
                 Update,
@@ -108,6 +113,50 @@ fn update_debug_text(
                 format!("Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}/{enemies_total} \nHealth: {player_health}");
         }
     }
+}
+
+fn setup_potion_display(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    right: Val::Px(10.0),
+                    top: Val::Px(10.0),
+                    ..default()
+                },
+                ..default()
+            },
+            InGameEntity,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    "Potions: ",
+                    TextStyle {
+                        font: asset_server.load("monogram.ttf"),
+                        font_size: 30.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                ),
+                PotionDisplay,
+            ));
+        });
+}
+
+fn update_potion_display(
+    mut query: Query<&mut Text, With<PotionDisplay>>,
+    player_query: Query<&PlayerInventory, With<Player>>,
+) {
+    let mut text = query.single_mut();
+    let player_inventory = player_query.single();
+    let health_potions_count = player_inventory.health_potions.len();
+    let speed_potions_count = player_inventory.speed_potions.len();
+    text.sections[0].value = format!(
+        "Health Potions: {}, Speed Potions: {}",
+        health_potions_count, speed_potions_count
+    );
 }
 
 fn setup_main_menu(mut commands: Commands) {
