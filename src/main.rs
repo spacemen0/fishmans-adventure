@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use hell_game::animation::AnimationPlugin;
 use hell_game::camera::FollowCameraPlugin;
 use hell_game::collision::CollisionPlugin;
+use hell_game::dialog::DialogPlugin;
 use hell_game::enemy::EnemyPlugin;
 use hell_game::gui::GuiPlugin;
 use hell_game::gun::GunPlugin;
@@ -40,6 +41,7 @@ fn main() {
         .add_plugins(WorldPlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(CollisionPlugin)
+        .add_plugins(DialogPlugin)
         .add_plugins(PortalPlugin)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)

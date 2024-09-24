@@ -1,7 +1,7 @@
+use crate::dialog::{ActiveDialog, DialogType, ShowDialogEvent};
 use crate::player::Player;
 use crate::resources::Wave;
 use crate::state::GameState;
-use crate::utils::calculate_enemies_per_wave;
 use crate::world::InGameEntity;
 use bevy::prelude::*;
 
@@ -48,31 +48,23 @@ fn spawn_portal(
 }
 
 fn portal_interaction(
-    mut commands: Commands,
-    mut wave: ResMut<Wave>,
     player_query: Query<&Transform, With<Player>>,
-    portal_query: Query<(Entity, &Transform), With<Portal>>,
+    portal_query: Query<&Transform, With<Portal>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut ev_show_dialog: EventWriter<ShowDialogEvent>,
+    active_dialog: Res<ActiveDialog>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
-        for (portal_entity, portal_transform) in portal_query.iter() {
+        for portal_transform in portal_query.iter() {
             let distance = player_transform
                 .translation
                 .distance(portal_transform.translation);
 
-            if distance < 60.0 && keyboard_input.just_pressed(KeyCode::KeyX) {
-                wave.requires_portal = false;
-                wave.portal_spawned = false;
-
-                let wave_count = calculate_enemies_per_wave(wave.number + 1); 
-                wave.enemies_total = wave_count;
-                wave.enemies_left = wave_count;
-                wave.enemies_spawned = 0;
-                wave.number += 1;
-
-                commands.entity(portal_entity).despawn();
-
-                println!("portal used, next wave: {}", wave.number);
+            if distance < 60.0
+                && keyboard_input.just_pressed(KeyCode::KeyX)
+                && active_dialog.0.is_none()
+            {
+                ev_show_dialog.send(ShowDialogEvent(DialogType::Portal));
             }
         }
     }
