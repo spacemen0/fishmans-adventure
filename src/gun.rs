@@ -204,6 +204,7 @@ fn handle_gun_firing(
                                     lifespan: bullet_stats.lifespan,
                                 },
                                 gun_type.clone(),
+                                InGameEntity,
                                 SpawnInstant(Instant::now()),
                             ));
                         }
@@ -242,6 +243,7 @@ fn handle_gun_firing(
                                     lifespan: bullet_stats.lifespan,
                                 },
                                 gun_type.clone(),
+                                InGameEntity,
                                 SpawnInstant(Instant::now()),
                             ));
                         }
