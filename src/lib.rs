@@ -6,8 +6,10 @@ pub mod enemy;
 pub mod gui;
 pub mod gun;
 pub mod player;
+pub mod portal;
 pub mod resources;
 pub mod state;
+pub mod utils;
 pub mod world;
 
 pub use configs::*;

@@ -9,6 +9,7 @@ use crate::animation::AnimationTimer;
 use crate::player::Player;
 use crate::resources::Wave;
 use crate::state::GameState;
+use crate::utils::calculate_enemies_per_wave;
 use crate::world::InGameEntity;
 use crate::*;
 
@@ -90,6 +91,18 @@ fn despawn_dead_enemies(
             wave.enemies_left -= 1;
         }
     }
+
+    if wave.enemies_left == 0 {
+        if wave.number % 5 == 0 {
+            wave.requires_portal = true;
+        } else {
+            wave.number += 1;
+            let new_wave_count = calculate_enemies_per_wave(wave.number);
+            wave.enemies_total = new_wave_count;
+            wave.enemies_left = new_wave_count;
+            wave.enemies_spawned = 0;
+        }
+    }
 }
 
 fn update_enemy_transform(
@@ -119,12 +132,8 @@ fn spawn_enemies(
     player_query: Query<&Transform, With<Player>>,
     mut wave: ResMut<Wave>,
 ) {
-    if wave.enemies_left == 0 {
-        let wave_count = calculate_enemies_per_wave(wave.number);
-        wave.number += 1;
-        wave.enemies_left = wave_count;
-        wave.enemies_total = wave_count;
-        wave.enemies_spawned = 0;
+    if wave.enemies_left == 0 || wave.requires_portal || wave.portal_spawned {
+        return;
     }
 
     if wave.enemies_spawned >= wave.enemies_total || player_query.is_empty() {
@@ -177,10 +186,6 @@ fn get_random_position_around(pos: Vec2) -> (f32, f32) {
         random_x.clamp(-WORLD_W, WORLD_W),
         random_y.clamp(-WORLD_H, WORLD_H),
     )
-}
-
-fn calculate_enemies_per_wave(wave: u32) -> u32 {
-    10 * 2_u32.pow(wave)
 }
 
 fn update_trails(
@@ -332,22 +337,22 @@ impl EnemyType {
         match self {
             EnemyType::Green => EnemyConfig {
                 health: 100.0,
-                speed: 1.0,
-                damage: 1.0,
+                speed: 6.0,
+                damage: 2.0,
                 traits: vec![],
             },
             EnemyType::Toxic => EnemyConfig {
                 health: 50.0,
-                speed: 2.0,
-                damage: 0.0,
+                speed: 6.0,
+                damage: 2.0,
                 traits: vec![EnemyTrait::LeaveTrail {
                     timer: Timer::from_seconds(0.1, TimerMode::Repeating),
-                    trail_damage: 2.0,
+                    trail_damage: 4.0,
                 }],
             },
             EnemyType::Charger => EnemyConfig {
                 health: 80.0,
-                speed: 4.0,
+                speed: 6.0,
                 damage: 8.0,
                 traits: vec![EnemyTrait::Charge {
                     state: ChargeState::Approaching,
