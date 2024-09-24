@@ -86,12 +86,12 @@ fn init_world(
                 gun_stats: GunStats {
                     bullets_per_shot: 20,
                     firing_interval: 0.1,
-                    bullet_spread: 0.1,
+                    bullet_spread: 0.3,
                 },
                 bullet_stats: BulletStats {
                     speed: 30.0,
                     damage: 100.0,
-                    lifespan: 0.2,
+                    lifespan: 0.5,
                 },
                 ..default()
             },

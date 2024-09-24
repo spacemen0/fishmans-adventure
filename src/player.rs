@@ -105,7 +105,7 @@ fn handle_player_invulnerable_timer(
     }
 }
 
-fn handle_player_input(
+pub fn handle_player_input(
     mut player_query: Query<(&mut Transform, &mut PlayerState), With<Player>>,
 
     keyboard_input: Res<ButtonInput<KeyCode>>,

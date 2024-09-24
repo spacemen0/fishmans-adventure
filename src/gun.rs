@@ -4,7 +4,7 @@ use std::time::Instant;
 use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
-use player::PlayerInventory;
+use player::{handle_player_input, PlayerInventory};
 use rand::Rng;
 use world::InGameEntity;
 
@@ -88,7 +88,7 @@ impl Plugin for GunPlugin {
         app.add_systems(
             Update,
             (
-                update_gun_transform,
+                update_gun_transform.after(handle_player_input),
                 update_bullets,
                 handle_gun_firing,
                 despawn_old_bullets,
