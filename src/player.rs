@@ -12,6 +12,8 @@ pub struct Player;
 #[derive(Component)]
 pub struct Health(pub f32);
 #[derive(Component)]
+pub struct Speed(pub f32);
+#[derive(Component)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
     pub health_potions: Vec<Entity>,
@@ -20,7 +22,12 @@ pub struct PlayerInventory {
 }
 
 #[derive(Component)]
-pub struct InvulnerableTimer(pub Stopwatch);
+pub struct EffectsTimer(pub Stopwatch);
+
+pub enum Effect {
+    Invulnerable,
+    SpeedUp,
+}
 
 #[derive(Component, Default, Debug)]
 pub enum PlayerState {
@@ -82,7 +89,7 @@ fn handle_player_death(
 
 fn handle_player_invulnerable_timer(
     time: Res<Time>,
-    mut player_query: Query<(&mut PlayerState, &mut InvulnerableTimer), With<Player>>,
+    mut player_query: Query<(&mut PlayerState, &mut EffectsTimer), With<Player>>,
 ) {
     if player_query.is_empty() {
         return;
@@ -106,15 +113,14 @@ fn handle_player_invulnerable_timer(
 }
 
 pub fn handle_player_input(
-    mut player_query: Query<(&mut Transform, &mut PlayerState), With<Player>>,
-
+    mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed), With<Player>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
-    let (mut transform, mut player_state) = player_query.single_mut();
+    let (mut transform, mut player_state, speed) = player_query.single_mut();
     let w_key = keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp);
     let a_key = keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft);
     let s_key = keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown);
@@ -137,7 +143,7 @@ pub fn handle_player_input(
     delta = delta.normalize();
 
     if delta.is_finite() && (w_key || a_key || s_key || d_key) {
-        let desired_position = transform.translation.xy() + delta * PLAYER_SPEED;
+        let desired_position = transform.translation.xy() + delta * speed.0;
         let clamped_x = desired_position.x.clamp(-WORLD_W, WORLD_W);
         let clamped_y = desired_position.y.clamp(-WORLD_H, WORLD_H);
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);

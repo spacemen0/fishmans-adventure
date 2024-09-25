@@ -2,7 +2,7 @@ use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use gun::{BulletStats, GunBundle, GunStats};
-use player::{InvulnerableTimer, PlayerInventory};
+use player::{EffectsTimer, PlayerInventory};
 use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
 
@@ -47,7 +47,7 @@ fn init_world(
             },
             Player,
             Health(PLAYER_HEALTH),
-            InvulnerableTimer(Stopwatch::new()),
+            EffectsTimer(Stopwatch::new()),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,

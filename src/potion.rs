@@ -56,7 +56,6 @@ fn apply_potion_effects(
                 // Apply health effect
                 health.0 += potion_stats.effect_amount;
                 commands.entity(potion_entity).despawn(); // Despawn the potion entity
-                                                          // Remove the potion from the inventory
                 player_inventory.health_potions.remove(0);
             }
         }
@@ -68,7 +67,6 @@ fn apply_potion_effects(
                 // Apply speed potion effect
                 println!("Applying Speed Potion: {}", potion_stats.effect_amount);
                 commands.entity(potion_entity).despawn(); // Despawn the potion entity
-                                                          // Remove the potion from the inventory
                 player_inventory.speed_potions.remove(0);
             }
         }

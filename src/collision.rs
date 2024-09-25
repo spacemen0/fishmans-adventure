@@ -2,7 +2,7 @@ use bevy::utils::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
-use player::{InvulnerableTimer, PlayerState};
+use player::{EffectsTimer, PlayerState};
 
 use crate::player::{Player, PlayerEnemyCollisionEvent};
 use crate::*;
@@ -37,7 +37,7 @@ impl Plugin for CollisionPlugin {
 }
 
 fn handle_enemy_player_collision(
-    mut player_query: Query<(&Transform, &mut PlayerState, &mut InvulnerableTimer), With<Player>>,
+    mut player_query: Query<(&Transform, &mut PlayerState, &mut EffectsTimer), With<Player>>,
     tree: Res<EnemyKdTree>,
     mut ew: EventWriter<PlayerEnemyCollisionEvent>,
 ) {
@@ -78,7 +78,7 @@ fn handle_enemy_player_collision(
 }
 
 fn handle_player_trail_collision(
-    mut player_query: Query<(&Transform, &mut PlayerState, &mut InvulnerableTimer), With<Player>>,
+    mut player_query: Query<(&Transform, &mut PlayerState, &mut EffectsTimer), With<Player>>,
     trail_query: Query<(&Transform, &Trail)>,
     mut ew: EventWriter<PlayerEnemyCollisionEvent>,
 ) {
