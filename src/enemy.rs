@@ -1,4 +1,5 @@
 use bevy::utils::Duration;
+use gun::HasLifespan;
 use std::f32::consts::PI;
 
 use bevy::math::vec3;
@@ -56,7 +57,6 @@ pub enum ChargeState {
 #[derive(Component)]
 pub struct Trail {
     pub damage: f32,
-    pub lifetime: Timer,
     pub radius: f32,
 }
 
@@ -69,7 +69,6 @@ impl Plugin for EnemyPlugin {
                 update_enemy_transform,
                 apply_enemy_traits,
                 despawn_dead_enemies,
-                update_trails,
             )
                 .run_if(in_state(GameState::InGame)),
         );
@@ -188,19 +187,6 @@ fn get_random_position_around(pos: Vec2) -> (f32, f32) {
     )
 }
 
-fn update_trails(
-    mut commands: Commands,
-    time: Res<Time>,
-    mut trail_query: Query<(Entity, &mut Trail)>,
-) {
-    for (entity, mut trail) in trail_query.iter_mut() {
-        trail.lifetime.tick(time.delta());
-        if trail.lifetime.finished() {
-            commands.entity(entity).despawn();
-        }
-    }
-}
-
 fn apply_enemy_traits(
     mut commands: Commands,
     time: Res<Time>,
@@ -307,9 +293,9 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
         },
         Trail {
             damage,
-            lifetime: Timer::from_seconds(5.0, TimerMode::Once),
             radius: 10.0,
         },
+        HasLifespan::new(Duration::from_secs_f32(5.0)),
         InGameEntity,
     ));
 }

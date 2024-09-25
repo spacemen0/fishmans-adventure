@@ -1,5 +1,5 @@
+use bevy::utils::{Duration, Instant};
 use std::f32::consts::PI;
-use std::time::Instant;
 
 use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
@@ -45,7 +45,19 @@ pub struct GunStats {
 }
 
 #[derive(Component)]
-pub struct SpawnInstant(Instant);
+pub struct HasLifespan {
+    pub spawn_time: Instant,
+    pub lifespan: Duration,
+}
+
+impl HasLifespan {
+    pub fn new(lifespan: Duration) -> Self {
+        HasLifespan {
+            spawn_time: Instant::now(),
+            lifespan,
+        }
+    }
+}
 
 #[derive(Component)]
 struct BulletDirection(Vec3);
@@ -91,7 +103,7 @@ impl Plugin for GunPlugin {
                 update_gun_transform.after(handle_player_input),
                 update_bullets,
                 handle_gun_firing,
-                despawn_old_bullets,
+                despawn_entities_reach_lifespan,
                 switch_gun,
             )
                 .run_if(in_state(GameState::InGame)),
@@ -136,12 +148,12 @@ fn update_gun_transform(
     }
 }
 
-fn despawn_old_bullets(
+fn despawn_entities_reach_lifespan(
     mut commands: Commands,
-    bullet_query: Query<(&SpawnInstant, Entity, &BulletStats), With<Bullet>>,
+    bullet_query: Query<(&HasLifespan, Entity)>,
 ) {
-    for (instant, e, bullet_stats) in bullet_query.iter() {
-        if instant.0.elapsed().as_secs_f32() > bullet_stats.lifespan {
+    for (lifespan, e) in bullet_query.iter() {
+        if lifespan.spawn_time.elapsed() > lifespan.lifespan {
             commands.add(move |world: &mut World| {
                 if let Some(entity) = world.get_entity_mut(e) {
                     entity.despawn();
@@ -205,7 +217,7 @@ fn handle_gun_firing(
                                 },
                                 gun_type.clone(),
                                 InGameEntity,
-                                SpawnInstant(Instant::now()),
+                                HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
                             ));
                         }
                     }
@@ -244,7 +256,7 @@ fn handle_gun_firing(
                                 },
                                 gun_type.clone(),
                                 InGameEntity,
-                                SpawnInstant(Instant::now()),
+                                HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
                             ));
                         }
                     }
