@@ -21,7 +21,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        // mode: bevy::window::WindowMode::Fullscreen,
+                        // mode: bevy::window::WindowMode::FullScreen,
                         resizable: true,
                         focused: true,
                         resolution: (WW, WH).into(),

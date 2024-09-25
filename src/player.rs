@@ -22,20 +22,15 @@ pub struct PlayerInventory {
 }
 
 #[derive(Component)]
-pub struct EffectsTimer(pub Stopwatch);
-
-pub enum Effect {
-    Invulnerable,
-    SpeedUp,
-}
+pub struct InvincibilityEffect(pub Stopwatch, pub f32);
+#[derive(Component)]
+pub struct AccelerationEffect(pub Stopwatch, pub f32, pub f32);
 
 #[derive(Component, Default, Debug)]
 pub enum PlayerState {
     #[default]
     Idle,
     Run,
-    IdleInvulnerable,
-    RunInvulnerable,
 }
 
 #[derive(Event)]
@@ -51,7 +46,8 @@ impl Plugin for PlayerPlugin {
                 handle_player_death,
                 handle_player_input,
                 handle_player_enemy_collision_events,
-                handle_player_invulnerable_timer,
+                handle_invincibility_effect,
+                handle_acceleration_effect,
             )
                 .run_if(in_state(GameState::InGame)),
         );
@@ -67,7 +63,6 @@ fn handle_player_enemy_collision_events(
     }
     let (mut health, _player_state) = player_query.single_mut();
     for event in events.read() {
-        println!("{}", event.damage);
         if health.0 > 0.0 {
             health.0 = (health.0 - event.damage).max(0.0);
         }
@@ -87,29 +82,36 @@ fn handle_player_death(
     }
 }
 
-fn handle_player_invulnerable_timer(
+fn handle_invincibility_effect(
     time: Res<Time>,
-    mut player_query: Query<(&mut PlayerState, &mut EffectsTimer), With<Player>>,
+    mut commands: Commands,
+    mut player_query: Query<(&mut InvincibilityEffect, Entity), With<Player>>,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let (mut player_state, mut invulnerable_timer) = player_query.single_mut();
-    match player_state.as_ref() {
-        PlayerState::Idle => (),
-        PlayerState::IdleInvulnerable | PlayerState::RunInvulnerable => {
-            if invulnerable_timer.0.elapsed_secs() >= PLAYER_INVULNERABLE_TIME {
-                invulnerable_timer.0.reset();
-                *player_state = match *player_state {
-                    PlayerState::IdleInvulnerable => PlayerState::Idle,
-                    PlayerState::RunInvulnerable => PlayerState::Run,
-                    _ => unreachable!(),
-                };
-            }
-            invulnerable_timer.0.tick(time.delta());
-        }
-        PlayerState::Run => (),
+    let (mut invincibility_effect, entity) = player_query.single_mut();
+
+    if invincibility_effect.0.elapsed_secs() >= invincibility_effect.1 {
+        commands.entity(entity).remove::<InvincibilityEffect>();
     }
+    invincibility_effect.0.tick(time.delta());
+}
+fn handle_acceleration_effect(
+    time: Res<Time>,
+    mut commands: Commands,
+    mut player_query: Query<(&mut AccelerationEffect, &mut Speed, Entity), With<Player>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+    let (mut acceleration_effect, mut speed, entity) = player_query.single_mut();
+
+    if acceleration_effect.0.elapsed_secs() >= acceleration_effect.1 {
+        commands.entity(entity).remove::<AccelerationEffect>();
+        speed.0 -= acceleration_effect.2;
+    }
+    acceleration_effect.0.tick(time.delta());
 }
 
 pub fn handle_player_input(
@@ -149,18 +151,8 @@ pub fn handle_player_input(
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
 
         transform.translation.z = 10.0;
-        *player_state = match *player_state {
-            PlayerState::Idle => PlayerState::Run,
-            PlayerState::Run => PlayerState::Run,
-            PlayerState::IdleInvulnerable => PlayerState::RunInvulnerable,
-            PlayerState::RunInvulnerable => PlayerState::RunInvulnerable,
-        }
+        *player_state = PlayerState::Run;
     } else {
-        *player_state = match *player_state {
-            PlayerState::Idle => PlayerState::Idle,
-            PlayerState::Run => PlayerState::Idle,
-            PlayerState::IdleInvulnerable => PlayerState::IdleInvulnerable,
-            PlayerState::RunInvulnerable => PlayerState::IdleInvulnerable,
-        }
+        *player_state = PlayerState::Idle;
     }
 }

@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, time::Stopwatch};
 
 use crate::{
-    player::{Health, Player, PlayerInventory},
+    player::{AccelerationEffect, Health, Player, PlayerInventory, Speed},
     state::GameState,
     world::InGameEntity,
 };
@@ -43,12 +43,12 @@ impl Plugin for PotionPlugin {
 
 fn apply_potion_effects(
     mut commands: Commands,
-    mut player_query: Query<(&mut Health, &mut PlayerInventory), With<Player>>,
+    mut player_query: Query<(&mut Health, &mut PlayerInventory, Entity, &mut Speed), With<Player>>,
     potion_query: Query<(Entity, &PotionStats), With<Potion>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     // Ensure there's only one player entity
-    let (mut health, mut player_inventory) = player_query.single_mut();
+    let (mut health, mut player_inventory, entity, mut speed) = player_query.single_mut();
     // Assuming health and speed effects are keyed to specific keys
     if keyboard_input.just_pressed(KeyCode::Digit1) {
         if let Some(health_potion_entity) = player_inventory.health_potions.get(0) {
@@ -65,7 +65,12 @@ fn apply_potion_effects(
         if let Some(speed_potion_entity) = player_inventory.speed_potions.get(0) {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*speed_potion_entity) {
                 // Apply speed potion effect
-                println!("Applying Speed Potion: {}", potion_stats.effect_amount);
+                commands.entity(entity).insert(AccelerationEffect(
+                    Stopwatch::new(),
+                    potion_stats.effect_duration,
+                    potion_stats.effect_amount,
+                ));
+                speed.0 += potion_stats.effect_amount;
                 commands.entity(potion_entity).despawn(); // Despawn the potion entity
                 player_inventory.speed_potions.remove(0);
             }

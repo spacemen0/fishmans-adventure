@@ -1,8 +1,7 @@
 use bevy::math::vec3;
 use bevy::prelude::*;
-use bevy::time::Stopwatch;
 use gun::{BulletStats, GunBundle, GunStats};
-use player::{EffectsTimer, PlayerInventory, Speed};
+use player::{PlayerInventory, Speed};
 use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
 
@@ -48,7 +47,6 @@ fn init_world(
             Player,
             Health(PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
-            EffectsTimer(Stopwatch::new()),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,
@@ -136,7 +134,7 @@ fn init_world(
                 },
                 potion: Potion,
                 potion_stats: PotionStats {
-                    effect_duration: 2.0,
+                    effect_duration: 5.0,
                     effect_amount: 10.0,
                 },
                 potion_type: PotionType::Speed,

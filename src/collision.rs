@@ -1,8 +1,9 @@
+use bevy::time::Stopwatch;
 use bevy::utils::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
-use player::{EffectsTimer, PlayerState};
+use player::InvincibilityEffect;
 
 use crate::player::{Player, PlayerEnemyCollisionEvent};
 use crate::*;
@@ -37,7 +38,8 @@ impl Plugin for CollisionPlugin {
 }
 
 fn handle_enemy_player_collision(
-    mut player_query: Query<(&Transform, &mut PlayerState, &mut EffectsTimer), With<Player>>,
+    mut commands: Commands,
+    mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
     tree: Res<EnemyKdTree>,
     mut ew: EventWriter<PlayerEnemyCollisionEvent>,
 ) {
@@ -45,40 +47,27 @@ fn handle_enemy_player_collision(
         return;
     }
 
-    let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
+    let (translation, entity) = player_query.single_mut();
+
     let player_pos = translation.translation;
 
-    if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
-        let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
-
-        if !enemies.is_empty() {
-            for enemy in enemies.iter() {
-                if enemy.damage > 0.0 {
-                    ew.send(PlayerEnemyCollisionEvent {
-                        damage: enemy.damage,
-                    });
-                }
-            }
-            if enemies.iter().any(|e| e.damage > 0.0) {
-                match *player_state {
-                    PlayerState::Idle => {
-                        *player_state = PlayerState::IdleInvulnerable;
-                        println!("{:?}", *player_state);
-                    }
-                    PlayerState::Run => {
-                        *player_state = PlayerState::RunInvulnerable;
-                        println!("{:?}", *player_state);
-                    }
-                    _ => unreachable!(),
-                }
-                invulnerable_timer.0.reset();
-            }
+    let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
+    if let Some(enemy) = enemies.first() {
+        if enemy.damage > 0.0 {
+            commands.entity(entity).insert(InvincibilityEffect(
+                Stopwatch::new(),
+                PLAYER_INVINCIBLE_TIME,
+            ));
+            ew.send(PlayerEnemyCollisionEvent {
+                damage: enemy.damage,
+            });
         }
     }
 }
 
 fn handle_player_trail_collision(
-    mut player_query: Query<(&Transform, &mut PlayerState, &mut EffectsTimer), With<Player>>,
+    mut commands: Commands,
+    mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
     trail_query: Query<(&Transform, &Trail)>,
     mut ew: EventWriter<PlayerEnemyCollisionEvent>,
 ) {
@@ -86,24 +75,19 @@ fn handle_player_trail_collision(
         return;
     }
 
-    let (translation, mut player_state, mut invulnerable_timer) = player_query.single_mut();
+    let (translation, entity) = player_query.single_mut();
     let player_pos = translation.translation.xy();
-
-    if matches!(*player_state, PlayerState::Idle | PlayerState::Run) {
-        for (trail_transform, trail) in trail_query.iter() {
-            let trail_pos = trail_transform.translation.xy();
-            if player_pos.distance(trail_pos) <= trail.radius {
-                ew.send(PlayerEnemyCollisionEvent {
-                    damage: trail.damage,
-                });
-                *player_state = match *player_state {
-                    PlayerState::Idle => PlayerState::IdleInvulnerable,
-                    PlayerState::Run => PlayerState::RunInvulnerable,
-                    _ => unreachable!(),
-                };
-                invulnerable_timer.0.reset();
-                break;
-            }
+    for (trail_transform, trail) in trail_query.iter() {
+        let trail_pos = trail_transform.translation.xy();
+        if player_pos.distance(trail_pos) <= trail.radius {
+            commands.entity(entity).insert(InvincibilityEffect(
+                Stopwatch::new(),
+                PLAYER_INVINCIBLE_TIME,
+            ));
+            ew.send(PlayerEnemyCollisionEvent {
+                damage: trail.damage,
+            });
+            break;
         }
     }
 }
