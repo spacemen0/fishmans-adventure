@@ -1,6 +1,7 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 
+use crate::armor::{Armor, ArmorStats};
 use crate::enemy::Enemy;
 use crate::player::{Health, Player, PlayerInventory};
 use crate::resources::Wave;
@@ -148,14 +149,32 @@ fn setup_potion_display(mut commands: Commands, asset_server: Res<AssetServer>) 
 fn update_potion_display(
     mut query: Query<&mut Text, With<PotionDisplay>>,
     player_query: Query<&PlayerInventory, With<Player>>,
+    armor_query: Query<&ArmorStats, With<Armor>>,
 ) {
     let mut text = query.single_mut();
     let player_inventory = player_query.single();
     let health_potions_count = player_inventory.health_potions.len();
     let speed_potions_count = player_inventory.speed_potions.len();
+
+    let armor_info = if let Some(active_armor_entity) = player_inventory
+        .armors
+        .get(player_inventory.active_armor_index)
+    {
+        if let Ok(armor_stats) = armor_query.get(*active_armor_entity) {
+            format!(
+                "Armor Defense: {}, Durability: {}",
+                armor_stats.defense, armor_stats.durability
+            )
+        } else {
+            "No Armor".to_string()
+        }
+    } else {
+        "No Armor".to_string()
+    };
+
     text.sections[0].value = format!(
-        "Health Potions: {}, Speed Potions: {}",
-        health_potions_count, speed_potions_count
+        "Health Potions: {}, Speed Potions: {}\n{}",
+        health_potions_count, speed_potions_count, armor_info
     );
 }
 

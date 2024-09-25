@@ -5,7 +5,7 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 use player::InvincibilityEffect;
 
-use crate::player::{Player, PlayerEnemyCollisionEvent};
+use crate::player::{Player, PlayerDamagedEvent};
 use crate::*;
 use crate::{enemy::Enemy, enemy::Trail, gun::Bullet, state::GameState};
 
@@ -41,7 +41,7 @@ fn handle_enemy_player_collision(
     mut commands: Commands,
     mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
     tree: Res<EnemyKdTree>,
-    mut ew: EventWriter<PlayerEnemyCollisionEvent>,
+    mut ew: EventWriter<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -58,7 +58,7 @@ fn handle_enemy_player_collision(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,
             ));
-            ew.send(PlayerEnemyCollisionEvent {
+            ew.send(PlayerDamagedEvent {
                 damage: enemy.damage,
             });
         }
@@ -69,7 +69,7 @@ fn handle_player_trail_collision(
     mut commands: Commands,
     mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
     trail_query: Query<(&Transform, &Trail)>,
-    mut ew: EventWriter<PlayerEnemyCollisionEvent>,
+    mut ew: EventWriter<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -84,7 +84,7 @@ fn handle_player_trail_collision(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,
             ));
-            ew.send(PlayerEnemyCollisionEvent {
+            ew.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });
             break;

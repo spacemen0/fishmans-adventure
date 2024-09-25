@@ -324,13 +324,13 @@ impl EnemyType {
             EnemyType::Green => EnemyConfig {
                 health: 100.0,
                 speed: 6.0,
-                damage: 2.0,
+                damage: 6.0,
                 traits: vec![],
             },
             EnemyType::Toxic => EnemyConfig {
                 health: 50.0,
                 speed: 6.0,
-                damage: 2.0,
+                damage: 6.0,
                 traits: vec![EnemyTrait::LeaveTrail {
                     timer: Timer::from_seconds(0.1, TimerMode::Repeating),
                     trail_damage: 4.0,

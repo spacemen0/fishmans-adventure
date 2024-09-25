@@ -1,3 +1,4 @@
+use armor::ArmorPlugin;
 use bevy::prelude::*;
 
 use hell_game::animation::AnimationPlugin;
@@ -45,6 +46,7 @@ fn main() {
         .add_plugins(DialogPlugin)
         .add_plugins(PortalPlugin)
         .add_plugins(PotionPlugin)
+        .add_plugins(ArmorPlugin)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();

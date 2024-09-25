@@ -1,6 +1,11 @@
+use std::time::Duration;
+
+use armor::{Armor, ArmorStats};
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use gun::HasLifespan;
+use world::InGameEntity;
 
 use crate::state::GameState;
 use crate::*;
@@ -14,11 +19,15 @@ pub struct Health(pub f32);
 #[derive(Component)]
 pub struct Speed(pub f32);
 #[derive(Component)]
+pub struct Defense(pub f32);
+#[derive(Component)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
     pub health_potions: Vec<Entity>,
     pub speed_potions: Vec<Entity>,
+    pub armors: Vec<Entity>,
     pub active_gun_index: usize,
+    pub active_armor_index: usize,
 }
 
 #[derive(Component)]
@@ -34,18 +43,18 @@ pub enum PlayerState {
 }
 
 #[derive(Event)]
-pub struct PlayerEnemyCollisionEvent {
+pub struct PlayerDamagedEvent {
     pub damage: f32,
 }
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlayerEnemyCollisionEvent>().add_systems(
+        app.add_event::<PlayerDamagedEvent>().add_systems(
             Update,
             (
                 handle_player_death,
                 handle_player_input,
-                handle_player_enemy_collision_events,
+                handle_player_damaged_events,
                 handle_invincibility_effect,
                 handle_acceleration_effect,
             )
@@ -54,19 +63,99 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn handle_player_enemy_collision_events(
-    mut player_query: Query<(&mut Health, &PlayerState), With<Player>>,
-    mut events: EventReader<PlayerEnemyCollisionEvent>,
+fn handle_player_damaged_events(
+    mut commands: Commands,
+    mut player_query: Query<
+        (
+            &mut Health,
+            &PlayerState,
+            &Defense,
+            &mut PlayerInventory,
+            &Transform,
+        ),
+        With<Player>,
+    >,
+    mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
+    mut events: EventReader<PlayerDamagedEvent>,
+    asset_server: Res<AssetServer>,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let (mut health, _player_state) = player_query.single_mut();
+    let (mut health, _player_state, player_defense, mut inventory, player_transform) =
+        player_query.single_mut();
+
     for event in events.read() {
         if health.0 > 0.0 {
-            health.0 = (health.0 - event.damage).max(0.0);
+            let mut total_defense = player_defense.0;
+
+            if let Some(active_armor_entity) = inventory.armors.get(inventory.active_armor_index) {
+                if let Ok((mut armor_stats, armor_entity)) =
+                    armor_query.get_mut(*active_armor_entity)
+                {
+                    total_defense += armor_stats.defense;
+
+                    let damage_after_defense = (event.damage - total_defense).max(0.0);
+                    health.0 = (health.0 - damage_after_defense).max(0.0);
+
+                    armor_stats.durability -= damage_after_defense;
+
+                    if armor_stats.durability <= 0.0 {
+                        commands.entity(armor_entity).despawn();
+                        let armor_to_remove = inventory.active_armor_index;
+                        inventory.armors.remove(armor_to_remove);
+                        if inventory.active_armor_index >= inventory.armors.len() {
+                            inventory.active_armor_index = 0;
+                        }
+                    }
+
+                    spawn_damage_text(
+                        &mut commands,
+                        &asset_server,
+                        player_transform.translation,
+                        damage_after_defense,
+                    );
+                }
+            } else {
+                let damage_after_defense = (event.damage - player_defense.0).max(0.0);
+                health.0 = (health.0 - damage_after_defense).max(0.0);
+
+                spawn_damage_text(
+                    &mut commands,
+                    &asset_server,
+                    player_transform.translation,
+                    damage_after_defense,
+                );
+            }
         }
     }
+}
+
+fn spawn_damage_text(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    position: Vec3,
+    damage: f32,
+) {
+    commands.spawn((
+        Text2dBundle {
+            text: Text::from_section(
+                format!("-{:.1}", damage),
+                TextStyle {
+                    font: asset_server.load("monogram.ttf"),
+                    font_size: 50.0,
+                    color: Color::srgb(16.0, 3.0, 1.0),
+                },
+            ),
+            transform: Transform {
+                translation: position + Vec3::new(0.0, 50.0, 0.0),
+                ..default()
+            },
+            ..default()
+        },
+        HasLifespan::new(Duration::from_secs_f32(1.0)),
+        InGameEntity,
+    ));
 }
 
 fn handle_player_death(

@@ -1,7 +1,8 @@
+use armor::*;
 use bevy::math::vec3;
 use bevy::prelude::*;
 use gun::{BulletStats, GunBundle, GunStats};
-use player::{PlayerInventory, Speed};
+use player::{Defense, PlayerInventory, Speed};
 use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
 
@@ -47,6 +48,7 @@ fn init_world(
             Player,
             Health(PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
+            Defense(0.0),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,
@@ -148,11 +150,48 @@ fn init_world(
         .id();
 
     // Add both guns to the player's inventory
+    let armor1 = commands
+        .spawn((
+            ArmorBundle {
+                armor: Armor,
+                armor_stats: ArmorStats {
+                    defense: 2.0,
+                    durability: 20.0,
+                },
+                in_game_entity: InGameEntity,
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 58,
+            },
+        ))
+        .id();
+
+    let armor2 = commands
+        .spawn((
+            ArmorBundle {
+                armor: Armor,
+                armor_stats: ArmorStats {
+                    defense: 3.0,
+                    durability: 30.0,
+                },
+                in_game_entity: InGameEntity,
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 59,
+            },
+        ))
+        .id();
+
+    // Add guns, potions, and armors to the player's inventory
     commands.entity(player_entity).insert(PlayerInventory {
         guns: vec![gun1, gun2],
         active_gun_index: 0,
         health_potions: vec![potion1],
-        speed_potions: vec![potion2], // Start with the first gun
+        speed_potions: vec![potion2],
+        armors: vec![armor1, armor2],
+        active_armor_index: 0,
     });
 
     next_state.set(GameState::InGame);
