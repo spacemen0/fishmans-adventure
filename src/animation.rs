@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    enemy::{Enemy, EnemyType},
+    enemy::Enemy,
+    enemy::EnemyType,
     gun::Gun,
     player::{Player, PlayerInventory, PlayerState},
     state::GameState,
@@ -59,13 +60,10 @@ fn animate_player(
 fn animate_enemy(
     mut enemy_query: Query<(&mut TextureAtlas, &AnimationTimer, &EnemyType), With<Enemy>>,
 ) {
-    if enemy_query.is_empty() {
-        return;
-    }
-
     for (mut atlas, timer, enemy_type) in enemy_query.iter_mut() {
         if timer.just_finished() {
-            atlas.index = enemy_type.get_base_sprite_index() + (atlas.index + 1) % 4;
+            let config = enemy_type.get_config();
+            atlas.index = config.sprite_index + (atlas.index + 1) % 4;
         }
     }
 }
