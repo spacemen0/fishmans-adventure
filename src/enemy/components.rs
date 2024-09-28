@@ -14,3 +14,8 @@ pub struct Trail {
     pub damage: f32,
     pub radius: f32,
 }
+
+#[derive(Component)]
+pub struct Collider {
+    pub radius: f32,
+}

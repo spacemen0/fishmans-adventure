@@ -98,3 +98,29 @@ fn get_random_position_around(pos: Vec2) -> (f32, f32) {
         random_y.clamp(-WORLD_H, WORLD_H),
     )
 }
+
+pub fn handle_enemy_collision(
+    mut enemy_query: Query<(Entity, &mut Transform, &Collider), With<Enemy>>,
+) {
+    let mut combinations = enemy_query.iter_combinations_mut();
+    while let Some([(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)]) = combinations.fetch_next() {
+        let distance = transform_a.translation.distance(transform_b.translation);
+        let min_distance = collider_a.radius + collider_b.radius;
+
+        if distance < min_distance {
+            let overlap = min_distance - distance;
+            let direction = (transform_b.translation - transform_a.translation).normalize();
+            
+            transform_a.translation -= direction * overlap * 0.5;
+            transform_b.translation += direction * overlap * 0.5;
+
+            clamp_position(&mut transform_a.translation);
+            clamp_position(&mut transform_b.translation);
+        }
+    }
+}
+
+fn clamp_position(position: &mut Vec3) {
+    position.x = position.x.clamp(-WORLD_W, WORLD_W);
+    position.y = position.y.clamp(-WORLD_H, WORLD_H);
+}

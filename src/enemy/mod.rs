@@ -15,7 +15,12 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_enemies, update_enemy_behavior, despawn_dead_enemies)
+            (
+                spawn_enemies,
+                update_enemy_behavior,
+                despawn_dead_enemies,
+                handle_enemy_collision, 
+            )
                 .run_if(in_state(GameState::InGame)),
         );
     }
