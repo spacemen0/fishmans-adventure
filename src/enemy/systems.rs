@@ -48,11 +48,11 @@ pub fn update_enemy_behavior(
         let speed = enemy.speed;
         let movement =
             enemy
-                .behavior
+                .enemy_type
                 .update_movement(transform.translation, player_pos, speed, time.delta());
         transform.translation += movement;
         enemy
-            .behavior
+            .enemy_type
             .apply(&mut commands, &transform, time.delta());
     }
 }

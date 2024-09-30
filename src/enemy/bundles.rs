@@ -27,7 +27,7 @@ impl EnemyBundle {
                 health: config.health,
                 speed: config.speed,
                 damage: config.damage,
-                behavior: enemy_type.get_behavior(),
+                enemy_type: enemy_type.clone(),
             },
             enemy_type,
             sprite_bundle: SpriteBundle {

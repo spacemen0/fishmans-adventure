@@ -1,4 +1,3 @@
-pub mod behaviors;
 pub mod bundles;
 pub mod components;
 pub mod systems;
@@ -7,7 +6,7 @@ pub mod types;
 use crate::state::GameState;
 use bevy::prelude::*;
 
-pub use self::{behaviors::*, bundles::*, components::*, systems::*, types::*};
+pub use self::{bundles::*, components::*, systems::*, types::*};
 
 pub struct EnemyPlugin;
 
