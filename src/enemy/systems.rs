@@ -1,11 +1,19 @@
+use super::components::EnemyBullet;
 use super::*;
-use crate::player::Player;
+use crate::gun::HasLifespan;
+use crate::gun::{BulletDirection, BulletStats};
+use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent};
 use crate::resources::Wave;
 use crate::utils::calculate_enemies_per_wave;
+use crate::world::InGameEntity;
 use crate::GlobalTextureAtlas;
+use crate::PLAYER_INVINCIBLE_TIME;
+use crate::SPRITE_SCALE_FACTOR;
 use crate::{SPAWN_RATE_PER_SECOND, WORLD_H, WORLD_W};
 use bevy::prelude::*;
+use bevy::time::Stopwatch;
 use rand::Rng;
+use std::time::Duration;
 
 pub fn spawn_enemies(
     mut commands: Commands,
@@ -46,10 +54,12 @@ pub fn update_enemy_behavior(
     let player_pos = player_query.single().translation;
     for (mut enemy, mut transform) in enemy_query.iter_mut() {
         let speed = enemy.speed;
-        let movement =
-            enemy
-                .enemy_type
-                .update_movement(transform.translation, player_pos, speed, time.delta());
+        let movement = enemy.enemy_type.update_movement(
+            transform.translation,
+            player_pos,
+            speed,
+            time.delta(),
+        );
         transform.translation += movement;
         enemy
             .enemy_type
@@ -103,14 +113,17 @@ pub fn handle_enemy_collision(
     mut enemy_query: Query<(Entity, &mut Transform, &Collider), With<Enemy>>,
 ) {
     let mut combinations = enemy_query.iter_combinations_mut();
-    while let Some([(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)]) = combinations.fetch_next() {
+    while let Some(
+        [(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)],
+    ) = combinations.fetch_next()
+    {
         let distance = transform_a.translation.distance(transform_b.translation);
         let min_distance = collider_a.radius + collider_b.radius;
 
         if distance < min_distance {
             let overlap = min_distance - distance;
             let direction = (transform_b.translation - transform_a.translation).normalize();
-            
+
             transform_a.translation -= direction * overlap * 0.5;
             transform_b.translation += direction * overlap * 0.5;
 
@@ -123,4 +136,127 @@ pub fn handle_enemy_collision(
 fn clamp_position(position: &mut Vec3) {
     position.x = position.x.clamp(-WORLD_W, WORLD_W);
     position.y = position.y.clamp(-WORLD_H, WORLD_H);
+}
+
+pub fn handle_shooter_enemies(
+    mut commands: Commands,
+    mut enemy_query: Query<(&mut Enemy, &Transform, &mut EnemyType)>,
+    player_query: Query<&Transform, With<Player>>,
+    time: Res<Time>,
+    handle: Res<GlobalTextureAtlas>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+    let player_pos = player_query.single().translation;
+
+    for (_enemy, transform, mut enemy_type) in enemy_query.iter_mut() {
+        if let EnemyType::Shooter {
+            ref mut shoot_timer,
+            ref mut reload_timer,
+            ref mut in_range,
+            bullets_per_shot,
+        } = enemy_type.as_mut()
+        {
+            let distance = transform.translation.distance(player_pos);
+            *in_range = distance <= 300.0;
+
+            if *in_range {
+                shoot_timer.tick(time.delta());
+                if shoot_timer.just_finished() {
+                    spawn_enemy_bullets(
+                        &mut commands,
+                        transform.translation,
+                        player_pos,
+                        *bullets_per_shot,
+                        &handle,
+                    );
+                    *shoot_timer = Timer::from_seconds(0.5, TimerMode::Once);
+                    *reload_timer = Timer::from_seconds(2.0, TimerMode::Once);
+                }
+            } else {
+                reload_timer.tick(time.delta());
+                if reload_timer.finished() {
+                    *shoot_timer = Timer::from_seconds(0.5, TimerMode::Once);
+                }
+            }
+        }
+    }
+}
+
+fn spawn_enemy_bullets(
+    commands: &mut Commands,
+    enemy_pos: Vec3,
+    player_pos: Vec3,
+    num_bullets: usize,
+    handle: &Res<GlobalTextureAtlas>,
+) {
+    let direction = (player_pos - enemy_pos).normalize();
+    for _ in 0..num_bullets {
+        let spread = Vec3::new(
+            rand::random::<f32>() * 0.2 - 0.1,
+            rand::random::<f32>() * 0.2 - 0.1,
+            0.0,
+        );
+        let bullet_direction = direction + spread;
+        commands.spawn((
+            SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_translation(enemy_pos)
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 16,
+            },
+            EnemyBullet,
+            BulletDirection(bullet_direction),
+            BulletStats {
+                speed: 200.0,
+                damage: 10.0,
+                lifespan: 2.0,
+            },
+            InGameEntity,
+            HasLifespan::new(Duration::from_secs_f32(2.0)),
+        ));
+    }
+}
+
+pub fn update_enemy_bullets(
+    mut bullet_query: Query<(&mut Transform, &BulletDirection, &BulletStats), With<EnemyBullet>>,
+    time: Res<Time>,
+) {
+    for (mut transform, direction, stats) in bullet_query.iter_mut() {
+        transform.translation += direction.0 * stats.speed * time.delta_seconds();
+    }
+}
+
+pub fn handle_enemy_bullet_collision(
+    mut commands: Commands,
+    bullet_query: Query<(Entity, &Transform), With<EnemyBullet>>,
+    player_query: Query<(Entity, &Transform), (With<Player>, Without<InvincibilityEffect>)>,
+    mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+    let (player_entity, player_transform) = player_query.single();
+
+    for (bullet_entity, bullet_transform) in bullet_query.iter() {
+        if player_transform
+            .translation
+            .distance(bullet_transform.translation)
+            < 30.0
+        {
+            ev_player_damaged.send(PlayerDamagedEvent { damage: 10.0 });
+
+            commands.entity(player_entity).insert(InvincibilityEffect(
+                Stopwatch::new(),
+                PLAYER_INVINCIBLE_TIME,
+            ));
+
+            commands.entity(bullet_entity).despawn();
+        }
+    }
 }
