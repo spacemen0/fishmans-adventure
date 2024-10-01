@@ -4,6 +4,7 @@ use armor::{Armor, ArmorStats};
 use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use enemy::Collider;
 use gun::HasLifespan;
 use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
 use world::InGameEntity;
@@ -181,6 +182,7 @@ fn spawn_damage_text(
             },
             ..default()
         },
+        Collider { radius: 5 },
         HasLifespan::new(Duration::from_secs(1)),
         InGameEntity,
     ));

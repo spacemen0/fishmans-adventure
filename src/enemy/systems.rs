@@ -4,13 +4,13 @@ use crate::gun::HasLifespan;
 use crate::gun::{BulletDirection, BulletStats};
 use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent};
 use crate::resources::{Level, Wave};
-use crate::utils::calculate_enemies_per_wave;
 use crate::utils::get_random_position_around;
+use crate::utils::{calculate_enemies_per_wave, clamp_position};
 use crate::world::InGameEntity;
 use crate::GlobalTextureAtlas;
 use crate::PLAYER_INVINCIBLE_TIME;
+use crate::SPAWN_RATE_PER_SECOND;
 use crate::SPRITE_SCALE_FACTOR;
-use crate::{SPAWN_RATE_PER_SECOND, WORLD_H, WORLD_W};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 
@@ -100,9 +100,7 @@ pub fn despawn_dead_enemies(
     }
 }
 
-pub fn handle_enemy_collision(
-    mut enemy_query: Query<(Entity, &mut Transform, &Collider), With<Enemy>>,
-) {
+pub fn handle_enemy_collision(mut enemy_query: Query<(Entity, &mut Transform, &Collider)>) {
     let mut combinations = enemy_query.iter_combinations_mut();
     while let Some(
         [(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)],
@@ -122,11 +120,6 @@ pub fn handle_enemy_collision(
             clamp_position(&mut transform_b.translation);
         }
     }
-}
-
-fn clamp_position(position: &mut Vec3) {
-    position.x = position.x.clamp(-WORLD_W, WORLD_W);
-    position.y = position.y.clamp(-WORLD_H, WORLD_H);
 }
 
 pub fn handle_shooter_enemies(
@@ -185,8 +178,8 @@ fn spawn_enemy_bullets(
     let direction = (player_pos - enemy_pos).normalize();
     for _ in 0..num_bullets {
         let spread = Vec3::new(
-            rand::random::<u32>() as f32 * 0.2 - 0.1,
-            rand::random::<u32>() as f32 * 0.2 - 0.1,
+            rand::random::<f32>() * 0.2 - 0.1,
+            rand::random::<f32>() * 0.2 - 0.1,
             0.0,
         );
         let bullet_direction = direction + spread;

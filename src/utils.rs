@@ -52,3 +52,8 @@ pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
 pub fn safe_subtract(a: u32, b: u32) -> u32 {
     a.checked_sub(b).unwrap_or(0)
 }
+
+pub fn clamp_position(position: &mut Vec3) {
+    position.x = position.x.clamp(-WORLD_W, WORLD_W);
+    position.y = position.y.clamp(-WORLD_H, WORLD_H);
+}
