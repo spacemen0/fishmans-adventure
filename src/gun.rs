@@ -60,7 +60,7 @@ impl HasLifespan {
 }
 
 #[derive(Component)]
-struct BulletDirection(Vec3);
+pub struct BulletDirection(pub Vec3);
 
 #[derive(Bundle)]
 pub struct GunBundle {

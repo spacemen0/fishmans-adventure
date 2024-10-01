@@ -1,4 +1,4 @@
-use super::behaviors::*;
+use super::types::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
@@ -7,7 +7,7 @@ pub struct Enemy {
     pub speed: f32,
     pub damage: f32,
     pub xp: f32,
-    pub behavior: Box<dyn EnemyBehavior>,
+    pub enemy_type: EnemyType,
 }
 
 #[derive(Component)]
@@ -20,3 +20,6 @@ pub struct Trail {
 pub struct Collider {
     pub radius: f32,
 }
+
+#[derive(Component)]
+pub struct EnemyBullet;
