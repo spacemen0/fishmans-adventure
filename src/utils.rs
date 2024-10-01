@@ -8,24 +8,28 @@ pub fn calculate_enemies_per_wave(wave_number: u32) -> u32 {
     base_enemies + increase
 }
 
-pub fn calculate_health_increase(level: u32) -> f32 {
+pub fn calculate_health_increase(level: u32) -> u32 {
     let base_health_increase = 10.0;
     let exponential_factor: f32 = 1.05;
     let diminishing_return_factor: f32 = 0.95;
 
-    base_health_increase
+    let health_increase = base_health_increase
         * (exponential_factor.powi(level as i32))
-        * diminishing_return_factor.powi(level as i32)
+        * diminishing_return_factor.powi(level as i32);
+
+    health_increase.round() as u32
 }
 
-pub fn calculate_defense_increase(level: u32) -> f32 {
+pub fn calculate_defense_increase(level: u32) -> u32 {
     let base_defense_increase = 2.0;
     let exponential_factor: f32 = 1.03;
     let diminishing_return_factor: f32 = 0.97;
 
-    base_defense_increase
+    let defense_increase = base_defense_increase
         * (exponential_factor.powi(level as i32))
-        * diminishing_return_factor.powi(level as i32)
+        * diminishing_return_factor.powi(level as i32);
+
+    defense_increase.round() as u32
 }
 
 pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
@@ -43,4 +47,8 @@ pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
         random_x.clamp(-WORLD_W, WORLD_W),
         random_y.clamp(-WORLD_H, WORLD_H),
     )
+}
+
+pub fn safe_subtract(a: u32, b: u32) -> u32 {
+    a.checked_sub(b).unwrap_or(0)
 }

@@ -4,6 +4,7 @@ use bevy::utils::Duration;
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 use player::InvincibilityEffect;
+use utils::safe_subtract;
 
 use crate::player::{Player, PlayerDamagedEvent};
 use crate::*;
@@ -15,7 +16,7 @@ pub struct CollisionPlugin;
 struct Collidable {
     pos: Vec2,
     entity: Entity,
-    damage: f32,
+    damage: u32,
 }
 
 #[derive(Resource)]
@@ -53,7 +54,7 @@ fn handle_enemy_player_collision(
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
     if let Some(enemy) = enemies.first() {
-        if enemy.damage > 0.0 {
+        if enemy.damage > 0 {
             commands.entity(entity).insert(InvincibilityEffect(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,
@@ -79,7 +80,7 @@ fn handle_player_trail_collision(
     let player_pos = translation.translation.xy();
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
-        if player_pos.distance(trail_pos) <= trail.radius {
+        if player_pos.distance(trail_pos) <= trail.radius as f32 {
             commands.entity(entity).insert(InvincibilityEffect(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,
@@ -124,7 +125,7 @@ fn handle_enemy_bullet_collision(
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health -= BULLET_DAMAGE;
+                enemy.health = safe_subtract(enemy.health, BULLET_DAMAGE);
                 commands.add(move |world: &mut World| {
                     if let Some(entity) = world.get_entity_mut(bullet_entity) {
                         entity.despawn();

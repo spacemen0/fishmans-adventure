@@ -49,7 +49,7 @@ fn init_world(
             Player,
             Health(PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
-            Defense(1.0),
+            Defense(1),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,
@@ -91,8 +91,8 @@ fn init_world(
                     bullet_spread: 0.3,
                 },
                 bullet_stats: BulletStats {
-                    speed: 30.0,
-                    damage: 100.0,
+                    speed: 30,
+                    damage: 100,
                     lifespan: 0.5,
                 },
                 ..default()
@@ -115,7 +115,7 @@ fn init_world(
                 potion: potion::Potion,
                 potion_stats: PotionStats {
                     effect_duration: 2.0,
-                    effect_amount: 10.0,
+                    effect_amount: 10,
                 },
                 potion_type: PotionType::Health,
                 in_game_entity: InGameEntity,
@@ -138,7 +138,7 @@ fn init_world(
                 potion: Potion,
                 potion_stats: PotionStats {
                     effect_duration: 5.0,
-                    effect_amount: 10.0,
+                    effect_amount: 10,
                 },
                 potion_type: PotionType::Speed,
                 in_game_entity: InGameEntity,
@@ -156,8 +156,8 @@ fn init_world(
             ArmorBundle {
                 armor: Armor,
                 armor_stats: ArmorStats {
-                    defense: 2.0,
-                    durability: 20.0,
+                    defense: 2,
+                    durability: 20,
                 },
                 in_game_entity: InGameEntity,
             },
@@ -173,8 +173,8 @@ fn init_world(
             ArmorBundle {
                 armor: Armor,
                 armor_stats: ArmorStats {
-                    defense: 3.0,
-                    durability: 30.0,
+                    defense: 3,
+                    durability: 30,
                 },
                 in_game_entity: InGameEntity,
             },

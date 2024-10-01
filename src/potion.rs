@@ -18,7 +18,7 @@ pub enum PotionType {
 #[derive(Component)]
 pub struct PotionStats {
     pub effect_duration: f32,
-    pub effect_amount: f32,
+    pub effect_amount: u32,
 }
 
 #[derive(Bundle)]

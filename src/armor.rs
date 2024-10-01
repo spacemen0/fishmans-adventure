@@ -10,8 +10,8 @@ pub struct Armor;
 
 #[derive(Component)]
 pub struct ArmorStats {
-    pub defense: f32,
-    pub durability: f32,
+    pub defense: u32,
+    pub durability: u32,
 }
 
 #[derive(Bundle)]

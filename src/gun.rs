@@ -32,8 +32,8 @@ pub struct Bullet;
 
 #[derive(Component)]
 pub struct BulletStats {
-    pub speed: f32,
-    pub damage: f32,
+    pub speed: u32,
+    pub damage: u32,
     pub lifespan: f32,
 }
 
@@ -311,11 +311,11 @@ fn update_bullets(
     for (mut t, dir, stats, gun_type) in bullet_query.iter_mut() {
         match gun_type {
             GunType::Default => {
-                t.translation += dir.0.normalize() * Vec3::splat(stats.speed);
+                t.translation += dir.0.normalize() * Vec3::splat(stats.speed as f32);
                 t.translation.z = 10.0;
             }
             GunType::Gun1 => {
-                t.translation += dir.0.normalize() * Vec3::splat(stats.speed);
+                t.translation += dir.0.normalize() * Vec3::splat(stats.speed as f32);
                 t.translation.z = 10.0;
             }
             GunType::Gun2 => todo!(),

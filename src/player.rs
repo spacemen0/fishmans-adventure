@@ -5,7 +5,7 @@ use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use gun::HasLifespan;
-use utils::{calculate_defense_increase, calculate_health_increase};
+use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
 use world::InGameEntity;
 
 use crate::state::GameState;
@@ -16,11 +16,11 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct Player;
 #[derive(Component)]
-pub struct Health(pub f32);
+pub struct Health(pub u32);
 #[derive(Component)]
-pub struct Speed(pub f32);
+pub struct Speed(pub u32);
 #[derive(Component)]
-pub struct Defense(pub f32);
+pub struct Defense(pub u32);
 #[derive(Component)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
@@ -34,7 +34,7 @@ pub struct PlayerInventory {
 #[derive(Component)]
 pub struct InvincibilityEffect(pub Stopwatch, pub f32);
 #[derive(Component)]
-pub struct AccelerationEffect(pub Stopwatch, pub f32, pub f32);
+pub struct AccelerationEffect(pub Stopwatch, pub f32, pub u32);
 
 #[derive(Component, Default, Debug)]
 pub enum PlayerState {
@@ -45,7 +45,7 @@ pub enum PlayerState {
 
 #[derive(Event)]
 pub struct PlayerDamagedEvent {
-    pub damage: f32,
+    pub damage: u32,
 }
 #[derive(Event)]
 pub struct PlayerLevelingUpEvent {
@@ -94,7 +94,7 @@ fn handle_player_damaged_events(
         player_query.single_mut();
 
     for event in events.read() {
-        if health.0 > 0.0 {
+        if health.0 > 0 {
             let mut total_defense = player_defense.0;
 
             if let Some(active_armor_entity) = inventory.armors.get(inventory.active_armor_index) {
@@ -103,12 +103,13 @@ fn handle_player_damaged_events(
                 {
                     total_defense += armor_stats.defense;
 
-                    let damage_after_defense = (event.damage - total_defense).max(0.0);
-                    health.0 = (health.0 - damage_after_defense).max(0.0);
+                    let damage_after_defense = safe_subtract(event.damage, total_defense);
+                    health.0 = safe_subtract(health.0, damage_after_defense);
 
-                    armor_stats.durability -= damage_after_defense;
+                    armor_stats.durability =
+                        safe_subtract(armor_stats.durability, damage_after_defense);
 
-                    if armor_stats.durability <= 0.0 {
+                    if armor_stats.durability <= 0 {
                         commands.entity(armor_entity).despawn();
                         let armor_to_remove = inventory.active_armor_index;
                         inventory.armors.remove(armor_to_remove);
@@ -116,7 +117,19 @@ fn handle_player_damaged_events(
                             inventory.active_armor_index = 0;
                         }
                     }
-
+                    if damage_after_defense > 0 {
+                        spawn_damage_text(
+                            &mut commands,
+                            &asset_server,
+                            player_transform.translation,
+                            damage_after_defense,
+                        );
+                    }
+                }
+            } else {
+                let damage_after_defense = safe_subtract(event.damage, player_defense.0);
+                health.0 = safe_subtract(health.0, damage_after_defense);
+                if damage_after_defense > 0 {
                     spawn_damage_text(
                         &mut commands,
                         &asset_server,
@@ -124,16 +137,6 @@ fn handle_player_damaged_events(
                         damage_after_defense,
                     );
                 }
-            } else {
-                let damage_after_defense = (event.damage - player_defense.0).max(0.0);
-                health.0 = (health.0 - damage_after_defense).max(0.0);
-
-                spawn_damage_text(
-                    &mut commands,
-                    &asset_server,
-                    player_transform.translation,
-                    damage_after_defense,
-                );
             }
         }
     }
@@ -160,12 +163,12 @@ fn spawn_damage_text(
     commands: &mut Commands,
     asset_server: &AssetServer,
     position: Vec3,
-    damage: f32,
+    damage: u32,
 ) {
     commands.spawn((
         Text2dBundle {
             text: Text::from_section(
-                format!("-{:.1}", damage),
+                format!("-{}", damage),
                 TextStyle {
                     font: asset_server.load("monogram.ttf"),
                     font_size: 50.0,
@@ -178,7 +181,7 @@ fn spawn_damage_text(
             },
             ..default()
         },
-        HasLifespan::new(Duration::from_secs_f32(1.0)),
+        HasLifespan::new(Duration::from_secs(1)),
         InGameEntity,
     ));
 }
@@ -191,7 +194,7 @@ fn handle_player_death(
         return;
     }
     let player = player_query.single();
-    if player.0 .0 <= 0.0 {
+    if player.0 .0 == 0 {
         next_state.set(GameState::MainMenu);
     }
 }
@@ -259,7 +262,7 @@ pub fn handle_player_input(
     delta = delta.normalize();
 
     if delta.is_finite() && (w_key || a_key || s_key || d_key) {
-        let desired_position = transform.translation.xy() + delta * speed.0;
+        let desired_position = transform.translation.xy() + delta * speed.0 as f32;
         let clamped_x = desired_position.x.clamp(-WORLD_W, WORLD_W);
         let clamped_y = desired_position.y.clamp(-WORLD_H, WORLD_H);
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);

@@ -62,8 +62,8 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent
                 .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(380.0),
-                        height: Val::Px(270.0),
+                        width: Val::Px(372.0),
+                        height: Val::Px(258.0),
                         align_items: AlignItems::Start,
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Start,

@@ -39,23 +39,23 @@ impl Default for Wave {
 
 #[derive(Resource)]
 pub struct Level {
-    current_xp: f32,
-    xp_threshold: f32,
+    current_xp: u32,
+    xp_threshold: u32,
     level: u32,
 }
 
 impl Default for Level {
     fn default() -> Self {
         Self {
-            current_xp: 0.0,
-            xp_threshold: 100.0,
+            current_xp: 0,
+            xp_threshold: 100,
             level: 1,
         }
     }
 }
 
 impl Level {
-    pub fn add_xp(&mut self, xp: f32) -> bool {
+    pub fn add_xp(&mut self, xp: u32) -> bool {
         self.current_xp += xp;
         let mut leveled_up = false;
         while self.current_xp >= self.xp_threshold {
@@ -68,18 +68,18 @@ impl Level {
     fn level_up(&mut self) {
         self.current_xp -= self.xp_threshold;
         self.level += 1;
-        self.xp_threshold *= 1.5;
+        self.xp_threshold = self.xp_threshold + self.xp_threshold / 2;
     }
 
     pub fn level(&self) -> u32 {
         self.level
     }
 
-    pub fn current_xp(&self) -> f32 {
+    pub fn current_xp(&self) -> u32 {
         self.current_xp
     }
 
-    pub fn xp_threshold(&self) -> f32 {
+    pub fn xp_threshold(&self) -> u32 {
         self.xp_threshold
     }
 }

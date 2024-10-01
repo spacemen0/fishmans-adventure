@@ -9,13 +9,13 @@ pub enum EnemyType {
     Basic,
     LeaveTrail {
         timer: Timer,
-        trail_damage: f32,
+        trail_damage: u32,
     },
     Charge {
         state: ChargeState,
         charge_timer: Timer,
-        charge_distance: f32,
-        charge_speed: f32,
+        charge_distance: u32,
+        charge_speed: u32,
         target_position: Option<Vec2>,
     },
     Shooter {
@@ -31,15 +31,15 @@ pub enum ChargeState {
     Approaching,
     Preparing,
     Charging,
-    Cooldown,
+    CoolingDown,
 }
 
 pub struct EnemyConfig {
-    pub health: f32,
-    pub speed: f32,
-    pub damage: f32,
+    pub health: u32,
+    pub speed: u32,
+    pub damage: u32,
     pub sprite_index: usize,
-    pub xp: f32,
+    pub xp: u32,
 }
 
 impl EnemyType {
@@ -54,13 +54,13 @@ impl EnemyType {
             },
             1 => EnemyType::LeaveTrail {
                 timer: Timer::from_seconds(0.1, TimerMode::Repeating),
-                trail_damage: 4.0,
+                trail_damage: 4,
             },
             2 => EnemyType::Charge {
                 state: ChargeState::Approaching,
                 charge_timer: Timer::from_seconds(0.5, TimerMode::Once),
-                charge_distance: 200.0,
-                charge_speed: 15.0,
+                charge_distance: 200,
+                charge_speed: 15,
                 target_position: None,
             },
             _ => EnemyType::Basic,
@@ -70,32 +70,32 @@ impl EnemyType {
     pub fn get_config(&self) -> EnemyConfig {
         match self {
             EnemyType::Basic => EnemyConfig {
-                health: 100.0,
-                speed: 6.0,
-                damage: 6.0,
+                health: 100,
+                speed: 6,
+                damage: 6,
                 sprite_index: 8,
-                xp: 4.0,
+                xp: 4,
             },
             EnemyType::LeaveTrail { .. } => EnemyConfig {
-                health: 50.0,
-                speed: 10.0,
-                damage: 6.0,
+                health: 50,
+                speed: 10,
+                damage: 6,
                 sprite_index: 12,
-                xp: 5.0,
+                xp: 5,
             },
             EnemyType::Charge { .. } => EnemyConfig {
-                health: 80.0,
-                speed: 6.0,
-                damage: 8.0,
+                health: 80,
+                speed: 6,
+                damage: 8,
                 sprite_index: 20,
-                xp: 8.0,
+                xp: 8,
             },
             EnemyType::Shooter { .. } => EnemyConfig {
-                health: 100.0,
-                speed: 8.0,
-                damage: 0.0,
+                health: 100,
+                speed: 8,
+                damage: 0,
                 sprite_index: 28,
-                xp: 10.0,
+                xp: 10,
             },
         }
     }
@@ -104,12 +104,14 @@ impl EnemyType {
         &mut self,
         current_pos: Vec3,
         player_pos: Vec3,
-        base_speed: f32,
+        base_speed: u32,
         delta: Duration,
     ) -> Vec3 {
         match self {
-            EnemyType::Basic => (player_pos - current_pos).normalize() * base_speed,
-            EnemyType::LeaveTrail { .. } => (player_pos - current_pos).normalize() * base_speed,
+            EnemyType::Basic => (player_pos - current_pos).normalize() * base_speed as f32,
+            EnemyType::LeaveTrail { .. } => {
+                (player_pos - current_pos).normalize() * base_speed as f32
+            }
             EnemyType::Charge {
                 state,
                 charge_timer,
@@ -121,12 +123,12 @@ impl EnemyType {
 
                 match state {
                     ChargeState::Approaching => {
-                        if current_pos.distance(player_pos) <= *charge_distance {
+                        if current_pos.distance(player_pos) <= *charge_distance as f32 {
                             *state = ChargeState::Preparing;
                             *charge_timer = Timer::from_seconds(1.5, TimerMode::Once);
                             Vec3::ZERO
                         } else {
-                            (player_pos - current_pos).normalize() * base_speed
+                            (player_pos - current_pos).normalize() * base_speed as f32
                         }
                     }
                     ChargeState::Preparing => {
@@ -139,17 +141,17 @@ impl EnemyType {
                     }
                     ChargeState::Charging => {
                         if charge_timer.just_finished() {
-                            *state = ChargeState::Cooldown;
+                            *state = ChargeState::CoolingDown;
                             *charge_timer = Timer::from_seconds(1.5, TimerMode::Once);
                             *target_position = None;
                             Vec3::ZERO
                         } else if let Some(target) = target_position {
-                            (target.extend(0.0) - current_pos).normalize() * *charge_speed
+                            (target.extend(0.0) - current_pos).normalize() * *charge_speed as f32
                         } else {
                             Vec3::ZERO
                         }
                     }
-                    ChargeState::Cooldown => {
+                    ChargeState::CoolingDown => {
                         if charge_timer.just_finished() {
                             *state = ChargeState::Approaching;
                         }
@@ -163,7 +165,7 @@ impl EnemyType {
                 if *in_range {
                     Vec3::ZERO
                 } else {
-                    (player_pos - current_pos).normalize() * base_speed
+                    (player_pos - current_pos).normalize() * base_speed as f32
                 }
             }
         }
@@ -207,7 +209,7 @@ impl EnemyType {
     }
 }
 
-fn spawn_trail(commands: &mut Commands, position: Vec3, damage: f32) {
+fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32) {
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {

@@ -43,7 +43,7 @@ impl EnemyBundle {
             },
             animation_timer: AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
             in_game_entity: InGameEntity,
-            collider: Collider { radius: 15.0 },
+            collider: Collider { radius: 15 },
         }
     }
 }

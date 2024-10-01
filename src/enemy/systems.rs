@@ -76,7 +76,7 @@ pub fn despawn_dead_enemies(
     mut ew: EventWriter<PlayerLevelingUpEvent>,
 ) {
     for (enemy, entity) in enemy_query.iter() {
-        if enemy.health <= 0.0 {
+        if enemy.health == 0 {
             commands.entity(entity).despawn();
             wave.enemies_left -= 1;
             if level.add_xp(enemy.xp) {
@@ -109,7 +109,7 @@ pub fn handle_enemy_collision(
     ) = combinations.fetch_next()
     {
         let distance = transform_a.translation.distance(transform_b.translation);
-        let min_distance = collider_a.radius + collider_b.radius;
+        let min_distance = (collider_a.radius + collider_b.radius) as f32;
 
         if distance < min_distance {
             let overlap = min_distance - distance;
@@ -185,8 +185,8 @@ fn spawn_enemy_bullets(
     let direction = (player_pos - enemy_pos).normalize();
     for _ in 0..num_bullets {
         let spread = Vec3::new(
-            rand::random::<f32>() * 0.2 - 0.1,
-            rand::random::<f32>() * 0.2 - 0.1,
+            rand::random::<u32>() as f32 * 0.2 - 0.1,
+            rand::random::<u32>() as f32 * 0.2 - 0.1,
             0.0,
         );
         let bullet_direction = direction + spread;
@@ -204,12 +204,12 @@ fn spawn_enemy_bullets(
             EnemyBullet,
             BulletDirection(bullet_direction),
             BulletStats {
-                speed: 200.0,
-                damage: 10.0,
+                speed: 200,
+                damage: 10,
                 lifespan: 2.0,
             },
             InGameEntity,
-            HasLifespan::new(Duration::from_secs_f32(2.0)),
+            HasLifespan::new(Duration::from_secs(2)),
         ));
     }
 }
@@ -219,7 +219,7 @@ pub fn update_enemy_bullets(
     time: Res<Time>,
 ) {
     for (mut transform, direction, stats) in bullet_query.iter_mut() {
-        transform.translation += direction.0 * stats.speed * time.delta_seconds();
+        transform.translation += direction.0 * stats.speed as f32 * time.delta_seconds();
     }
 }
 
@@ -240,7 +240,7 @@ pub fn handle_enemy_bullet_collision(
             .distance(bullet_transform.translation)
             < 30.0
         {
-            ev_player_damaged.send(PlayerDamagedEvent { damage: 10.0 });
+            ev_player_damaged.send(PlayerDamagedEvent { damage: 10 });
 
             commands.entity(player_entity).insert(InvincibilityEffect(
                 Stopwatch::new(),
