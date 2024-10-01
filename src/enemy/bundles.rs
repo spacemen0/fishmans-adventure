@@ -27,6 +27,7 @@ impl EnemyBundle {
                 health: config.health,
                 speed: config.speed,
                 damage: config.damage,
+                xp: config.xp,
                 behavior: enemy_type.get_behavior(),
             },
             enemy_type,

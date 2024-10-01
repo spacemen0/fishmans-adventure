@@ -5,6 +5,7 @@ use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use gun::HasLifespan;
+use utils::{calculate_defense_increase, calculate_health_increase};
 use world::InGameEntity;
 
 use crate::state::GameState;
@@ -46,6 +47,10 @@ pub enum PlayerState {
 pub struct PlayerDamagedEvent {
     pub damage: f32,
 }
+#[derive(Event)]
+pub struct PlayerLevelingUpEvent {
+    pub new_level: u32,
+}
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -57,6 +62,7 @@ impl Plugin for PlayerPlugin {
                 handle_player_damaged_events,
                 handle_invincibility_effect,
                 handle_acceleration_effect,
+                handle_leveling_up,
             )
                 .run_if(in_state(GameState::InGame)),
         );
@@ -128,6 +134,23 @@ fn handle_player_damaged_events(
                 );
             }
         }
+    }
+}
+
+fn handle_leveling_up(
+    mut event_reader: EventReader<PlayerLevelingUpEvent>,
+    mut player_query: Query<(&mut Health, &mut Defense), With<Player>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+
+    let (mut health, mut defense) = player_query.single_mut();
+
+    for event in event_reader.read() {
+        let level = event.new_level as u32;
+        health.0 += calculate_health_increase(level);
+        defense.0 += calculate_defense_increase(level);
     }
 }
 

@@ -1,8 +1,8 @@
 use super::*;
-use crate::player::Player;
+use crate::player::{Player, PlayerLevelingUpEvent};
 use crate::resources::Wave;
 use crate::utils::calculate_enemies_per_wave;
-use crate::GlobalTextureAtlas;
+use crate::{GlobalTextureAtlas, Level};
 use crate::{SPAWN_RATE_PER_SECOND, WORLD_H, WORLD_W};
 use bevy::prelude::*;
 use rand::Rng;
@@ -61,11 +61,18 @@ pub fn despawn_dead_enemies(
     mut commands: Commands,
     enemy_query: Query<(&Enemy, Entity), With<Enemy>>,
     mut wave: ResMut<Wave>,
+    mut level: ResMut<Level>,
+    mut ew: EventWriter<PlayerLevelingUpEvent>,
 ) {
     for (enemy, entity) in enemy_query.iter() {
         if enemy.health <= 0.0 {
             commands.entity(entity).despawn();
             wave.enemies_left -= 1;
+            if level.add_xp(enemy.xp) {
+                ew.send(PlayerLevelingUpEvent {
+                    new_level: level.level(),
+                });
+            }
         }
     }
 
@@ -103,14 +110,17 @@ pub fn handle_enemy_collision(
     mut enemy_query: Query<(Entity, &mut Transform, &Collider), With<Enemy>>,
 ) {
     let mut combinations = enemy_query.iter_combinations_mut();
-    while let Some([(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)]) = combinations.fetch_next() {
+    while let Some(
+        [(_entity_a, mut transform_a, collider_a), (_entity_b, mut transform_b, collider_b)],
+    ) = combinations.fetch_next()
+    {
         let distance = transform_a.translation.distance(transform_b.translation);
         let min_distance = collider_a.radius + collider_b.radius;
 
         if distance < min_distance {
             let overlap = min_distance - distance;
             let direction = (transform_b.translation - transform_a.translation).normalize();
-            
+
             transform_a.translation -= direction * overlap * 0.5;
             transform_b.translation += direction * overlap * 0.5;
 

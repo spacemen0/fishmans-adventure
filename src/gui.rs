@@ -3,8 +3,8 @@ use bevy::prelude::*;
 
 use crate::armor::{Armor, ArmorStats};
 use crate::enemy::Enemy;
-use crate::player::{Health, Player, PlayerInventory};
-use crate::resources::Wave;
+use crate::player::{Defense, Health, Player, PlayerInventory};
+use crate::resources::{Level, Wave};
 use crate::state::GameState;
 use crate::world::InGameEntity;
 
@@ -63,7 +63,7 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .spawn(NodeBundle {
                     style: Style {
                         width: Val::Px(345.0),
-                        height: Val::Px(225.0),
+                        height: Val::Px(250.0),
                         align_items: AlignItems::Center,
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Center,
@@ -95,23 +95,26 @@ fn update_debug_text(
     mut query: Query<&mut Text, With<DebugText>>,
     diagnostics: Res<DiagnosticsStore>,
     enemy_query: Query<(), With<Enemy>>,
-    player_query: Query<&Health, With<Player>>,
+    player_query: Query<(&Health, &Defense), With<Player>>,
     wave: Res<Wave>,
+    level: Res<Level>,
 ) {
     if query.is_empty() || player_query.is_empty() || enemy_query.is_empty() {
         return;
     }
 
     //let num_enemies = enemy_query.iter().count();
-    let player_health = player_query.single().0;
+    let player_health = player_query.single().0 .0;
+    let player_defense = player_query.single().1 .0;
     let current_wave = wave.number;
     let enemies_total = wave.enemies_total;
     let enemies_remaining = wave.enemies_left;
+    let current_level = level.level();
     let mut text = query.single_mut();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(value) = fps.smoothed() {
             text.sections[0].value =
-                format!("Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}/{enemies_total} \nHealth: {player_health}");
+                format!("Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}/{enemies_total}\nHealth: {player_health}\nDefense: {player_defense}\nLevel: {current_level}");
         }
     }
 }

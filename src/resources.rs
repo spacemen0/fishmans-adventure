@@ -37,6 +37,53 @@ impl Default for Wave {
     }
 }
 
+#[derive(Resource)]
+pub struct Level {
+    current_xp: f32,
+    xp_threshold: f32,
+    level: u32,
+}
+
+impl Default for Level {
+    fn default() -> Self {
+        Self {
+            current_xp: 0.0,
+            xp_threshold: 100.0,
+            level: 1,
+        }
+    }
+}
+
+impl Level {
+    pub fn add_xp(&mut self, xp: f32) -> bool {
+        self.current_xp += xp;
+        let mut leveled_up = false;
+        while self.current_xp >= self.xp_threshold {
+            self.level_up();
+            leveled_up = true;
+        }
+        leveled_up
+    }
+
+    fn level_up(&mut self) {
+        self.current_xp -= self.xp_threshold;
+        self.level += 1;
+        self.xp_threshold *= 1.5;
+    }
+
+    pub fn level(&self) -> u32 {
+        self.level
+    }
+
+    pub fn current_xp(&self) -> f32 {
+        self.current_xp
+    }
+
+    pub fn xp_threshold(&self) -> f32 {
+        self.xp_threshold
+    }
+}
+
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GlobalTextureAtlas::default())

@@ -14,6 +14,7 @@ pub struct EnemyConfig {
     pub speed: f32,
     pub damage: f32,
     pub sprite_index: usize,
+    pub xp: f32,
 }
 
 impl EnemyType {
@@ -33,18 +34,21 @@ impl EnemyType {
                 speed: 6.0,
                 damage: 6.0,
                 sprite_index: 8,
+                xp: 4.0,
             },
             EnemyType::LeaveTrail => EnemyConfig {
                 health: 50.0,
                 speed: 10.0,
                 damage: 6.0,
                 sprite_index: 12,
+                xp: 5.0,
             },
             EnemyType::Charge => EnemyConfig {
                 health: 80.0,
                 speed: 6.0,
                 damage: 8.0,
                 sprite_index: 20,
+                xp: 8.0,
             },
         }
     }

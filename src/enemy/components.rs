@@ -6,6 +6,7 @@ pub struct Enemy {
     pub health: f32,
     pub speed: f32,
     pub damage: f32,
+    pub xp: f32,
     pub behavior: Box<dyn EnemyBehavior>,
 }
 

@@ -33,6 +33,7 @@ fn init_world(
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     commands.insert_resource(Wave::default());
+    commands.insert_resource(Level::default());
     // Spawn player
     let player_entity = commands
         .spawn((
@@ -48,7 +49,7 @@ fn init_world(
             Player,
             Health(PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
-            Defense(0.0),
+            Defense(1.0),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,
