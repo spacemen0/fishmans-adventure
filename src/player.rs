@@ -54,18 +54,20 @@ pub struct PlayerLevelingUpEvent {
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PlayerDamagedEvent>().add_systems(
-            Update,
-            (
-                handle_player_death,
-                handle_player_input,
-                handle_player_damaged_events,
-                handle_invincibility_effect,
-                handle_acceleration_effect,
-                handle_leveling_up,
-            )
-                .run_if(in_state(GameState::InGame)),
-        );
+        app.add_event::<PlayerDamagedEvent>()
+            .add_event::<PlayerLevelingUpEvent>()
+            .add_systems(
+                Update,
+                (
+                    handle_player_death,
+                    handle_player_input,
+                    handle_player_damaged_events,
+                    handle_invincibility_effect,
+                    handle_acceleration_effect,
+                    handle_leveling_up,
+                )
+                    .run_if(in_state(GameState::InGame)),
+            );
     }
 }
 
@@ -167,7 +169,7 @@ fn spawn_damage_text(
                 TextStyle {
                     font: asset_server.load("monogram.ttf"),
                     font_size: 50.0,
-                    color: Color::srgb(16.0, 3.0, 1.0),
+                    color: Color::srgb(1.0, 0.0, 0.0),
                 },
             ),
             transform: Transform {

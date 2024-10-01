@@ -3,16 +3,17 @@ use super::*;
 use crate::gun::HasLifespan;
 use crate::gun::{BulletDirection, BulletStats};
 use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent};
-use crate::resources::Wave;
+use crate::resources::{Level, Wave};
 use crate::utils::calculate_enemies_per_wave;
+use crate::utils::get_random_position_around;
 use crate::world::InGameEntity;
+use crate::GlobalTextureAtlas;
 use crate::PLAYER_INVINCIBLE_TIME;
 use crate::SPRITE_SCALE_FACTOR;
-use crate::{GlobalTextureAtlas, Level};
 use crate::{SPAWN_RATE_PER_SECOND, WORLD_H, WORLD_W};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
-use rand::Rng;
+
 use std::time::Duration;
 
 pub fn spawn_enemies(
@@ -97,23 +98,6 @@ pub fn despawn_dead_enemies(
             wave.enemies_spawned = 0;
         }
     }
-}
-
-fn get_random_position_around(pos: Vec2) -> (f32, f32) {
-    let mut rng = rand::thread_rng();
-    let angle = rng.gen_range(0.0..std::f32::consts::TAU);
-    let dist = rng.gen_range(1000.0..3000.0);
-
-    let offset_x = angle.cos() * dist;
-    let offset_y = angle.sin() * dist;
-
-    let random_x = pos.x + offset_x;
-    let random_y = pos.y + offset_y;
-
-    (
-        random_x.clamp(-WORLD_W, WORLD_W),
-        random_y.clamp(-WORLD_H, WORLD_H),
-    )
 }
 
 pub fn handle_enemy_collision(

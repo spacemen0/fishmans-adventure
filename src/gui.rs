@@ -62,12 +62,12 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
             parent
                 .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(345.0),
-                        height: Val::Px(250.0),
-                        align_items: AlignItems::Center,
+                        width: Val::Px(380.0),
+                        height: Val::Px(270.0),
+                        align_items: AlignItems::Start,
                         flex_direction: FlexDirection::Column,
-                        justify_content: JustifyContent::Center,
-                        padding: UiRect::all(Val::Px(8.0)),
+                        justify_content: JustifyContent::Start,
+                        padding: UiRect::all(Val::Px(4.0)),
                         margin: UiRect::px(10.0, 10.0, 10.0, 0.0),
                         ..default()
                     },
@@ -102,8 +102,6 @@ fn update_debug_text(
     if query.is_empty() || player_query.is_empty() || enemy_query.is_empty() {
         return;
     }
-
-    //let num_enemies = enemy_query.iter().count();
     let player_health = player_query.single().0 .0;
     let player_defense = player_query.single().1 .0;
     let current_wave = wave.number;
