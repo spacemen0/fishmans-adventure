@@ -95,6 +95,7 @@ impl EnemyType {
                 speed: 8.0,
                 damage: 0.0,
                 sprite_index: 28,
+                xp: 10.0,
             },
         }
     }
