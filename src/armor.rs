@@ -40,7 +40,6 @@ fn switch_armor(
     let mut inventory = player_query.single_mut();
 
     if keyboard_input.just_pressed(KeyCode::KeyQ) {
-        // Cycle to the next armor in the inventory
         inventory.active_armor_index = (inventory.active_armor_index + 1) % inventory.armors.len();
     }
 }
