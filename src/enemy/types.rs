@@ -161,11 +161,15 @@ impl EnemyType {
             }
             EnemyType::Shooter { in_range, .. } => {
                 let distance = current_pos.distance(player_pos);
-                *in_range = distance <= 300.0;
-                if *in_range {
-                    Vec3::ZERO
-                } else {
+                let max_range = 300.0; 
+                *in_range = distance <= max_range;
+
+                if distance > max_range + 50.0 {
                     (player_pos - current_pos).normalize() * base_speed as f32
+                } else if distance < max_range - 50.0 {
+                    (current_pos - player_pos).normalize() * base_speed as f32
+                } else {
+                    Vec3::ZERO
                 }
             }
         }
