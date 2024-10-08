@@ -1,19 +1,19 @@
+use animation::AnimationPlugin;
 use armor::ArmorPlugin;
+use bevy::asset::embedded_asset;
 use bevy::prelude::*;
-
-use hell_game::animation::AnimationPlugin;
-use hell_game::camera::FollowCameraPlugin;
-use hell_game::collision::CollisionPlugin;
-use hell_game::dialog::DialogPlugin;
-use hell_game::enemy::EnemyPlugin;
-use hell_game::gui::GuiPlugin;
-use hell_game::gun::GunPlugin;
-use hell_game::player::PlayerPlugin;
-use hell_game::state::GameState;
-use hell_game::world::WorldPlugin;
-use hell_game::*;
+use camera::FollowCameraPlugin;
+use collision::CollisionPlugin;
+use dialog::DialogPlugin;
+use enemy::EnemyPlugin;
+use fishmans_adventure::*;
+use gui::GuiPlugin;
+use gun::GunPlugin;
+use player::PlayerPlugin;
 use portal::PortalPlugin;
 use potion::PotionPlugin;
+use state::GameState;
+use world::WorldPlugin;
 
 fn main() {
     App::new()
@@ -22,7 +22,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        // mode: bevy::window::WindowMode::FullScreen,
+                        // mode: bevy::window::WindowMode::Fullscreen,
                         resizable: true,
                         focused: true,
                         resolution: (WW, WH).into(),
@@ -34,6 +34,7 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb_u8(
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
+        .add_plugins(EmbeddedAssetPlugin)
         .add_plugins(FollowCameraPlugin)
         .add_plugins(GuiPlugin)
         .add_plugins(GunPlugin)
@@ -47,7 +48,23 @@ fn main() {
         .add_plugins(PortalPlugin)
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
+        .add_systems(Update, exit_game)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();
+}
+
+struct EmbeddedAssetPlugin;
+
+impl Plugin for EmbeddedAssetPlugin {
+    fn build(&self, app: &mut App) {
+        embedded_asset!(app, "../assets/assets.png");
+        embedded_asset!(app, "../assets/monogram.ttf");
+    }
+}
+
+fn exit_game(mut exit: EventWriter<AppExit>, keyboard_input: Res<ButtonInput<KeyCode>>) {
+    if keyboard_input.pressed(KeyCode::Escape) {
+        exit.send(AppExit::Success);
+    }
 }

@@ -13,6 +13,8 @@ pub struct GlobalTextureAtlas {
 }
 #[derive(Resource)]
 pub struct CursorPosition(pub Option<Vec2>);
+#[derive(Resource)]
+pub struct UiFont(pub Handle<Font>);
 
 #[derive(Resource)]
 pub struct Wave {
@@ -97,13 +99,14 @@ impl Plugin for ResourcesPlugin {
 }
 
 fn load_assets(
+    mut commands: Commands,
     mut handle: ResMut<GlobalTextureAtlas>,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     handle.image = Some(asset_server.load(SPRITE_SHEET_PATH));
-
+    commands.insert_resource(UiFont(asset_server.load(UI_FONT_PATH)));
     let layout = TextureAtlasLayout::from_grid(
         UVec2::new(TILE_W, TILE_H),
         SPRITE_SHEET_W,

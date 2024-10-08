@@ -1,6 +1,7 @@
 use crate::portal::Portal;
 use crate::resources::Wave;
 use crate::state::GameState;
+use crate::UiFont;
 use bevy::prelude::*;
 
 pub struct DialogPlugin;
@@ -54,7 +55,7 @@ fn show_dialog(
     mut commands: Commands,
     mut ev_show_dialog: EventReader<ShowDialogEvent>,
     active_dialog: Res<ActiveDialog>,
-    asset_server: Res<AssetServer>,
+    font: Res<UiFont>,
     mut selected_option: ResMut<SelectedOption>,
 ) {
     for event in ev_show_dialog.read() {
@@ -82,9 +83,7 @@ fn show_dialog(
                 .id();
 
             match event.0 {
-                DialogType::Portal => {
-                    spawn_portal_dialog(&mut commands, dialog_entity, &asset_server)
-                }
+                DialogType::Portal => spawn_portal_dialog(&mut commands, dialog_entity, &font.0),
             }
 
             commands.insert_resource(ActiveDialog(Some(dialog_entity)));
@@ -92,12 +91,12 @@ fn show_dialog(
     }
 }
 
-fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, asset_server: &AssetServer) {
+fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, handle: &Handle<Font>) {
     commands.entity(parent).with_children(|parent| {
         parent.spawn(TextBundle::from_section(
             "Portal Options",
             TextStyle {
-                font: asset_server.load("monogram.ttf"),
+                font: handle.clone(),
                 font_size: 24.0,
                 color: Color::WHITE,
             },
@@ -113,7 +112,7 @@ fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, asset_server: &A
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::srgb(0.5, 0.5, 0.5)), 
+                    background_color: BackgroundColor(Color::srgb(0.5, 0.5, 0.5)),
                     ..default()
                 },
                 DialogButton::TravelToTown,
@@ -122,7 +121,7 @@ fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, asset_server: &A
                 parent.spawn(TextBundle::from_section(
                     "Travel to NPC town",
                     TextStyle {
-                        font: asset_server.load("monogram.ttf"),
+                        font: handle.clone(),
                         font_size: 18.0,
                         color: Color::WHITE,
                     },
@@ -148,7 +147,7 @@ fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, asset_server: &A
                 parent.spawn(TextBundle::from_section(
                     "Start new wave cycle",
                     TextStyle {
-                        font: asset_server.load("monogram.ttf"),
+                        font: handle.clone(),
                         font_size: 18.0,
                         color: Color::WHITE,
                     },
@@ -156,8 +155,6 @@ fn spawn_portal_dialog(commands: &mut Commands, parent: Entity, asset_server: &A
             });
     });
 }
-
-
 
 fn close_dialog(
     mut commands: Commands,
@@ -178,7 +175,9 @@ fn handle_dialog_navigation(
     mut selected_option: ResMut<SelectedOption>,
     mut query: Query<(&DialogButton, &mut BackgroundColor)>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::ArrowUp) || keyboard_input.just_pressed(KeyCode::ArrowDown) {
+    if keyboard_input.just_pressed(KeyCode::ArrowUp)
+        || keyboard_input.just_pressed(KeyCode::ArrowDown)
+    {
         selected_option.0 = 1 - selected_option.0;
     }
 
@@ -190,7 +189,6 @@ fn handle_dialog_navigation(
         }
     }
 }
-
 
 fn handle_dialog_confirmation(
     keyboard_input: Res<ButtonInput<KeyCode>>,

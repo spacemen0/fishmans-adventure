@@ -7,6 +7,7 @@ use crate::player::{Defense, Health, Player, PlayerInventory};
 use crate::resources::{Level, Wave};
 use crate::state::GameState;
 use crate::world::InGameEntity;
+use crate::UiFont;
 
 pub struct GuiPlugin;
 
@@ -42,7 +43,7 @@ impl Plugin for GuiPlugin {
     }
 }
 
-fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_debug_text(mut commands: Commands, font: Res<UiFont>) {
     commands
         .spawn((
             NodeBundle {
@@ -79,7 +80,7 @@ fn spawn_debug_text(mut commands: Commands, asset_server: Res<AssetServer>) {
                         TextBundle::from_section(
                             "Hello Bevy!",
                             TextStyle {
-                                font: asset_server.load("monogram.ttf"),
+                                font: font.0.clone(),
                                 font_size: 40.0,
                                 color: Color::WHITE,
                                 ..default()
@@ -117,7 +118,7 @@ fn update_debug_text(
     }
 }
 
-fn setup_potion_display(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_potion_display(mut commands: Commands, font: Res<UiFont>) {
     commands
         .spawn((
             NodeBundle {
@@ -136,7 +137,7 @@ fn setup_potion_display(mut commands: Commands, asset_server: Res<AssetServer>) 
                 TextBundle::from_section(
                     "Potions: ",
                     TextStyle {
-                        font: asset_server.load("monogram.ttf"),
+                        font: font.0.clone(),
                         font_size: 30.0,
                         color: Color::WHITE,
                         ..default()
@@ -244,7 +245,7 @@ fn handle_pause_input(
     mut next_state: ResMut<NextState<GameState>>,
     current_state: Res<State<GameState>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Escape) {
+    if keyboard_input.just_pressed(KeyCode::KeyP) {
         match current_state.get() {
             GameState::InGame => {
                 next_state.set(GameState::Paused);

@@ -86,7 +86,7 @@ fn handle_player_damaged_events(
     >,
     mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
     mut events: EventReader<PlayerDamagedEvent>,
-    asset_server: Res<AssetServer>,
+    font: Res<UiFont>,
 ) {
     if player_query.is_empty() {
         return;
@@ -121,7 +121,7 @@ fn handle_player_damaged_events(
                     if damage_after_defense > 0 {
                         spawn_damage_text(
                             &mut commands,
-                            &asset_server,
+                            &font.0,
                             player_transform.translation,
                             damage_after_defense,
                         );
@@ -133,7 +133,7 @@ fn handle_player_damaged_events(
                 if damage_after_defense > 0 {
                     spawn_damage_text(
                         &mut commands,
-                        &asset_server,
+                        &font.0,
                         player_transform.translation,
                         damage_after_defense,
                     );
@@ -160,18 +160,13 @@ fn handle_leveling_up(
     }
 }
 
-fn spawn_damage_text(
-    commands: &mut Commands,
-    asset_server: &AssetServer,
-    position: Vec3,
-    damage: u32,
-) {
+fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec3, damage: u32) {
     commands.spawn((
         Text2dBundle {
             text: Text::from_section(
                 format!("-{}", damage),
                 TextStyle {
-                    font: asset_server.load("monogram.ttf"),
+                    font: font.clone(),
                     font_size: 50.0,
                     color: Color::srgb(1.0, 0.0, 0.0),
                 },

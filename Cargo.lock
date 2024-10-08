@@ -1740,6 +1740,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fishmans_adventure"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_pancam",
+ "kd-tree",
+ "rand",
+ "typenum",
+]
+
+[[package]]
 name = "fixedbitset"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2064,17 +2075,6 @@ dependencies = [
  "thiserror",
  "widestring",
  "winapi",
-]
-
-[[package]]
-name = "hell-game"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_pancam",
- "kd-tree",
- "rand",
- "typenum",
 ]
 
 [[package]]

@@ -3,7 +3,8 @@ pub const WW: f32 = 1200.0;
 pub const WH: f32 = 900.0;
 
 // Sprites
-pub const SPRITE_SHEET_PATH: &str = "assets.png";
+pub const SPRITE_SHEET_PATH: &str = "embedded://fishmans_adventure/../assets/assets.png";
+pub const UI_FONT_PATH: &str = "embedded://fishmans_adventure/../assets/monogram.ttf";
 pub const SPRITE_SCALE_FACTOR: f32 = 3.0;
 pub const TILE_W: u32 = 16;
 pub const TILE_H: u32 = 16;
