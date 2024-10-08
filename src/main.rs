@@ -24,6 +24,7 @@ fn main() {
                     primary_window: Some(Window {
                         // mode: bevy::window::WindowMode::Fullscreen,
                         resizable: true,
+                        canvas: Some("#fishmans_adventure".into()),
                         focused: true,
                         resolution: (WW, WH).into(),
                         ..default()
