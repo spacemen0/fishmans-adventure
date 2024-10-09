@@ -18,7 +18,7 @@ impl Plugin for DialogPlugin {
                     handle_dialog_navigation,
                     handle_dialog_confirmation,
                 )
-                    .run_if(in_state(GameState::InGame)),
+                    .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
             )
             .init_resource::<ActiveDialog>()
             .init_resource::<SelectedOption>();
@@ -57,6 +57,7 @@ fn show_dialog(
     active_dialog: Res<ActiveDialog>,
     font: Res<UiFont>,
     mut selected_option: ResMut<SelectedOption>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     for event in ev_show_dialog.read() {
         if active_dialog.0.is_none() {
@@ -85,7 +86,7 @@ fn show_dialog(
             match event.0 {
                 DialogType::Portal => spawn_portal_dialog(&mut commands, dialog_entity, &font.0),
             }
-
+            next_state.set(GameState::Paused);
             commands.insert_resource(ActiveDialog(Some(dialog_entity)));
         }
     }
@@ -160,12 +161,14 @@ fn close_dialog(
     mut commands: Commands,
     mut ev_close_dialog: EventReader<CloseDialogEvent>,
     active_dialog: Res<ActiveDialog>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if !ev_close_dialog.is_empty() {
         ev_close_dialog.clear();
         if let Some(entity) = active_dialog.0 {
             commands.entity(entity).despawn_recursive();
             commands.insert_resource(ActiveDialog(None));
+            next_state.set(GameState::InGame);
         }
     }
 }

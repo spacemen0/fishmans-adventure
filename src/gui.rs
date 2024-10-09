@@ -37,7 +37,7 @@ impl Plugin for GuiPlugin {
             )
             .add_systems(
                 Update,
-                handle_pause_input
+                (handle_pause_input, handle_game_restart)
                     .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
             );
     }
@@ -255,5 +255,14 @@ fn handle_pause_input(
             }
             _ => {}
         }
+    }
+}
+
+fn handle_game_restart(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyR) {
+        next_state.set(GameState::GameInit);
     }
 }

@@ -31,6 +31,7 @@ jobs:
       - name: Build WASM artifact to site
         run: |
           cargo build --target wasm32-unknown-unknown --release
+          cargo update wasm-bindgen
           cargo install  wasm-bindgen-cli
           wasm-bindgen --no-typescript --out-name fishmans_adventure --out-dir site --target web target/wasm32-unknown-unknown/release/fishmans_adventure.wasm
 
