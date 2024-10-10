@@ -38,7 +38,8 @@
 
 <body class="d-flex align-items-center justify-content-center text-center">
     <div id="small-screen-alert" class="position-absolute top-50 start-50 translate-middle d-none">
-        <h3>Screen Too Small</h3>
+        <h3>Window Size Too Small</h3>
+        <p id="size">Your window size is:</p>
         <p>This website is best experienced on a larger screen. Please use a device with a larger display.</p>
     </div>
 
@@ -59,13 +60,14 @@
         });
 
         function isScreenTooSmall() {
-            return window.innerWidth < 1080 || window.innerHeight < 720;
+            return window.innerWidth < 1080 || window.innerHeight < 672;
         }
 
         window.onload = () => {
             if (isScreenTooSmall()) {
                 document.getElementById('small-screen-alert').classList.remove('d-none');
                 document.getElementById('game-container').classList.add('d-none');
+                document.getElementById('size').innerText += ` width: ${window.innerWidth}, height: ${window.innerHeight}`;
             }
         };
 
