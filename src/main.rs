@@ -49,7 +49,7 @@ fn main() {
         .add_plugins(PortalPlugin)
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
-        .add_systems(Update, exit_game)
+        // .add_systems(Update, exit_game)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();
@@ -64,8 +64,8 @@ impl Plugin for EmbeddedAssetPlugin {
     }
 }
 
-fn exit_game(mut exit: EventWriter<AppExit>, keyboard_input: Res<ButtonInput<KeyCode>>) {
-    if keyboard_input.pressed(KeyCode::Escape) {
-        exit.send(AppExit::Success);
-    }
-}
+// fn exit_game(mut exit: EventWriter<AppExit>, keyboard_input: Res<ButtonInput<KeyCode>>) {
+//     if keyboard_input.pressed(KeyCode::Escape) {
+//         exit.send(AppExit::Success);
+//     }
+// }

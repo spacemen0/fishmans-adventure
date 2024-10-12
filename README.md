@@ -1,12 +1,12 @@
-# Bevy 2D Shooter
-This is a 2d top-down shooter written in [Rust](https://www.rust-lang.org/) using the [Bevy](https://bevyengine.org/) game engine. It's capable of handling 100K enemies and uses a kd-tree to efficiently handle the collisions.
+# Fishmans Adventure
+This is a 2d top-down shooter written in [Rust](https://www.rust-lang.org/) using the [Bevy](https://bevyengine.org/) game engine. It's currently under development
 
 
 ## Usage
 - Clone the repo
 ```bash
-git clone git@github.com:spacemen0/bevy-2d-shooter.git
-cd bevy-2d-shooter
+git clone git@github.com:spacemen0/fishmans-adventure.git
+cd fishmans-adventure
 ```
 - Run
 ```bash
@@ -29,30 +29,31 @@ cargo run
 ### Gameplay Mechanics
 
 - [x] **Automatic Player Fire**
-  - [ ] Implement automatic firing mechanism for the player.
+  - [x] Implement automatic firing mechanism for the player.
   - [x] Define fire rate and control options for automatic firing.
 
 - [ ] **Re-engineer Enemy Spawning Logic**
   - [x] Implement wave-based spawning system.
-  - [ ] Define wave progression and difficulty scaling.
+  - [x] Define wave progression and difficulty scaling.
   - [ ] Add enemy spawn patterns for different waves.
 
-- [ ] **Enemy Projectiles and Collision**
-  - [ ] Add functionality for enemies to fire projectiles.
-  - [ ] Implement collision detection between player and enemy projectiles.
-  - [ ] Prevent overlap between sprites of specific entities
-- [x] Implement invincible time
+- [x] **Enemy Projectiles and Collision**
+  - [x] Add functionality for enemies to fire projectiles.
+  - [x] Implement collision detection between player and enemy projectiles.
+  - [x] Prevent overlap between sprites of specific entities
+
+- [x] **Implement invincible time**
   
-- [ ] **Enhance Enemy Diversity**
-  - [ ] Create new enemy types with varying behaviors.
-  - [ ] Define attributes and projectiles firing abilities for each new enemy type.
+- [x] **Enhance Enemy Diversity**
+  - [x] Create new enemy types with varying behaviors.
+  - [x] Define attributes and projectiles firing abilities for each new enemy type.
 
 
 - [ ] **Loot System**
-  - [ ] Design loot drop mechanics (e.g., probability, loot pools).
-  - [ ] Define loot types (potions, weapons, armors, etc.).
+  - [x] Design loot drop mechanics (e.g., probability, loot pools).
+  - [x] Define loot types (potions, weapons, armors, etc.).
   - [ ] Implement loot drop logic for enemies and events.
-  - [ ] Implement potion usage mechanics and effects.
+  - [x] Implement potion usage mechanics and effects.
 
 ### User Interface
 - [ ] **On-Screen Information**
@@ -65,8 +66,9 @@ cargo run
 
 - [x] **Pause Game and Settings**
   - [x] Implement pause game functionality and render pause game screen
+  - [ ] Spawn setting screen when pausing game
 ### World and NPC Features
-- [ ] **Portal to NPC Town**
+- [x] **Portal to NPC Town**
   - [ ] Design and implement a portal or transition system to the NPC town.
 
 - [ ] **NPC Town Map**
@@ -80,4 +82,6 @@ cargo run
 
 ### Bug Fix
 - [ ] Health should reset when starting new game
+
+### Balance Game
 
