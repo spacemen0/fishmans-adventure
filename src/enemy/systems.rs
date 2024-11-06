@@ -2,6 +2,7 @@ use super::components::EnemyBullet;
 use super::*;
 use crate::gun::HasLifespan;
 use crate::gun::{BulletDirection, BulletStats};
+use crate::loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool};
 use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent};
 use crate::resources::{Level, Wave};
 use crate::utils::get_random_position_around;
@@ -13,6 +14,7 @@ use crate::SPAWN_RATE_PER_SECOND;
 use crate::SPRITE_SCALE_FACTOR;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+use rand::Rng;
 
 use std::time::Duration;
 
@@ -35,8 +37,18 @@ pub fn spawn_enemies(
         let (x, y) = get_random_position_around(player_pos);
         let enemy_type = EnemyType::random();
         let _config = enemy_type.get_config();
-
-        commands.spawn(EnemyBundle::new(enemy_type, Vec3::new(x, y, 1.0), &handle));
+        let loot_pool = match &enemy_type {
+            EnemyType::Basic => weak_enemies_bundle(),
+            EnemyType::LeaveTrail { .. } => medium_enemies_bundle(),
+            EnemyType::Charge { .. } => medium_enemies_bundle(),
+            EnemyType::Shooter { .. } => strong_enemies_bundle(),
+        };
+        commands.spawn(EnemyBundle::new(
+            enemy_type,
+            Vec3::new(x, y, 1.0),
+            &handle,
+            loot_pool,
+        ));
 
         wave.enemies_spawned += 1;
     }
@@ -70,13 +82,27 @@ pub fn update_enemy_behavior(
 
 pub fn despawn_dead_enemies(
     mut commands: Commands,
-    enemy_query: Query<(&Enemy, Entity), With<Enemy>>,
+    enemy_query: Query<(&Enemy, Entity, &Transform, &LootPool), With<Enemy>>,
     mut wave: ResMut<Wave>,
     mut level: ResMut<Level>,
+    handle: Res<GlobalTextureAtlas>,
     mut ew: EventWriter<PlayerLevelingUpEvent>,
 ) {
-    for (enemy, entity) in enemy_query.iter() {
+    for (enemy, entity, transform, loot_pool) in enemy_query.iter() {
         if enemy.health == 0 {
+            if let Some(loot_def) = loot_pool.get_random_loot() {
+                let mut rng = rand::thread_rng();
+                let roll: f32 = rng.gen();
+                if roll < loot_def.drop_chance {
+                    (loot_def.spawn_fn)(
+                        &mut commands,
+                        transform,
+                        handle.image.clone(),
+                        handle.layout.clone(),
+                        loot_def.stat_range,
+                    );
+                }
+            }
             commands.entity(entity).despawn();
             wave.enemies_left -= 1;
             if level.add_xp(enemy.xp) {

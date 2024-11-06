@@ -159,6 +159,12 @@ fn init_world(
                     defense: 2,
                     durability: 20,
                 },
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
                 in_game_entity: InGameEntity,
             },
             TextureAtlas {
@@ -175,6 +181,12 @@ fn init_world(
                 armor_stats: ArmorStats {
                     defense: 3,
                     durability: 30,
+                },
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
                 },
                 in_game_entity: InGameEntity,
             },

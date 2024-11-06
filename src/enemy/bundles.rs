@@ -1,6 +1,7 @@
 use super::components::*;
 use super::types::EnemyType;
 use crate::animation::AnimationTimer;
+use crate::loot::LootPool;
 use crate::world::InGameEntity;
 use bevy::prelude::*;
 
@@ -12,6 +13,7 @@ pub struct EnemyBundle {
     pub texture_atlas: TextureAtlas,
     pub animation_timer: AnimationTimer,
     pub in_game_entity: InGameEntity,
+    pub lootpool: LootPool,
     pub collider: Collider,
 }
 
@@ -20,6 +22,7 @@ impl EnemyBundle {
         enemy_type: EnemyType,
         position: Vec3,
         handle: &Res<crate::GlobalTextureAtlas>,
+        loot_pool: LootPool,
     ) -> Self {
         let config = enemy_type.get_config();
         Self {
@@ -44,6 +47,7 @@ impl EnemyBundle {
             animation_timer: AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
             in_game_entity: InGameEntity,
             collider: Collider { radius: 15 },
+            lootpool: loot_pool,
         }
     }
 }

@@ -22,6 +22,10 @@ cargo run
 
 ## Controls
 - `WASD` for movement
+- `E` for weapon switching
+- `P` for pausing/unpausing game
+- `R` for restarting game
+- `1,2` for using potions
 - Mouse wheel to change camera zoom
 
 ## Todo
@@ -32,10 +36,10 @@ cargo run
   - [x] Implement automatic firing mechanism for the player.
   - [x] Define fire rate and control options for automatic firing.
 
-- [ ] **Re-engineer Enemy Spawning Logic**
+- [X] **Re-engineer Enemy Spawning Logic**
   - [x] Implement wave-based spawning system.
   - [x] Define wave progression and difficulty scaling.
-  - [ ] Add enemy spawn patterns for different waves.
+  - [X] Add enemy spawn patterns for different waves.
 
 - [x] **Enemy Projectiles and Collision**
   - [x] Add functionality for enemies to fire projectiles.
@@ -82,6 +86,7 @@ cargo run
 
 ### Bug Fix
 - [ ] Health should reset when starting new game
+- [ ] Enemy number is not correctly set to 0
 
 ### Balance Game
 

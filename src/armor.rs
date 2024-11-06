@@ -18,6 +18,7 @@ pub struct ArmorStats {
 pub struct ArmorBundle {
     pub armor: Armor,
     pub armor_stats: ArmorStats,
+    pub sprite_bundle: SpriteBundle,
     pub in_game_entity: InGameEntity,
 }
 
