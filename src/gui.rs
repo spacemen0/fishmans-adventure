@@ -83,7 +83,6 @@ fn spawn_debug_text(mut commands: Commands, font: Res<UiFont>) {
                                 font: font.0.clone(),
                                 font_size: 40.0,
                                 color: Color::WHITE,
-                                ..default()
                             },
                         ),
                         DebugText,
@@ -140,7 +139,6 @@ fn setup_potion_display(mut commands: Commands, font: Res<UiFont>) {
                         font: font.0.clone(),
                         font_size: 30.0,
                         color: Color::WHITE,
-                        ..default()
                     },
                 ),
                 PotionDisplay,
@@ -225,11 +223,8 @@ fn handle_main_menu_buttons(
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     for interaction in interaction_query.iter() {
-        match interaction {
-            Interaction::Pressed => {
-                next_state.set(GameState::GameInit);
-            }
-            _ => {}
+        if interaction == &Interaction::Pressed {
+            next_state.set(GameState::GameInit);
         }
     }
 }

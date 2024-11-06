@@ -78,11 +78,7 @@ fn flip_player_sprite_x(
 
     let (mut sprite, transform) = player_query.single_mut();
     if let Some(cursor_position) = cursor_position.0 {
-        if cursor_position.x > transform.translation.x {
-            sprite.flip_x = false;
-        } else {
-            sprite.flip_x = true;
-        }
+        sprite.flip_x = cursor_position.x <= transform.translation.x;
     }
 }
 
@@ -96,11 +92,7 @@ fn flip_enemy_sprite_x(
 
     let player_pos = player_query.single().translation;
     for (mut sprite, transform) in enemy_query.iter_mut() {
-        if transform.translation.x < player_pos.x {
-            sprite.flip_x = false;
-        } else {
-            sprite.flip_x = true;
-        }
+        sprite.flip_x = transform.translation.x >= player_pos.x;
     }
 }
 
@@ -116,11 +108,7 @@ fn flip_gun_sprite_y(
             if let Ok((mut sprite, transform)) = gun_query.get_mut(*active_gun) {
                 if let Some(cursor_position) = cursor_position.0 {
                     // Flip the gun sprite based on cursor position relative to gun
-                    if cursor_position.x > transform.translation.x {
-                        sprite.flip_y = false;
-                    } else {
-                        sprite.flip_y = true;
-                    }
+                    sprite.flip_y = cursor_position.x <= transform.translation.x;
                 }
             }
         }

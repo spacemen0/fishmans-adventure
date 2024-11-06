@@ -7,6 +7,7 @@ use crate::*;
 pub struct ResourcesPlugin;
 
 #[derive(Resource)]
+#[derive(Default)]
 pub struct GlobalTextureAtlas {
     pub layout: Option<Handle<TextureAtlasLayout>>,
     pub image: Option<Handle<Image>>,
@@ -137,11 +138,3 @@ fn update_cursor_position(
         .map(|ray| ray.origin.truncate());
 }
 
-impl Default for GlobalTextureAtlas {
-    fn default() -> Self {
-        Self {
-            layout: None,
-            image: None,
-        }
-    }
-}

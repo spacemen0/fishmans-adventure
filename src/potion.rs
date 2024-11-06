@@ -51,7 +51,7 @@ fn apply_potion_effects(
     let (mut health, mut player_inventory, entity, mut speed) = player_query.single_mut();
     // Assuming health and speed effects are keyed to specific keys
     if keyboard_input.just_pressed(KeyCode::Digit1) {
-        if let Some(health_potion_entity) = player_inventory.health_potions.get(0) {
+        if let Some(health_potion_entity) = player_inventory.health_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*health_potion_entity) {
                 // Apply health effect
                 health.0 += potion_stats.effect_amount;
@@ -62,7 +62,7 @@ fn apply_potion_effects(
     }
 
     if keyboard_input.just_pressed(KeyCode::Digit2) {
-        if let Some(speed_potion_entity) = player_inventory.speed_potions.get(0) {
+        if let Some(speed_potion_entity) = player_inventory.speed_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*speed_potion_entity) {
                 // Apply speed potion effect
                 commands.entity(entity).insert(AccelerationEffect(

@@ -80,7 +80,7 @@ fn handle_player_trail_collision(
     let player_pos = translation.translation.xy();
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
-        if player_pos.distance(trail_pos) <= trail.radius as f32 {
+        if player_pos.distance(trail_pos) <= trail.radius {
             commands.entity(entity).insert(InvincibilityEffect(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,

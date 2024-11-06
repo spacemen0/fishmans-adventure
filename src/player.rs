@@ -110,7 +110,7 @@ fn handle_player_damaged_events(
                     armor_stats.durability =
                         safe_subtract(armor_stats.durability, damage_after_defense);
 
-                    if armor_stats.durability <= 0 {
+                    if armor_stats.durability == 0 {
                         commands.entity(armor_entity).despawn();
                         let armor_to_remove = inventory.active_armor_index;
                         inventory.armors.remove(armor_to_remove);
@@ -154,7 +154,7 @@ fn handle_leveling_up(
     let (mut health, mut defense) = player_query.single_mut();
 
     for event in event_reader.read() {
-        let level = event.new_level as u32;
+        let level = event.new_level;
         health.0 += calculate_health_increase(level);
         defense.0 += calculate_defense_increase(level);
     }

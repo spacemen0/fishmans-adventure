@@ -50,7 +50,7 @@ pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
 }
 
 pub fn safe_subtract(a: u32, b: u32) -> u32 {
-    a.checked_sub(b).unwrap_or(0)
+    a.saturating_sub(b)
 }
 
 pub fn clamp_position(position: &mut Vec3) {
