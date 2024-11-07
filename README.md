@@ -56,8 +56,9 @@ cargo run
 - [ ] **Loot System**
   - [x] Design loot drop mechanics (e.g., probability, loot pools).
   - [x] Define loot types (potions, weapons, armors, etc.).
-  - [ ] Implement loot drop logic for enemies and events.
+  - [X] Implement loot dropping logic for enemies and events.
   - [x] Implement potion usage mechanics and effects.
+  - [ ] Implement loot picking logic
 
 ### User Interface
 - [ ] **On-Screen Information**

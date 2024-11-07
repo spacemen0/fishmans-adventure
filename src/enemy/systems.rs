@@ -90,9 +90,11 @@ pub fn despawn_dead_enemies(
 ) {
     for (enemy, entity, transform, loot_pool) in enemy_query.iter() {
         if enemy.health == 0 {
-            if let Some(loot_def) = loot_pool.get_random_loot() {
-                let mut rng = rand::thread_rng();
-                let roll: f32 = rng.gen();
+            let loot_defs = loot_pool.get_random_loots();
+            let mut rng = rand::thread_rng();
+
+            for loot_def in loot_defs {
+                let roll: f32 = rng.gen_range(0.0..1.0);
                 if roll < loot_def.drop_chance {
                     (loot_def.spawn_fn)(
                         &mut commands,
@@ -103,6 +105,7 @@ pub fn despawn_dead_enemies(
                     );
                 }
             }
+
             commands.entity(entity).despawn();
             wave.enemies_left -= 1;
             if level.add_xp(enemy.xp) {

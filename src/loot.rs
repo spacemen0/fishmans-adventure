@@ -61,15 +61,18 @@ pub struct LootPool {
 }
 
 impl LootPool {
-    pub fn get_random_loot(&self) -> Option<LootDefinition> {
+    pub fn get_random_loots(&self) -> Vec<LootDefinition> {
         let mut rng = rand::thread_rng();
+        let mut successful_loots = Vec::new();
+
         for item in &self.items {
             let roll: f32 = rng.gen();
             if roll < item.drop_chance {
-                return Some(item.clone());
+                successful_loots.push(item.clone());
             }
         }
-        None
+
+        successful_loots
     }
 }
 
@@ -100,7 +103,7 @@ fn spawn_gun(
             },
             TextureAtlas {
                 layout: layout.unwrap(),
-                index: 58,
+                index: 49,
             },
         ));
     }
@@ -132,7 +135,7 @@ fn spawn_armor(
             },
             TextureAtlas {
                 layout: layout.unwrap(),
-                index: 58,
+                index: 48,
             },
         ));
     }
@@ -156,7 +159,6 @@ fn spawn_potion(
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
                     transform: *transform,
-                    visibility: Visibility::Hidden,
                     ..default()
                 },
                 potion: Potion,
@@ -166,7 +168,7 @@ fn spawn_potion(
             },
             TextureAtlas {
                 layout: layout.unwrap(),
-                index: 57,
+                index: 50,
             },
         ));
     }
