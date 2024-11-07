@@ -3,7 +3,7 @@ use bevy::{prelude::*, time::Stopwatch};
 use crate::{
     player::{AccelerationEffect, Health, Player, PlayerInventory, Speed},
     state::GameState,
-    world::InGameEntity,
+    utils::InGameEntity,
 };
 
 #[derive(Component)]
@@ -28,6 +28,7 @@ pub struct PotionBundle {
     pub potion_type: PotionType,
     pub in_game_entity: InGameEntity,
     pub sprite_bundle: SpriteBundle,
+    pub texture_bundle: TextureAtlas,
 }
 
 pub struct PotionPlugin;

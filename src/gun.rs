@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use player::{handle_player_input, PlayerInventory};
 use rand::Rng;
-use world::InGameEntity;
+use utils::InGameEntity;
 
 use crate::player::Player;
 use crate::state::GameState;
@@ -71,6 +71,7 @@ pub struct GunBundle {
     pub gun_stats: GunStats,
     pub in_game_entity: InGameEntity,
     pub sprite_bundle: SpriteBundle,
+    pub texture_bundle: TextureAtlas,
 }
 
 impl Default for GunBundle {
@@ -91,6 +92,7 @@ impl Default for GunBundle {
             },
             in_game_entity: InGameEntity,
             sprite_bundle: Default::default(),
+            texture_bundle: Default::default(),
         }
     }
 }

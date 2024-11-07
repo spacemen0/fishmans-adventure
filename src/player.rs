@@ -6,8 +6,8 @@ use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use enemy::Collider;
 use gun::HasLifespan;
+use utils::InGameEntity;
 use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
-use world::InGameEntity;
 
 use crate::state::GameState;
 use crate::*;

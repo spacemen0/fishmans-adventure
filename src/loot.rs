@@ -5,7 +5,7 @@ use crate::{
     armor::{Armor, ArmorBundle, ArmorStats},
     gun::{GunBundle, GunStats},
     potion::{Potion, PotionBundle, PotionStats, PotionType},
-    world::InGameEntity,
+    utils::{InGameEntity, Pickable},
 };
 
 #[derive(Clone)]
@@ -99,12 +99,13 @@ fn spawn_gun(
                 },
 
                 gun_stats,
+                texture_bundle: TextureAtlas {
+                    layout: layout.unwrap(),
+                    index: 49,
+                },
                 ..default()
             },
-            TextureAtlas {
-                layout: layout.unwrap(),
-                index: 49,
-            },
+            Pickable,
         ));
     }
 }
@@ -132,11 +133,12 @@ fn spawn_armor(
                     transform: *transform,
                     ..default()
                 },
+                texture_bundle: TextureAtlas {
+                    layout: layout.unwrap(),
+                    index: 48,
+                },
             },
-            TextureAtlas {
-                layout: layout.unwrap(),
-                index: 48,
-            },
+            Pickable,
         ));
     }
 }
@@ -164,12 +166,13 @@ fn spawn_potion(
                 potion: Potion,
                 potion_stats,
                 potion_type: PotionType::Speed,
+                texture_bundle: TextureAtlas {
+                    layout: layout.unwrap(),
+                    index: 50,
+                },
                 in_game_entity: InGameEntity,
             },
-            TextureAtlas {
-                layout: layout.unwrap(),
-                index: 50,
-            },
+            Pickable,
         ));
     }
 }

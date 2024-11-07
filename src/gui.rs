@@ -6,7 +6,7 @@ use crate::enemy::Enemy;
 use crate::player::{Defense, Health, Player, PlayerInventory};
 use crate::resources::{Level, Wave};
 use crate::state::GameState;
-use crate::world::InGameEntity;
+use crate::utils::InGameEntity;
 use crate::UiFont;
 
 pub struct GuiPlugin;

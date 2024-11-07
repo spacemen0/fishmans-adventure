@@ -6,8 +6,8 @@ use crate::loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bun
 use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent};
 use crate::resources::{Level, Wave};
 use crate::utils::get_random_position_around;
+use crate::utils::InGameEntity;
 use crate::utils::{calculate_enemies_per_wave, clamp_position};
-use crate::world::InGameEntity;
 use crate::GlobalTextureAtlas;
 use crate::PLAYER_INVINCIBLE_TIME;
 use crate::SPAWN_RATE_PER_SECOND;

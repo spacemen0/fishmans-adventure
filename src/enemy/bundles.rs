@@ -2,7 +2,7 @@ use super::components::*;
 use super::types::EnemyType;
 use crate::animation::AnimationTimer;
 use crate::loot::LootPool;
-use crate::world::InGameEntity;
+use crate::utils::InGameEntity;
 use bevy::prelude::*;
 
 #[derive(Bundle)]

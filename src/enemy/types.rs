@@ -1,5 +1,5 @@
 use crate::enemy::Trail;
-use crate::world::InGameEntity;
+use crate::utils::InGameEntity;
 use bevy::prelude::*;
 use rand::Rng;
 use std::time::Duration;
@@ -161,7 +161,7 @@ impl EnemyType {
             }
             EnemyType::Shooter { in_range, .. } => {
                 let distance = current_pos.distance(player_pos);
-                let max_range = 300.0; 
+                let max_range = 300.0;
                 *in_range = distance <= max_range;
 
                 if distance > max_range + 50.0 {

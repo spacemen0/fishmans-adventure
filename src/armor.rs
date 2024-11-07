@@ -1,7 +1,7 @@
 use crate::{
     player::{Player, PlayerInventory},
     state::GameState,
-    world::InGameEntity,
+    utils::InGameEntity,
 };
 use bevy::prelude::*;
 
@@ -20,6 +20,7 @@ pub struct ArmorBundle {
     pub armor_stats: ArmorStats,
     pub sprite_bundle: SpriteBundle,
     pub in_game_entity: InGameEntity,
+    pub texture_bundle: TextureAtlas,
 }
 
 pub struct ArmorPlugin;

@@ -5,6 +5,7 @@ use gun::{BulletStats, GunBundle, GunStats};
 use player::{Defense, PlayerInventory, Speed};
 use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
+use utils::InGameEntity;
 
 use crate::animation::AnimationTimer;
 use crate::gun::GunType;
@@ -14,8 +15,7 @@ use crate::{state::GameState, GlobalTextureAtlas};
 
 pub struct WorldPlugin;
 
-#[derive(Component)]
-pub struct InGameEntity; //entities that spawn with this will be cleared after each game run
+//entities that spawn with this will be cleared after each game run
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
@@ -58,143 +58,131 @@ fn init_world(
 
     // Spawn first gun
     let gun1 = commands
-        .spawn((
-            GunBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
+        .spawn((GunBundle {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
             },
-            TextureAtlas {
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
                 index: 17,
             },
-        ))
+            ..default()
+        },))
         .id();
 
     // Spawn second gun
     let gun2 = commands
-        .spawn((
-            GunBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                gun_type: GunType::Gun1,
-                gun_stats: GunStats {
-                    bullets_per_shot: 20,
-                    firing_interval: 0.1,
-                    bullet_spread: 0.3,
-                },
-                bullet_stats: BulletStats {
-                    speed: 30,
-                    damage: 100,
-                    lifespan: 0.5,
-                },
+        .spawn((GunBundle {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                visibility: Visibility::Hidden,
                 ..default()
             },
-            TextureAtlas {
+            gun_type: GunType::Gun1,
+            gun_stats: GunStats {
+                bullets_per_shot: 20,
+                firing_interval: 0.1,
+                bullet_spread: 0.3,
+            },
+            bullet_stats: BulletStats {
+                speed: 30,
+                damage: 100,
+                lifespan: 0.5,
+            },
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
                 index: 56,
             },
-        ))
+            ..default()
+        },))
         .id();
     let potion1 = commands
-        .spawn((
-            PotionBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                potion: potion::Potion,
-                potion_stats: PotionStats {
-                    effect_duration: 2.0,
-                    effect_amount: 10,
-                },
-                potion_type: PotionType::Health,
-                in_game_entity: InGameEntity,
+        .spawn((PotionBundle {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                visibility: Visibility::Hidden,
+                ..default()
             },
-            TextureAtlas {
+            potion: potion::Potion,
+            potion_stats: PotionStats {
+                effect_duration: 2.0,
+                effect_amount: 10,
+            },
+            potion_type: PotionType::Health,
+            in_game_entity: InGameEntity,
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
                 index: 57,
             },
-        ))
+        },))
         .id();
     let potion2 = commands
-        .spawn((
-            PotionBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                potion: Potion,
-                potion_stats: PotionStats {
-                    effect_duration: 5.0,
-                    effect_amount: 10,
-                },
-                potion_type: PotionType::Speed,
-                in_game_entity: InGameEntity,
+        .spawn(PotionBundle {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                visibility: Visibility::Hidden,
+                ..default()
             },
-            TextureAtlas {
+            potion: Potion,
+            potion_stats: PotionStats {
+                effect_duration: 5.0,
+                effect_amount: 10,
+            },
+            potion_type: PotionType::Speed,
+            in_game_entity: InGameEntity,
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
                 index: 57,
             },
-        ))
+        })
         .id();
 
     // Add both guns to the player's inventory
     let armor1 = commands
-        .spawn((
-            ArmorBundle {
-                armor: Armor,
-                armor_stats: ArmorStats {
-                    defense: 2,
-                    durability: 20,
-                },
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                in_game_entity: InGameEntity,
+        .spawn((ArmorBundle {
+            armor: Armor,
+            armor_stats: ArmorStats {
+                defense: 2,
+                durability: 20,
             },
-            TextureAtlas {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                visibility: Visibility::Hidden,
+                ..default()
+            },
+            in_game_entity: InGameEntity,
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
                 index: 58,
             },
-        ))
+        },))
         .id();
 
     let armor2 = commands
-        .spawn((
-            ArmorBundle {
-                armor: Armor,
-                armor_stats: ArmorStats {
-                    defense: 3,
-                    durability: 30,
-                },
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                in_game_entity: InGameEntity,
+        .spawn(ArmorBundle {
+            armor: Armor,
+            armor_stats: ArmorStats {
+                defense: 3,
+                durability: 30,
             },
-            TextureAtlas {
+            sprite_bundle: SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                visibility: Visibility::Hidden,
+                ..default()
+            },
+            in_game_entity: InGameEntity,
+            texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 59,
+                index: 58,
             },
-        ))
+        })
         .id();
 
     // Add guns, potions, and armors to the player's inventory
