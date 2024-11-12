@@ -1,10 +1,11 @@
-use bevy::{prelude::*, time::Stopwatch};
-
 use crate::{
+    input::Action,
     player::{AccelerationEffect, Health, Player, PlayerInventory, Speed},
     state::GameState,
     utils::InGameEntity,
 };
+use bevy::{prelude::*, time::Stopwatch};
+use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
 pub struct Potion;
@@ -46,12 +47,12 @@ fn apply_potion_effects(
     mut commands: Commands,
     mut player_query: Query<(&mut Health, &mut PlayerInventory, Entity, &mut Speed), With<Player>>,
     potion_query: Query<(Entity, &PotionStats), With<Potion>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    action_state: Res<ActionState<Action>>,
 ) {
     // Ensure there's only one player entity
     let (mut health, mut player_inventory, entity, mut speed) = player_query.single_mut();
     // Assuming health and speed effects are keyed to specific keys
-    if keyboard_input.just_pressed(KeyCode::Digit1) {
+    if action_state.just_pressed(&Action::UsePotion1) {
         if let Some(health_potion_entity) = player_inventory.health_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*health_potion_entity) {
                 // Apply health effect
@@ -62,7 +63,7 @@ fn apply_potion_effects(
         }
     }
 
-    if keyboard_input.just_pressed(KeyCode::Digit2) {
+    if action_state.just_pressed(&Action::UsePotion2) {
         if let Some(speed_potion_entity) = player_inventory.speed_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*speed_potion_entity) {
                 // Apply speed potion effect

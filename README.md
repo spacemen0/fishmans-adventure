@@ -22,7 +22,7 @@ cargo run
 
 ## Controls
 - `WASD` for movement
-- `E` for weapon switching
+- `Q` for weapon switching
 - `P` for pausing/unpausing game
 - `R` for restarting game
 - `1,2` for using potions

@@ -9,6 +9,7 @@ use enemy::EnemyPlugin;
 use fishmans_adventure::*;
 use gui::GuiPlugin;
 use gun::GunPlugin;
+use input::InputPlugin;
 use player::PlayerPlugin;
 use portal::PortalPlugin;
 use potion::PotionPlugin;
@@ -51,6 +52,7 @@ fn main() {
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
         .add_plugins(TownPlugin)
+        .add_plugins(InputPlugin)
         // .add_systems(Update, exit_game)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)

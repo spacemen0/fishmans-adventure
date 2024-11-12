@@ -1,13 +1,16 @@
 use bevy::utils::{Duration, Instant};
+use leafwing_input_manager::prelude::ActionState;
 use std::f32::consts::PI;
 
 use bevy::math::{vec2, vec3};
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
+
 use player::{handle_player_input, PlayerInventory};
 use rand::Rng;
 use utils::InGameEntity;
 
+use crate::input::Action;
 use crate::player::Player;
 use crate::state::GameState;
 use crate::*;
@@ -271,7 +274,7 @@ fn handle_gun_firing(
 
 fn switch_gun(
     mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    action_state: Res<ActionState<Action>>,
     mut gun_query: Query<(&mut Transform, &mut Visibility), (With<Gun>, Without<Player>)>,
 ) {
     if player_query.is_empty() {
@@ -280,7 +283,7 @@ fn switch_gun(
 
     let (mut inventory, player_transform) = player_query.single_mut();
 
-    if keyboard_input.just_pressed(KeyCode::KeyE) {
+    if action_state.just_pressed(&Action::SwitchGun) {
         // Cycle to the next gun in the inventory
         inventory.active_gun_index = (inventory.active_gun_index + 1) % inventory.guns.len();
     }

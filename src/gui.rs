@@ -1,8 +1,10 @@
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::armor::{Armor, ArmorStats};
 use crate::enemy::Enemy;
+use crate::input::Action;
 use crate::player::{Defense, Health, Player, PlayerInventory};
 use crate::resources::{Level, Wave};
 use crate::state::GameState;
@@ -236,11 +238,11 @@ fn despawn_main_menu(mut commands: Commands, menu_items_query: Query<Entity, Wit
 }
 
 fn handle_pause_input(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    action_state: Res<ActionState<Action>>,
     mut next_state: ResMut<NextState<GameState>>,
     current_state: Res<State<GameState>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::KeyP) {
+    if action_state.just_pressed(&Action::TogglePause) {
         match current_state.get() {
             GameState::Combat => {
                 next_state.set(GameState::Paused);
@@ -254,10 +256,10 @@ fn handle_pause_input(
 }
 
 fn handle_game_restart(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    action_state: Res<ActionState<Action>>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::KeyR) {
+    if action_state.just_pressed(&Action::Restart) {
         next_state.set(GameState::Initializing);
     }
 }

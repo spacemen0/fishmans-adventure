@@ -7,6 +7,7 @@ pub mod dialog;
 pub mod enemy;
 pub mod gui;
 pub mod gun;
+pub mod input;
 pub mod loot;
 pub mod player;
 pub mod portal;

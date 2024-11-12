@@ -8,6 +8,7 @@ edition = "2021"
 bevy = "0.14.1"
 bevy_pancam = "0.14.0"
 kd-tree = "0.6.0"
+leafwing-input-manager = "0.15.1"
 rand = "0.8.5"
 typenum = "1.17.0"
 

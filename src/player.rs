@@ -6,6 +6,8 @@ use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use enemy::Collider;
 use gun::HasLifespan;
+use input::Action;
+use leafwing_input_manager::prelude::*;
 use utils::InGameEntity;
 use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
 
@@ -231,36 +233,17 @@ fn handle_acceleration_effect(
 
 pub fn handle_player_input(
     mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed), With<Player>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    action_state: Res<ActionState<Action>>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
     let (mut transform, mut player_state, speed) = player_query.single_mut();
-    let w_key = keyboard_input.pressed(KeyCode::KeyW) || keyboard_input.pressed(KeyCode::ArrowUp);
-    let a_key = keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft);
-    let s_key = keyboard_input.pressed(KeyCode::KeyS) || keyboard_input.pressed(KeyCode::ArrowDown);
-    let d_key =
-        keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight);
 
-    let mut delta = Vec2::ZERO;
-    if w_key {
-        delta.y += 1.0;
-    }
-    if s_key {
-        delta.y -= 1.0;
-    }
-    if a_key {
-        delta.x -= 1.0;
-    }
-    if d_key {
-        delta.x += 1.0;
-    }
-    delta = delta.normalize();
-
-    if delta.is_finite() && (w_key || a_key || s_key || d_key) {
-        let desired_position = transform.translation.xy() + delta * speed.0 as f32;
+    let axis_pair = action_state.clamped_axis_pair(&Action::Move);
+    if axis_pair != Vec2::ZERO {
+        let desired_position = transform.translation.xy() + axis_pair * speed.0 as f32;
         let clamped_x = desired_position.x.clamp(-WORLD_W, WORLD_W);
         let clamped_y = desired_position.y.clamp(-WORLD_H, WORLD_H);
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
