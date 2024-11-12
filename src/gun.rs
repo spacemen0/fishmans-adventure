@@ -108,7 +108,7 @@ impl Plugin for GunPlugin {
                 despawn_entities_reach_lifespan,
                 switch_gun,
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
         );
     }
 }

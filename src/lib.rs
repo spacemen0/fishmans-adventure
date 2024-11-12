@@ -13,6 +13,7 @@ pub mod portal;
 pub mod potion;
 pub mod resources;
 pub mod state;
+pub mod town;
 pub mod utils;
 pub mod world;
 

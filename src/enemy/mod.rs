@@ -23,7 +23,7 @@ impl Plugin for EnemyPlugin {
                 update_enemy_bullets,
                 handle_enemy_bullet_collision,
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::Combat)),
         );
     }
 }

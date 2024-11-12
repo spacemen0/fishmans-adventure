@@ -13,7 +13,7 @@ impl Plugin for FollowCameraPlugin {
             .add_systems(
                 Update,
                 camera_follow_player
-                    .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
+                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
             );
     }
 }

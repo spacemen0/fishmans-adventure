@@ -14,7 +14,7 @@ impl Plugin for PortalPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (spawn_portal, portal_interaction).run_if(in_state(GameState::InGame)),
+            (spawn_portal, portal_interaction).run_if(in_state(GameState::Combat)),
         );
     }
 }
@@ -53,6 +53,7 @@ fn portal_interaction(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut ev_show_dialog: EventWriter<ShowDialogEvent>,
     active_dialog: Res<ActiveDialog>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
         for portal_transform in portal_query.iter() {
@@ -65,6 +66,7 @@ fn portal_interaction(
                 && active_dialog.0.is_none()
             {
                 ev_show_dialog.send(ShowDialogEvent(DialogType::Portal));
+                next_state.set(GameState::Town);
             }
         }
     }

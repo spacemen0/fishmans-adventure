@@ -67,7 +67,7 @@ impl Plugin for PlayerPlugin {
                     handle_acceleration_effect,
                     handle_leveling_up,
                 )
-                    .run_if(in_state(GameState::InGame)),
+                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
             );
     }
 }
@@ -211,6 +211,7 @@ fn handle_invincibility_effect(
     }
     invincibility_effect.0.tick(time.delta());
 }
+
 fn handle_acceleration_effect(
     time: Res<Time>,
     mut commands: Commands,

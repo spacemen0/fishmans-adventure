@@ -28,17 +28,17 @@ impl Plugin for GuiPlugin {
                 handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
             )
             .add_systems(
-                OnEnter(GameState::GameInit),
+                OnEnter(GameState::Initializing),
                 (spawn_debug_text, setup_potion_display),
             )
             .add_systems(
                 Update,
-                (update_debug_text, update_potion_display).run_if(in_state(GameState::InGame)),
+                (update_debug_text, update_potion_display).run_if(in_state(GameState::Combat)),
             )
             .add_systems(
                 Update,
                 (handle_pause_input, handle_game_restart)
-                    .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
+                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
             );
     }
 }
@@ -224,7 +224,7 @@ fn handle_main_menu_buttons(
 ) {
     for interaction in interaction_query.iter() {
         if interaction == &Interaction::Pressed {
-            next_state.set(GameState::GameInit);
+            next_state.set(GameState::Initializing);
         }
     }
 }
@@ -242,11 +242,11 @@ fn handle_pause_input(
 ) {
     if keyboard_input.just_pressed(KeyCode::KeyP) {
         match current_state.get() {
-            GameState::InGame => {
+            GameState::Combat => {
                 next_state.set(GameState::Paused);
             }
             GameState::Paused => {
-                next_state.set(GameState::InGame);
+                next_state.set(GameState::Combat);
             }
             _ => {}
         }
@@ -258,6 +258,6 @@ fn handle_game_restart(
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::KeyR) {
-        next_state.set(GameState::GameInit);
+        next_state.set(GameState::Initializing);
     }
 }

@@ -5,7 +5,8 @@ pub enum GameState {
     #[default]
     Loading,
     MainMenu,
-    GameInit,
-    InGame,
+    Initializing,
+    Combat,
+    Town,
     Paused,
 }

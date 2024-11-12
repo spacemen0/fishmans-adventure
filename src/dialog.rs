@@ -18,7 +18,7 @@ impl Plugin for DialogPlugin {
                     handle_dialog_navigation,
                     handle_dialog_confirmation,
                 )
-                    .run_if(in_state(GameState::InGame).or_else(in_state(GameState::Paused))),
+                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
             )
             .init_resource::<ActiveDialog>()
             .init_resource::<SelectedOption>();
@@ -168,7 +168,7 @@ fn close_dialog(
         if let Some(entity) = active_dialog.0 {
             commands.entity(entity).despawn_recursive();
             commands.insert_resource(ActiveDialog(None));
-            next_state.set(GameState::InGame);
+            next_state.set(GameState::Combat);
         }
     }
 }
@@ -200,6 +200,7 @@ fn handle_dialog_confirmation(
     dialog_type_query: Query<&DialogType>,
     mut ev_close_dialog: EventWriter<CloseDialogEvent>,
     mut wave: ResMut<Wave>,
+    mut next_state: ResMut<NextState<GameState>>,
     mut commands: Commands,
     portal_query: Query<Entity, With<Portal>>,
 ) {
@@ -211,6 +212,7 @@ fn handle_dialog_confirmation(
                         selected_option.0,
                         &mut ev_close_dialog,
                         &mut wave,
+                        &mut next_state,
                         &mut commands,
                         &portal_query,
                     ),
@@ -224,12 +226,14 @@ fn handle_portal_dialog_confirmation(
     selected_option: usize,
     ev_close_dialog: &mut EventWriter<CloseDialogEvent>,
     wave: &mut ResMut<Wave>,
+    next_state: &mut ResMut<NextState<GameState>>,
     commands: &mut Commands,
     portal_query: &Query<Entity, With<Portal>>,
 ) {
     match selected_option {
         0 => {
             ev_close_dialog.send(CloseDialogEvent);
+            next_state.set(GameState::Town);
         }
         1 => {
             ev_close_dialog.send(CloseDialogEvent);

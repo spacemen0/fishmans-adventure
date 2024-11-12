@@ -6,8 +6,7 @@ use crate::*;
 
 pub struct ResourcesPlugin;
 
-#[derive(Resource)]
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct GlobalTextureAtlas {
     pub layout: Option<Handle<TextureAtlasLayout>>,
     pub image: Option<Handle<Image>>,
@@ -31,8 +30,8 @@ impl Default for Wave {
     fn default() -> Self {
         Self {
             number: 1,
-            enemies_left: 10,
-            enemies_total: 10,
+            enemies_left: 1,
+            enemies_total: 1,
             requires_portal: false,
             enemies_spawned: 0,
             portal_spawned: false,
@@ -94,7 +93,7 @@ impl Plugin for ResourcesPlugin {
             .add_systems(OnEnter(GameState::Loading), load_assets)
             .add_systems(
                 Update,
-                update_cursor_position.run_if(in_state(GameState::InGame)),
+                update_cursor_position.run_if(in_state(GameState::Combat)),
             );
     }
 }
@@ -137,4 +136,3 @@ fn update_cursor_position(
         .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
         .map(|ray| ray.origin.truncate());
 }
-

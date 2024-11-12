@@ -27,7 +27,7 @@ pub struct ArmorPlugin;
 
 impl Plugin for ArmorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, switch_armor.run_if(in_state(GameState::InGame)));
+        app.add_systems(Update, switch_armor.run_if(in_state(GameState::Combat)));
     }
 }
 

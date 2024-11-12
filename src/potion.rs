@@ -37,7 +37,7 @@ impl Plugin for PotionPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            apply_potion_effects.run_if(in_state(GameState::InGame)),
+            apply_potion_effects.run_if(in_state(GameState::Combat)),
         );
     }
 }

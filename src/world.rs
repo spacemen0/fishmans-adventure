@@ -15,15 +15,13 @@ use crate::{state::GameState, GlobalTextureAtlas};
 
 pub struct WorldPlugin;
 
-//entities that spawn with this will be cleared after each game run
-
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
-            OnEnter(GameState::GameInit),
+            OnEnter(GameState::Initializing),
             (init_world, spawn_world_decorations),
         )
-        .add_systems(OnExit(GameState::InGame), despawn_all_game_entities);
+        .add_systems(OnExit(GameState::Combat), despawn_all_game_entities);
     }
 }
 
@@ -195,7 +193,7 @@ fn init_world(
         active_armor_index: 0,
     });
 
-    next_state.set(GameState::InGame);
+    next_state.set(GameState::Combat);
 }
 
 fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
@@ -222,6 +220,7 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
 fn despawn_all_game_entities(
     mut commands: Commands,
     all_entities: Query<Entity, With<InGameEntity>>,
+    player_query: Query<Entity, With<Player>>,
     next_state: Res<State<GameState>>,
 ) {
     if *next_state.get() != GameState::Paused {
@@ -230,5 +229,10 @@ fn despawn_all_game_entities(
                 entity.despawn_recursive();
             }
         }
+    }
+
+    // Ensure the player entity is not despawned
+    if let Ok(player_entity) = player_query.get_single() {
+        commands.entity(player_entity).remove::<InGameEntity>();
     }
 }

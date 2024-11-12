@@ -13,6 +13,7 @@ use player::PlayerPlugin;
 use portal::PortalPlugin;
 use potion::PotionPlugin;
 use state::GameState;
+use town::TownPlugin;
 use world::WorldPlugin;
 
 fn main() {
@@ -49,6 +50,7 @@ fn main() {
         .add_plugins(PortalPlugin)
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
+        .add_plugins(TownPlugin)
         // .add_systems(Update, exit_game)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)

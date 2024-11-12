@@ -33,7 +33,7 @@ impl Plugin for CollisionPlugin {
                 update_enemy_kd_tree
                     .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(GameState::Combat)),
         );
     }
 }
