@@ -252,7 +252,7 @@ pub fn strong_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Gun,
-                drop_chance: 0.3,
+                drop_chance: 0.99,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
                     bullets_per_shot: (8, 12),

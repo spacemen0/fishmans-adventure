@@ -9,6 +9,7 @@ pub enum Action {
     SwitchGun,
     TogglePause,
     Restart,
+    PickLoot,
     UsePotion1,
     UsePotion2,
 }
@@ -19,6 +20,7 @@ impl Action {
             (Self::SwitchGun, KeyCode::KeyQ),
             (Self::TogglePause, KeyCode::KeyP),
             (Self::Restart, KeyCode::KeyR),
+            (Self::PickLoot, KeyCode::KeyE),
             (Self::UsePotion1, KeyCode::Digit1),
             (Self::UsePotion2, KeyCode::Digit2),
         ])

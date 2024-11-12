@@ -5,11 +5,12 @@ use bevy::math::vec3;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use enemy::Collider;
-use gun::HasLifespan;
+use gun::{Gun, HasLifespan};
 use input::Action;
 use leafwing_input_manager::prelude::*;
-use utils::InGameEntity;
+use potion::Potion;
 use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
+use utils::{InGameEntity, Pickable};
 
 use crate::state::GameState;
 use crate::*;
@@ -68,6 +69,7 @@ impl Plugin for PlayerPlugin {
                     handle_invincibility_effect,
                     handle_acceleration_effect,
                     handle_leveling_up,
+                    handle_loot_picking,
                 )
                     .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
             );
@@ -252,5 +254,52 @@ pub fn handle_player_input(
         *player_state = PlayerState::Run;
     } else {
         *player_state = PlayerState::Idle;
+    }
+}
+
+fn handle_loot_picking(
+    mut commands: Commands,
+    loot_query: Query<
+        (
+            Entity,
+            &Transform,
+            Option<&Potion>,
+            Option<&Gun>,
+            Option<&Armor>,
+        ),
+        With<Pickable>,
+    >,
+    mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
+    action_state: Res<ActionState<Action>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+
+    // Check if the player pressed the "PickLoot" action
+    if action_state.just_pressed(&Action::PickLoot) {
+        let (mut inventory, player_transform) = player_query.single_mut();
+        let player_pos = player_transform.translation.xy();
+
+        // Iterate over nearby loot items
+        for (loot_entity, loot_transform, potion, gun, armor) in loot_query.iter() {
+            let loot_pos = loot_transform.translation.xy();
+
+            // Check if loot is within a certain range of the player
+            if player_pos.distance(loot_pos) <= 15.0 {
+                if let Some(_potion) = potion {
+                    inventory.speed_potions.push(loot_entity);
+                }
+                if let Some(_gun) = gun {
+                    inventory.guns.push(loot_entity);
+                }
+                if let Some(_armor) = armor {
+                    inventory.armors.push(loot_entity);
+                }
+
+                commands.entity(loot_entity).insert(Visibility::Hidden);
+                commands.entity(loot_entity).remove::<Pickable>();
+            }
+        }
     }
 }
