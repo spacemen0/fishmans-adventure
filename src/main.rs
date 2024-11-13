@@ -69,9 +69,3 @@ impl Plugin for EmbeddedAssetPlugin {
         embedded_asset!(app, "../assets/monogram.ttf");
     }
 }
-
-// fn exit_game(mut exit: EventWriter<AppExit>, keyboard_input: Res<ButtonInput<KeyCode>>) {
-//     if keyboard_input.pressed(KeyCode::Escape) {
-//         exit.send(AppExit::Success);
-//     }
-// }

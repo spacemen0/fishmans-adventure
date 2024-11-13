@@ -1,9 +1,11 @@
 use crate::{
+    input::Action,
     portal::Portal,
     resources::{UiFont, Wave},
     state::GameState,
 };
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 pub struct DialogPlugin;
 
@@ -175,12 +177,12 @@ fn close_dialog(
 }
 
 fn handle_dialog_navigation(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    active_state: Res<ActionState<Action>>,
     mut selected_option: ResMut<SelectedOption>,
     mut query: Query<(&DialogButton, &mut BackgroundColor)>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::ArrowUp)
-        || keyboard_input.just_pressed(KeyCode::ArrowDown)
+    if active_state.just_pressed(&Action::NavigateDown)
+        || active_state.just_pressed(&Action::NavigateUp)
     {
         selected_option.0 = 1 - selected_option.0;
     }
@@ -195,7 +197,7 @@ fn handle_dialog_navigation(
 }
 
 fn handle_dialog_confirmation(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    active_state: Res<ActionState<Action>>,
     selected_option: Res<SelectedOption>,
     active_dialog: Res<ActiveDialog>,
     dialog_type_query: Query<&DialogType>,
@@ -205,7 +207,7 @@ fn handle_dialog_confirmation(
     mut commands: Commands,
     portal_query: Query<Entity, With<Portal>>,
 ) {
-    if keyboard_input.just_pressed(KeyCode::Enter) {
+    if active_state.just_pressed(&Action::Confirm) {
         if let Some(dialog_entity) = active_dialog.0 {
             if let Ok(dialog_type) = dialog_type_query.get(dialog_entity) {
                 match dialog_type {

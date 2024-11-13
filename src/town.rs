@@ -1,5 +1,9 @@
-use crate::{player::Player, resources::GlobalTextureAtlas, state::GameState, utils::InGameEntity};
+use crate::{
+    input::Action, player::Player, resources::GlobalTextureAtlas, state::GameState,
+    utils::InGameEntity,
+};
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 pub struct TownPlugin;
 
@@ -77,7 +81,7 @@ fn town_systems(
     player_query: Query<&Transform, With<Player>>,
     portal_query: Query<&Transform, With<TownPortal>>,
     npc_query: Query<&Transform, With<NPC>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    active_state: Res<ActionState<Action>>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
         for portal_transform in portal_query.iter() {
@@ -85,7 +89,7 @@ fn town_systems(
                 .translation
                 .distance(portal_transform.translation);
 
-            if distance < 60.0 && keyboard_input.just_pressed(KeyCode::KeyX) {
+            if distance < 60.0 && active_state.just_pressed(&Action::Interact) {
                 next_state.set(GameState::Combat);
             }
         }
@@ -95,7 +99,7 @@ fn town_systems(
                 .translation
                 .distance(npc_transform.translation);
 
-            if distance < 60.0 && keyboard_input.just_pressed(KeyCode::KeyE) {
+            if distance < 60.0 && active_state.just_pressed(&Action::Interact) {
                 // Handle NPC interaction
                 println!("Interacting with NPC");
             }

@@ -1,11 +1,13 @@
 use crate::{
     dialog::{ActiveDialog, DialogType, ShowDialogEvent},
+    input::Action,
     player::Player,
     resources::Wave,
     state::GameState,
     utils::InGameEntity,
 };
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 pub struct PortalPlugin;
 
@@ -52,7 +54,7 @@ fn spawn_portal(
 fn portal_interaction(
     player_query: Query<&Transform, With<Player>>,
     portal_query: Query<&Transform, With<Portal>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    active_state: Res<ActionState<Action>>,
     mut ev_show_dialog: EventWriter<ShowDialogEvent>,
     active_dialog: Res<ActiveDialog>,
     mut next_state: ResMut<NextState<GameState>>,
@@ -64,7 +66,7 @@ fn portal_interaction(
                 .distance(portal_transform.translation);
 
             if distance < 60.0
-                && keyboard_input.just_pressed(KeyCode::KeyX)
+                && active_state.just_pressed(&Action::Interact)
                 && active_dialog.0.is_none()
             {
                 ev_show_dialog.send(ShowDialogEvent(DialogType::Portal));

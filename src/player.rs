@@ -280,7 +280,7 @@ fn handle_loot_picking(
     }
 
     // Check if the player pressed the "PickLoot" action
-    if action_state.just_pressed(&Action::PickLoot) {
+    if action_state.just_pressed(&Action::Interact) {
         let (mut inventory, player_transform) = player_query.single_mut();
         let player_pos = player_transform.translation.xy();
 

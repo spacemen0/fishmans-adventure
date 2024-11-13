@@ -1,9 +1,11 @@
 use crate::{
+    input::Action,
     player::{Player, PlayerInventory},
     state::GameState,
     utils::InGameEntity,
 };
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
 pub struct Armor;
@@ -33,7 +35,7 @@ impl Plugin for ArmorPlugin {
 
 fn switch_armor(
     mut player_query: Query<&mut PlayerInventory, With<Player>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    active_state: Res<ActionState<Action>>,
 ) {
     if player_query.is_empty() {
         return;
@@ -41,7 +43,7 @@ fn switch_armor(
 
     let mut inventory = player_query.single_mut();
 
-    if keyboard_input.just_pressed(KeyCode::KeyQ) {
+    if active_state.just_pressed(&Action::SwitchArmor) {
         inventory.active_armor_index = (inventory.active_armor_index + 1) % inventory.armors.len();
     }
 }
