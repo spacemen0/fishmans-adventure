@@ -1,19 +1,13 @@
-use super::components::EnemyBullet;
-use super::*;
-use crate::gun::HasLifespan;
-use crate::gun::{BulletDirection, BulletStats};
-use crate::loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool};
-use crate::player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent};
-use crate::resources::{Level, Wave};
-use crate::utils::get_random_position_around;
-use crate::utils::InGameEntity;
-use crate::utils::{calculate_enemies_per_wave, clamp_position};
-use crate::GlobalTextureAtlas;
-use crate::PLAYER_INVINCIBLE_TIME;
-use crate::SPAWN_RATE_PER_SECOND;
-use crate::SPRITE_SCALE_FACTOR;
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
+use super::{components::EnemyBullet, *};
+use crate::{
+    configs::{PLAYER_INVINCIBLE_TIME, SPAWN_RATE_PER_SECOND, SPRITE_SCALE_FACTOR},
+    gun::{BulletDirection, BulletStats, HasLifespan},
+    loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool},
+    player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
+    resources::{GlobalTextureAtlas, Level, Wave},
+    utils::{calculate_enemies_per_wave, clamp_position, get_random_position_around, InGameEntity},
+};
+use bevy::{prelude::*, time::Stopwatch};
 use rand::Rng;
 
 use std::time::Duration;

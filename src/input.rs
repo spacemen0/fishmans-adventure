@@ -1,6 +1,5 @@
 use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
-use leafwing_input_manager::user_input::KeyboardVirtualDPad;
+use leafwing_input_manager::{prelude::*, user_input::KeyboardVirtualDPad};
 
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {

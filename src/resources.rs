@@ -1,8 +1,6 @@
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
+use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::state::GameState;
-use crate::*;
+use crate::{configs::*, state::GameState};
 
 pub struct ResourcesPlugin;
 

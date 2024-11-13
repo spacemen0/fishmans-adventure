@@ -1,6 +1,4 @@
-use crate::player::Player;
-use crate::state::GameState;
-use crate::utils::InGameEntity;
+use crate::{player::Player, resources::GlobalTextureAtlas, state::GameState, utils::InGameEntity};
 use bevy::prelude::*;
 
 pub struct TownPlugin;
@@ -16,7 +14,7 @@ impl Plugin for TownPlugin {
 fn setup_town(
     mut commands: Commands,
     mut player_query: Query<&mut Transform, With<Player>>,
-    _handle: Res<crate::GlobalTextureAtlas>,
+    _handle: Res<GlobalTextureAtlas>,
 ) {
     // Spawn town buildings, NPCs, etc.
     commands.spawn((

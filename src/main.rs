@@ -1,21 +1,23 @@
-use animation::AnimationPlugin;
-use armor::ArmorPlugin;
-use bevy::asset::embedded_asset;
-use bevy::prelude::*;
-use camera::FollowCameraPlugin;
-use collision::CollisionPlugin;
-use dialog::DialogPlugin;
-use enemy::EnemyPlugin;
-use fishmans_adventure::*;
-use gui::GuiPlugin;
-use gun::GunPlugin;
-use input::InputPlugin;
-use player::PlayerPlugin;
-use portal::PortalPlugin;
-use potion::PotionPlugin;
-use state::GameState;
-use town::TownPlugin;
-use world::WorldPlugin;
+use bevy::{asset::embedded_asset, prelude::*};
+use fishmans_adventure::{
+    animation::AnimationPlugin,
+    armor::ArmorPlugin,
+    camera::FollowCameraPlugin,
+    collision::CollisionPlugin,
+    configs::{BG_COLOR, WH, WW},
+    dialog::DialogPlugin,
+    enemy::EnemyPlugin,
+    gui::GuiPlugin,
+    gun::GunPlugin,
+    input::InputPlugin,
+    player::PlayerPlugin,
+    portal::PortalPlugin,
+    potion::PotionPlugin,
+    resources::ResourcesPlugin,
+    state::GameState,
+    town::TownPlugin,
+    world::WorldPlugin,
+};
 
 fn main() {
     App::new()

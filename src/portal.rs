@@ -1,8 +1,10 @@
-use crate::dialog::{ActiveDialog, DialogType, ShowDialogEvent};
-use crate::player::Player;
-use crate::resources::Wave;
-use crate::state::GameState;
-use crate::utils::InGameEntity;
+use crate::{
+    dialog::{ActiveDialog, DialogType, ShowDialogEvent},
+    player::Player,
+    resources::Wave,
+    state::GameState,
+    utils::InGameEntity,
+};
 use bevy::prelude::*;
 
 pub struct PortalPlugin;

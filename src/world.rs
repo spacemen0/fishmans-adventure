@@ -1,17 +1,17 @@
-use armor::*;
-use bevy::math::vec3;
-use bevy::prelude::*;
-use gun::{BulletStats, GunBundle, GunStats};
-use player::{Defense, PlayerInventory, Speed};
-use potion::{Potion, PotionBundle, PotionStats, PotionType};
 use rand::Rng;
-use utils::InGameEntity;
 
-use crate::animation::AnimationTimer;
-use crate::gun::GunType;
-use crate::player::{Health, Player, PlayerState};
-use crate::*;
-use crate::{state::GameState, GlobalTextureAtlas};
+use crate::{
+    animation::AnimationTimer,
+    armor::{Armor, ArmorBundle, ArmorStats},
+    configs::*,
+    gun::{BulletStats, GunBundle, GunStats, GunType},
+    player::{Defense, Health, Player, PlayerInventory, PlayerState, Speed},
+    potion::{Potion, PotionBundle, PotionStats, PotionType},
+    resources::{GlobalTextureAtlas, Level, Wave},
+    state::GameState,
+    utils::InGameEntity,
+};
+use bevy::{math::vec3, prelude::*};
 
 pub struct WorldPlugin;
 
@@ -105,7 +105,7 @@ fn init_world(
                 visibility: Visibility::Hidden,
                 ..default()
             },
-            potion: potion::Potion,
+            potion: Potion,
             potion_stats: PotionStats {
                 effect_duration: 2.0,
                 effect_amount: 10,

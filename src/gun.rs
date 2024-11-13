@@ -1,19 +1,22 @@
-use bevy::utils::{Duration, Instant};
-use leafwing_input_manager::prelude::ActionState;
 use std::f32::consts::PI;
 
-use bevy::math::{vec2, vec3};
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
-
-use player::{handle_player_input, PlayerInventory};
+use bevy::{
+    math::{vec2, vec3},
+    prelude::*,
+    time::Stopwatch,
+    utils::{Duration, Instant},
+};
+use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
-use utils::InGameEntity;
 
-use crate::input::Action;
-use crate::player::Player;
-use crate::state::GameState;
-use crate::*;
+use crate::{
+    configs::*,
+    input::Action,
+    player::{handle_player_input, Player, PlayerInventory},
+    resources::{CursorPosition, GlobalTextureAtlas},
+    state::GameState,
+    utils::InGameEntity,
+};
 
 pub struct GunPlugin;
 

@@ -1,14 +1,19 @@
-use bevy::time::Stopwatch;
-use bevy::utils::Duration;
+use bevy::{time::Stopwatch, utils::Duration};
 
+use crate::{
+    configs::{BULLET_DAMAGE, KD_TREE_REFRESH_RATE, PLAYER_INVINCIBLE_TIME},
+    player::InvincibilityEffect,
+    utils::safe_subtract,
+};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
-use player::InvincibilityEffect;
-use utils::safe_subtract;
 
-use crate::player::{Player, PlayerDamagedEvent};
-use crate::*;
-use crate::{enemy::Enemy, enemy::Trail, gun::Bullet, state::GameState};
+use crate::{
+    enemy::{Enemy, Trail},
+    gun::Bullet,
+    player::{Player, PlayerDamagedEvent},
+    state::GameState,
+};
 
 pub struct CollisionPlugin;
 

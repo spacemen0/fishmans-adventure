@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{WORLD_H, WORLD_W};
+use crate::configs::{WORLD_H, WORLD_W};
 
 #[derive(Component)]
 pub struct InGameEntity;

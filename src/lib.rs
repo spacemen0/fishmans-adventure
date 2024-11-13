@@ -17,6 +17,3 @@ pub mod state;
 pub mod town;
 pub mod utils;
 pub mod world;
-
-pub use configs::*;
-pub use resources::*;

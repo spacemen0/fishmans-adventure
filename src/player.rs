@@ -1,19 +1,22 @@
 use std::time::Duration;
 
-use armor::{Armor, ArmorStats};
-use bevy::math::vec3;
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
-use enemy::Collider;
-use gun::{Gun, HasLifespan};
-use input::Action;
+use bevy::{math::vec3, prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::*;
-use potion::Potion;
-use utils::{calculate_defense_increase, calculate_health_increase, safe_subtract};
-use utils::{InGameEntity, Pickable};
 
-use crate::state::GameState;
-use crate::*;
+use crate::{
+    armor::{Armor, ArmorStats},
+    configs::{WORLD_H, WORLD_W},
+    enemy::Collider,
+    gun::{Gun, HasLifespan},
+    input::Action,
+    potion::Potion,
+    resources::UiFont,
+    state::GameState,
+    utils::{
+        calculate_defense_increase, calculate_health_increase, safe_subtract, InGameEntity,
+        Pickable,
+    },
+};
 
 pub struct PlayerPlugin;
 

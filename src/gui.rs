@@ -1,15 +1,18 @@
-use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::*;
+use bevy::{
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    prelude::*,
+};
 use leafwing_input_manager::prelude::ActionState;
 
-use crate::armor::{Armor, ArmorStats};
-use crate::enemy::Enemy;
-use crate::input::Action;
-use crate::player::{Defense, Health, Player, PlayerInventory};
-use crate::resources::{Level, Wave};
-use crate::state::GameState;
-use crate::utils::InGameEntity;
-use crate::UiFont;
+use crate::{
+    armor::{Armor, ArmorStats},
+    enemy::Enemy,
+    input::Action,
+    player::{Defense, Health, Player, PlayerInventory},
+    resources::{Level, UiFont, Wave},
+    state::GameState,
+    utils::InGameEntity,
+};
 
 pub struct GuiPlugin;
 

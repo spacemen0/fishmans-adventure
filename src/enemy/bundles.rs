@@ -1,8 +1,8 @@
-use super::components::*;
-use super::types::EnemyType;
-use crate::animation::AnimationTimer;
-use crate::loot::LootPool;
-use crate::utils::InGameEntity;
+use super::{components::*, types::EnemyType};
+use crate::{
+    animation::AnimationTimer, configs::SPRITE_SCALE_FACTOR, loot::LootPool,
+    resources::GlobalTextureAtlas, utils::InGameEntity,
+};
 use bevy::prelude::*;
 
 #[derive(Bundle)]
@@ -21,7 +21,7 @@ impl EnemyBundle {
     pub fn new(
         enemy_type: EnemyType,
         position: Vec3,
-        handle: &Res<crate::GlobalTextureAtlas>,
+        handle: &Res<GlobalTextureAtlas>,
         loot_pool: LootPool,
     ) -> Self {
         let config = enemy_type.get_config();
@@ -37,7 +37,7 @@ impl EnemyBundle {
             sprite_bundle: SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(position)
-                    .with_scale(Vec3::splat(crate::SPRITE_SCALE_FACTOR)),
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
             },
             texture_atlas: TextureAtlas {

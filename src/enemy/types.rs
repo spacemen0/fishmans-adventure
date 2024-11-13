@@ -1,5 +1,4 @@
-use crate::enemy::Trail;
-use crate::utils::InGameEntity;
+use crate::{enemy::Trail, utils::InGameEntity};
 use bevy::prelude::*;
 use rand::Rng;
 use std::time::Duration;

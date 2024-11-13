@@ -1,12 +1,11 @@
 use bevy::prelude::*;
 
 use crate::{
-    enemy::Enemy,
-    enemy::EnemyType,
+    enemy::{Enemy, EnemyType},
     gun::Gun,
     player::{Player, PlayerInventory, PlayerState},
+    resources::CursorPosition,
     state::GameState,
-    CursorPosition,
 };
 
 pub struct AnimationPlugin;

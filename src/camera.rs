@@ -1,8 +1,7 @@
 use bevy::{math::vec3, prelude::*};
 use bevy_pancam::{PanCam, PanCamPlugin};
 
-use crate::player::Player;
-use crate::state::GameState;
+use crate::{player::Player, state::GameState};
 
 pub struct FollowCameraPlugin;
 

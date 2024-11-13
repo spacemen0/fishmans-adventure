@@ -1,7 +1,8 @@
-use crate::portal::Portal;
-use crate::resources::Wave;
-use crate::state::GameState;
-use crate::UiFont;
+use crate::{
+    portal::Portal,
+    resources::{UiFont, Wave},
+    state::GameState,
+};
 use bevy::prelude::*;
 
 pub struct DialogPlugin;
