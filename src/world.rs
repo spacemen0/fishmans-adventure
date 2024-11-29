@@ -19,7 +19,7 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(GameState::Initializing),
-            (init_world, spawn_world_decorations),
+            (init_world, spawn_world_decorations, spawn_world_edges),
         )
         .add_systems(OnExit(GameState::Combat), despawn_all_game_entities);
     }
@@ -64,7 +64,7 @@ fn init_world(
             },
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 17,
+                index: 32,
             },
             ..default()
         },))
@@ -92,7 +92,7 @@ fn init_world(
             },
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 56,
+                index: 34,
             },
             ..default()
         },))
@@ -199,18 +199,90 @@ fn init_world(
 fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     let mut rng = rand::thread_rng();
     for _ in 0..NUM_WORLD_DECORATIONS {
-        let x = rng.gen_range(-WORLD_W..WORLD_W);
-        let y = rng.gen_range(-WORLD_H..WORLD_H);
+        let x = rng.gen_range((-WW + TILE_W as f32)..(WW - TILE_W as f32));
+        let y = rng.gen_range((-WH + TILE_H as f32)..(WH - TILE_H as f32));
         commands.spawn((
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(x, y, 0.0))
+                transform: Transform::from_translation(vec3(x, y, LAYER0))
                     .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 ..default()
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: rng.gen_range(24..=25),
+                index: rng.gen_range(56..=61),
+            },
+            InGameEntity,
+        ));
+    }
+}
+
+fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
+    // Top edge
+    for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
+        commands.spawn((
+            SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_translation(vec3(x as f32, WH, LAYER0))
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 59,
+            },
+            InGameEntity,
+        ));
+    }
+
+    // Bottom edge
+    for x in
+        (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize)
+    {
+        commands.spawn((
+            SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_translation(vec3(x as f32, -WH, LAYER0))
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 59,
+            },
+            InGameEntity,
+        ));
+    }
+
+    // Left edge
+    for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
+        commands.spawn((
+            SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_translation(vec3(-WW, y as f32, LAYER0))
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 59,
+            },
+            InGameEntity,
+        ));
+    }
+
+    // Right edge
+    for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
+        commands.spawn((
+            SpriteBundle {
+                texture: handle.image.clone().unwrap(),
+                transform: Transform::from_translation(vec3(WW, y as f32, LAYER0))
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                ..default()
+            },
+            TextureAtlas {
+                layout: handle.layout.clone().unwrap(),
+                index: 59,
             },
             InGameEntity,
         ));

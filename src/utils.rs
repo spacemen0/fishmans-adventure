@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::configs::{WORLD_H, WORLD_W};
+use crate::configs::{WH, WW};
 
 #[derive(Component)]
 pub struct InGameEntity;
@@ -39,10 +39,10 @@ pub fn calculate_defense_increase(level: u32) -> u32 {
     defense_increase.round() as u32
 }
 
-pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
+pub fn get_random_position_around(pos: Vec2, dist_range: std::ops::Range<f32>) -> (f32, f32) {
     let mut rng = rand::thread_rng();
     let angle = rng.gen_range(0.0..std::f32::consts::TAU);
-    let dist = rng.gen_range(1000.0..3000.0);
+    let dist = rng.gen_range(dist_range);
 
     let offset_x = angle.cos() * dist;
     let offset_y = angle.sin() * dist;
@@ -50,10 +50,7 @@ pub fn get_random_position_around(pos: Vec2) -> (f32, f32) {
     let random_x = pos.x + offset_x;
     let random_y = pos.y + offset_y;
 
-    (
-        random_x.clamp(-WORLD_W, WORLD_W),
-        random_y.clamp(-WORLD_H, WORLD_H),
-    )
+    (random_x.clamp(-WW, WW), random_y.clamp(-WH, WH))
 }
 
 pub fn safe_subtract(a: u32, b: u32) -> u32 {
@@ -61,6 +58,6 @@ pub fn safe_subtract(a: u32, b: u32) -> u32 {
 }
 
 pub fn clamp_position(position: &mut Vec3) {
-    position.x = position.x.clamp(-WORLD_W, WORLD_W);
-    position.y = position.y.clamp(-WORLD_H, WORLD_H);
+    position.x = position.x.clamp(-WW, WW);
+    position.y = position.y.clamp(-WH, WH);
 }

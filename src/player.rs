@@ -5,7 +5,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{WORLD_H, WORLD_W},
+    configs::{LAYER1, WH, WW},
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
@@ -249,11 +249,11 @@ pub fn handle_player_input(
     let axis_pair = action_state.clamped_axis_pair(&Action::Move);
     if axis_pair != Vec2::ZERO {
         let desired_position = transform.translation.xy() + axis_pair * speed.0 as f32;
-        let clamped_x = desired_position.x.clamp(-WORLD_W, WORLD_W);
-        let clamped_y = desired_position.y.clamp(-WORLD_H, WORLD_H);
+        let clamped_x = desired_position.x.clamp(-WW, WW);
+        let clamped_y = desired_position.y.clamp(-WH, WH);
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
 
-        transform.translation.z = 10.0;
+        transform.translation.z = LAYER1;
         *player_state = PlayerState::Run;
     } else {
         *player_state = PlayerState::Idle;

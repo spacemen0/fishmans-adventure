@@ -3,9 +3,10 @@ use rand::Rng;
 
 use crate::{
     armor::{Armor, ArmorBundle, ArmorStats},
+    configs::{LAYER2, SPRITE_SCALE_FACTOR},
     gun::{GunBundle, GunStats},
     potion::{Potion, PotionBundle, PotionStats, PotionType},
-    utils::{InGameEntity, Pickable},
+    utils::{get_random_position_around, InGameEntity, Pickable},
 };
 
 #[derive(Clone)]
@@ -90,18 +91,20 @@ fn spawn_gun(
             firing_interval: rng.gen_range(range.firing_interval.0..=range.firing_interval.1),
             bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
         };
+        let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             GunBundle {
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
-                    transform: *transform,
+                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
+                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                     ..default()
                 },
 
                 gun_stats,
                 texture_bundle: TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 49,
+                    index: 35,
                 },
                 ..default()
             },
@@ -123,6 +126,7 @@ fn spawn_armor(
             defense: rng.gen_range(range.defense.0..=range.defense.1),
             durability: rng.gen_range(range.durability.0..=range.durability.1),
         };
+        let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             ArmorBundle {
                 armor: Armor,
@@ -130,7 +134,8 @@ fn spawn_armor(
                 in_game_entity: InGameEntity,
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
-                    transform: *transform,
+                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
+                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                     ..default()
                 },
                 texture_bundle: TextureAtlas {
@@ -156,11 +161,13 @@ fn spawn_potion(
             effect_duration: rng.gen_range(range.effect_duration.0..=range.effect_duration.1),
             effect_amount: rng.gen_range(range.effect_amount.0..=range.effect_amount.1),
         };
+        let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             PotionBundle {
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
-                    transform: *transform,
+                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
+                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                     ..default()
                 },
                 potion: Potion,

@@ -1,6 +1,6 @@
 use super::{components::EnemyBullet, *};
 use crate::{
-    configs::{PLAYER_INVINCIBLE_TIME, SPAWN_RATE_PER_SECOND, SPRITE_SCALE_FACTOR},
+    configs::{LAYER1, PLAYER_INVINCIBLE_TIME, SPAWN_RATE_PER_SECOND, SPRITE_SCALE_FACTOR, WH, WW},
     gun::{BulletDirection, BulletStats, HasLifespan},
     loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool},
     player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
@@ -28,7 +28,7 @@ pub fn spawn_enemies(
 
     let player_pos = player_query.single().translation.truncate();
     for _ in 0..wave.enemies_left.min(SPAWN_RATE_PER_SECOND as u32) {
-        let (x, y) = get_random_position_around(player_pos);
+        let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
         let enemy_type = EnemyType::random();
         let _config = enemy_type.get_config();
         let loot_pool = match &enemy_type {
@@ -39,7 +39,7 @@ pub fn spawn_enemies(
         };
         commands.spawn(EnemyBundle::new(
             enemy_type,
-            Vec3::new(x, y, 1.0),
+            Vec3::new(x.clamp(-WW, WW), y.clamp(-WH, WH), LAYER1),
             &handle,
             loot_pool,
         ));

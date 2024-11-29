@@ -12,9 +12,7 @@ pub const SPRITE_SHEET_W: u32 = 8;
 pub const SPRITE_SHEET_H: u32 = 8;
 
 // World
-pub const NUM_WORLD_DECORATIONS: usize = 500;
-pub const WORLD_W: f32 = 4000.0;
-pub const WORLD_H: f32 = 2000.0;
+pub const NUM_WORLD_DECORATIONS: usize = 100;
 
 // Player
 pub const PLAYER_SPEED: u32 = 15;
@@ -42,3 +40,9 @@ pub const NUM_BULLETS_PER_SHOT: usize = 5;
 
 // Colors
 pub const BG_COLOR: (u8, u8, u8) = (197, 204, 184);
+pub const BORDER_COLOR: (u8, u8, u8) = (221, 115, 176);
+pub const BORDER_THICKNESS: f32 = 10.0;
+pub const LAYER0: f32 = 0.0;
+pub const LAYER1: f32 = 1.0;
+pub const LAYER2: f32 = 2.0;
+pub const LAYER3: f32 = 3.0;

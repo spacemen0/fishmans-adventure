@@ -151,7 +151,7 @@ fn update_gun_transform(
 
             gun_transform.translation =
                 vec3(new_gun_pos.x, new_gun_pos.y, gun_transform.translation.z);
-            gun_transform.translation.z = 15.0;
+            gun_transform.translation.z = LAYER2;
         }
     }
 }
@@ -207,14 +207,14 @@ fn handle_gun_firing(
                                 SpriteBundle {
                                     texture: handle.image.clone().unwrap(),
                                     transform: Transform::from_translation(vec3(
-                                        gun_pos.x, gun_pos.y, 1.0,
+                                        gun_pos.x, gun_pos.y, LAYER3,
                                     ))
                                     .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                                     ..default()
                                 },
                                 TextureAtlas {
                                     layout: handle.layout.clone().unwrap(),
-                                    index: 16,
+                                    index: rng.gen_range(40..=43),
                                 },
                                 Bullet,
                                 BulletDirection(dir),
@@ -246,14 +246,14 @@ fn handle_gun_firing(
                                 SpriteBundle {
                                     texture: handle.image.clone().unwrap(),
                                     transform: Transform::from_translation(vec3(
-                                        gun_pos.x, gun_pos.y, 1.0,
+                                        gun_pos.x, gun_pos.y, LAYER3,
                                     ))
                                     .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                                     ..default()
                                 },
                                 TextureAtlas {
                                     layout: handle.layout.clone().unwrap(),
-                                    index: 59,
+                                    index: rng.gen_range(44..=47),
                                 },
                                 Bullet,
                                 BulletDirection(dir),

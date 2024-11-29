@@ -68,16 +68,16 @@ fn spawn_debug_text(mut commands: Commands, font: Res<UiFont>) {
             parent
                 .spawn(NodeBundle {
                     style: Style {
-                        width: Val::Px(372.0),
-                        height: Val::Px(258.0),
+                        width: Val::Px(186.0),
+                        height: Val::Px(129.0),
                         align_items: AlignItems::Start,
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::Start,
-                        padding: UiRect::all(Val::Px(4.0)),
-                        margin: UiRect::px(10.0, 10.0, 10.0, 0.0),
+                        padding: UiRect::all(Val::Px(2.0)),
+                        margin: UiRect::px(5.0, 5.0, 5.0, 0.0),
                         ..default()
                     },
-                    background_color: BackgroundColor::from(Color::BLACK.with_alpha(0.9)),
+                    background_color: BackgroundColor::from(Color::BLACK.with_alpha(0.8)),
                     ..default()
                 })
                 .with_children(|parent| {
@@ -86,7 +86,7 @@ fn spawn_debug_text(mut commands: Commands, font: Res<UiFont>) {
                             "Hello Bevy!",
                             TextStyle {
                                 font: font.0.clone(),
-                                font_size: 40.0,
+                                font_size: 20.0,
                                 color: Color::WHITE,
                             },
                         ),
@@ -142,7 +142,7 @@ fn setup_potion_display(mut commands: Commands, font: Res<UiFont>) {
                     "Potions: ",
                     TextStyle {
                         font: font.0.clone(),
-                        font_size: 30.0,
+                        font_size: 15.0,
                         color: Color::WHITE,
                     },
                 ),
