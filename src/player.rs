@@ -273,36 +273,33 @@ fn handle_loot_picking(
         With<Pickable>,
     >,
     mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
-    action_state: Res<ActionState<Action>>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
     // Check if the player pressed the "PickLoot" action
-    if action_state.just_pressed(&Action::Interact) {
-        let (mut inventory, player_transform) = player_query.single_mut();
-        let player_pos = player_transform.translation.xy();
+    let (mut inventory, player_transform) = player_query.single_mut();
+    let player_pos = player_transform.translation.xy();
 
-        // Iterate over nearby loot items
-        for (loot_entity, loot_transform, potion, gun, armor) in loot_query.iter() {
-            let loot_pos = loot_transform.translation.xy();
+    // Iterate over nearby loot items
+    for (loot_entity, loot_transform, potion, gun, armor) in loot_query.iter() {
+        let loot_pos = loot_transform.translation.xy();
 
-            // Check if loot is within a certain range of the player
-            if player_pos.distance(loot_pos) <= 15.0 {
-                if let Some(_potion) = potion {
-                    inventory.speed_potions.push(loot_entity);
-                }
-                if let Some(_gun) = gun {
-                    inventory.guns.push(loot_entity);
-                }
-                if let Some(_armor) = armor {
-                    inventory.armors.push(loot_entity);
-                }
-
-                commands.entity(loot_entity).insert(Visibility::Hidden);
-                commands.entity(loot_entity).remove::<Pickable>();
+        // Check if loot is within a certain range of the player
+        if player_pos.distance(loot_pos) <= 50.0 {
+            if let Some(_potion) = potion {
+                inventory.speed_potions.push(loot_entity);
             }
+            if let Some(_gun) = gun {
+                inventory.guns.push(loot_entity);
+            }
+            if let Some(_armor) = armor {
+                inventory.armors.push(loot_entity);
+            }
+
+            commands.entity(loot_entity).insert(Visibility::Hidden);
+            commands.entity(loot_entity).remove::<Pickable>();
         }
     }
 }

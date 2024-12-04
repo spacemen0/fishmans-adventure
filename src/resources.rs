@@ -29,7 +29,7 @@ impl Default for Wave {
         Self {
             number: 1,
             enemies_left: 1,
-            enemies_total: 1,
+            enemies_total: 100,
             requires_portal: false,
             enemies_spawned: 0,
             portal_spawned: false,

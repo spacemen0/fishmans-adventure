@@ -17,7 +17,7 @@ pub const NUM_WORLD_DECORATIONS: usize = 100;
 // Player
 pub const PLAYER_SPEED: u32 = 15;
 pub const PLAYER_HEALTH: u32 = 100;
-pub const PLAYER_INVINCIBLE_TIME: f32 = 0.2;
+pub const PLAYER_INVINCIBLE_TIME: f32 = 0.1;
 
 // Enemy
 pub const MAX_NUM_ENEMIES: usize = 2000;

@@ -5,7 +5,10 @@ use crate::{
     loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool},
     player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{calculate_enemies_per_wave, clamp_position, get_random_position_around, InGameEntity},
+    utils::{
+        calculate_enemies_per_wave, clamp_position, get_random_position_around, safe_subtract,
+        InGameEntity,
+    },
 };
 use bevy::{prelude::*, time::Stopwatch};
 use rand::Rng;
@@ -101,7 +104,7 @@ pub fn despawn_dead_enemies(
             }
 
             commands.entity(entity).despawn();
-            wave.enemies_left -= 1;
+            wave.enemies_left = safe_subtract(wave.enemies_left, 1);
             if level.add_xp(enemy.xp) {
                 ew.send(PlayerLevelingUpEvent {
                     new_level: level.level(),
@@ -111,9 +114,7 @@ pub fn despawn_dead_enemies(
     }
 
     if wave.enemies_left == 0 {
-        if wave.number % 5 == 0 {
-            wave.requires_portal = true;
-        } else {
+        {
             wave.number += 1;
             let new_wave_count = calculate_enemies_per_wave(wave.number);
             wave.enemies_total = new_wave_count;
