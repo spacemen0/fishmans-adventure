@@ -207,6 +207,7 @@ fn spawn_enemy_bullets(
             0.0,
         );
         let bullet_direction = direction + spread;
+        
         commands.spawn((
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
@@ -216,7 +217,7 @@ fn spawn_enemy_bullets(
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 16,
+                index: 41, 
             },
             EnemyBullet,
             BulletDirection(bullet_direction),
