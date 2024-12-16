@@ -8,8 +8,8 @@ pub const UI_FONT_PATH: &str = "embedded://fishmans_adventure/../assets/monogram
 pub const SPRITE_SCALE_FACTOR: f32 = 3.0;
 pub const TILE_W: u32 = 16;
 pub const TILE_H: u32 = 16;
-pub const SPRITE_SHEET_W: u32 = 8;
-pub const SPRITE_SHEET_H: u32 = 8;
+pub const SPRITE_SHEET_W: u32 = 256 / TILE_W;
+pub const SPRITE_SHEET_H: u32 = 256 / TILE_H;
 
 // World
 pub const NUM_WORLD_DECORATIONS: usize = 100;

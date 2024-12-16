@@ -104,7 +104,7 @@ fn spawn_gun(
                 gun_stats,
                 texture_bundle: TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 35,
+                    index: 97,
                 },
                 ..default()
             },
@@ -140,7 +140,7 @@ fn spawn_armor(
                 },
                 texture_bundle: TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 48,
+                    index: 95,
                 },
             },
             Pickable,
@@ -175,7 +175,7 @@ fn spawn_potion(
                 potion_type: PotionType::Speed,
                 texture_bundle: TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 50,
+                    index: 96,
                 },
                 in_game_entity: InGameEntity,
             },

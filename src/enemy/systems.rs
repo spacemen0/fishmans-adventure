@@ -218,7 +218,7 @@ fn spawn_enemy_bullets(
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 41,
+                index: 81,
             },
             EnemyBullet,
             BulletDirection(bullet_direction),

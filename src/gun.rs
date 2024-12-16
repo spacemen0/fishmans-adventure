@@ -214,7 +214,7 @@ fn handle_gun_firing(
                                 },
                                 TextureAtlas {
                                     layout: handle.layout.clone().unwrap(),
-                                    index: rng.gen_range(40..=43),
+                                    index: rng.gen_range(80..=83),
                                 },
                                 Bullet,
                                 BulletDirection(dir),
@@ -253,7 +253,7 @@ fn handle_gun_firing(
                                 },
                                 TextureAtlas {
                                     layout: handle.layout.clone().unwrap(),
-                                    index: rng.gen_range(44..=47),
+                                    index: rng.gen_range(84..=87),
                                 },
                                 Bullet,
                                 BulletDirection(dir),

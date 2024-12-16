@@ -64,7 +64,7 @@ fn init_world(
             },
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 32,
+                index: 65,
             },
             ..default()
         },))
@@ -92,7 +92,7 @@ fn init_world(
             },
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 34,
+                index: 66,
             },
             ..default()
         },))
@@ -114,7 +114,7 @@ fn init_world(
             in_game_entity: InGameEntity,
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 57,
+                index: 98,
             },
         },))
         .id();
@@ -135,7 +135,7 @@ fn init_world(
             in_game_entity: InGameEntity,
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 57,
+                index: 98,
             },
         })
         .id();
@@ -157,7 +157,7 @@ fn init_world(
             in_game_entity: InGameEntity,
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 58,
+                index: 99,
             },
         },))
         .id();
@@ -178,7 +178,7 @@ fn init_world(
             in_game_entity: InGameEntity,
             texture_bundle: TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 58,
+                index: 99,
             },
         })
         .id();
@@ -210,7 +210,7 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: rng.gen_range(56..=61),
+                index: rng.gen_range(111..=116),
             },
             InGameEntity,
         ));
@@ -229,7 +229,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 59,
+                index: 113,
             },
             InGameEntity,
         ));
@@ -248,7 +248,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 59,
+                index: 113,
             },
             InGameEntity,
         ));
@@ -265,7 +265,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 59,
+                index: 113,
             },
             InGameEntity,
         ));
@@ -282,7 +282,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 59,
+                index: 113,
             },
             InGameEntity,
         ));
