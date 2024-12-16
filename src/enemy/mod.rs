@@ -22,7 +22,7 @@ impl Plugin for EnemyPlugin {
             Update,
             (
                 spawn_enemies,
-                update_enemy_behavior,
+                update_enemy_movement,
                 despawn_dead_enemies,
                 handle_enemy_collision,
                 handle_shooter_enemies,

@@ -15,6 +15,7 @@ pub struct EnemyBundle {
     pub in_game_entity: InGameEntity,
     pub lootpool: LootPool,
     pub collider: Collider,
+    pub action_timer: PerformAction,
 }
 
 impl EnemyBundle {
@@ -48,6 +49,7 @@ impl EnemyBundle {
             in_game_entity: InGameEntity,
             collider: Collider { radius: 15 },
             lootpool: loot_pool,
+            action_timer: PerformAction(Timer::from_seconds(3.0, TimerMode::Repeating), false),
         }
     }
 }

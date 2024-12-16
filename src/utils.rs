@@ -27,6 +27,13 @@ pub fn calculate_health_increase(level: u32) -> u32 {
     health_increase.round() as u32
 }
 
+pub fn random_direction() -> Vec3 {
+    let mut rng = rand::thread_rng();
+    let x = rng.gen_range(-1.0..1.0);
+    let y = rng.gen_range(-1.0..1.0);
+    Vec3::new(x, y, 0.0).normalize_or_zero() // Normalize to ensure uniform direction
+}
+
 pub fn calculate_defense_increase(level: u32) -> u32 {
     let base_defense_increase = 2.0;
     let exponential_factor: f32 = 1.03;

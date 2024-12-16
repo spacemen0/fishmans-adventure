@@ -9,7 +9,8 @@ pub struct Enemy {
     pub xp: u32,
     pub enemy_type: EnemyType,
 }
-
+#[derive(Component)]
+pub struct PerformAction(pub Timer, pub bool);
 #[derive(Component)]
 pub struct Trail {
     pub damage: u32,

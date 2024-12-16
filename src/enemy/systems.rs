@@ -6,11 +6,11 @@ use crate::{
     player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
     utils::{
-        calculate_enemies_per_wave, clamp_position, get_random_position_around, safe_subtract,
-        InGameEntity,
+        calculate_enemies_per_wave, clamp_position, get_random_position_around, random_direction,
+        safe_subtract, InGameEntity,
     },
 };
-use bevy::prelude::*;
+use bevy::{math::vec3, prelude::*};
 use rand::Rng;
 
 use std::time::Duration;
@@ -32,11 +32,7 @@ pub fn spawn_enemies(
     let player_pos = player_query.single().translation.truncate();
     for _ in 0..wave.enemies_left.min(SPAWN_RATE_PER_SECOND as u32) {
         let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
-        let enemy_type = EnemyType::Bomber {
-            explosion_radius: 100.0,
-            explosion_damage: 30,
-            speed_multiplier: 1.5,
-        };
+        let enemy_type = EnemyType::random();
         let _config = enemy_type.get_config();
         let loot_pool = match &enemy_type {
             EnemyType::Basic => weak_enemies_bundle(),
@@ -56,9 +52,9 @@ pub fn spawn_enemies(
     }
 }
 
-pub fn update_enemy_behavior(
+pub fn update_enemy_movement(
     player_query: Query<&Transform, With<Player>>,
-    mut enemy_query: Query<(&mut Enemy, &mut Transform), Without<Player>>,
+    mut enemy_query: Query<(&mut Enemy, &mut Transform, &mut PerformAction), Without<Player>>,
     mut commands: Commands,
     time: Res<Time>,
 ) {
@@ -67,15 +63,27 @@ pub fn update_enemy_behavior(
     }
 
     let player_pos = player_query.single().translation;
-    for (mut enemy, mut transform) in enemy_query.iter_mut() {
+    for (mut enemy, mut transform, mut perform_action) in enemy_query.iter_mut() {
         let speed = enemy.speed;
-        let movement = enemy.enemy_type.update_movement(
-            transform.translation,
-            player_pos,
-            speed,
-            time.delta(),
-        );
-        transform.translation += movement;
+        perform_action.0.tick(time.delta());
+        if perform_action.0.just_finished() {
+            perform_action.1 = !perform_action.1;
+        }
+        if perform_action.1 {
+            let movement = enemy.enemy_type.update_movement(
+                transform.translation,
+                player_pos,
+                speed,
+                time.delta(),
+            );
+            transform.translation += movement;
+        } else {
+            transform.translation += random_direction() * speed as f32 * 0.6; //how to implement wandering
+        }
+
+        let clamped_x = transform.translation.x.clamp(-WW, WW);
+        let clamped_y = transform.translation.y.clamp(-WH, WH);
+        transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
         enemy
             .enemy_type
             .apply(&mut commands, &transform, time.delta());
