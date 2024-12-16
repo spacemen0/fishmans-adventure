@@ -23,6 +23,8 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct Player;
 #[derive(Component)]
+pub struct OriginalColor(pub Color);
+#[derive(Component)]
 pub struct Health(pub u32);
 #[derive(Component)]
 pub struct Speed(pub u32);
@@ -90,7 +92,8 @@ fn handle_player_damaged_events(
             &mut PlayerInventory,
             &Transform,
         ),
-        (With<Player>, Without<InvincibilityEffect>)>, 
+        With<Player>,
+    >,
     mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
     mut events: EventReader<PlayerDamagedEvent>,
     font: Res<UiFont>,
@@ -206,14 +209,23 @@ fn handle_player_death(
 fn handle_invincibility_effect(
     time: Res<Time>,
     mut commands: Commands,
-    mut player_query: Query<(&mut InvincibilityEffect, Entity), With<Player>>,
+    mut player_query: Query<
+        (
+            &mut InvincibilityEffect,
+            &OriginalColor,
+            &mut Sprite,
+            Entity,
+        ),
+        With<Player>,
+    >,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let (mut invincibility_effect, entity) = player_query.single_mut();
+    let (mut invincibility_effect, color, mut sprite, entity) = player_query.single_mut();
 
     if invincibility_effect.0.elapsed_secs() >= invincibility_effect.1 {
+        sprite.color = color.0;
         commands.entity(entity).remove::<InvincibilityEffect>();
     }
     invincibility_effect.0.tick(time.delta());
@@ -309,7 +321,9 @@ fn update_player_invincibility_visual(
     time: Res<Time>,
 ) {
     if let Ok(mut sprite) = player_query.get_single_mut() {
-        let flash_rate = 4.0; 
-        sprite.color = sprite.color.with_alpha((time.elapsed_seconds() * flash_rate).sin().abs());
+        let flash_rate = 4.0;
+        sprite.color = sprite
+            .color
+            .with_alpha((time.elapsed_seconds() * flash_rate).sin().abs());
     }
 }

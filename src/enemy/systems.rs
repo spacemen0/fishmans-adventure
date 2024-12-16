@@ -260,7 +260,7 @@ pub fn handle_enemy_bullet_collision(
             < 30.0
         {
             ev_player_damaged.send(PlayerDamagedEvent { damage: 10 });
-
+            println!("bullet collision!");
             commands.entity(player_entity).insert(InvincibilityEffect(
                 Stopwatch::new(),
                 PLAYER_INVINCIBLE_TIME,
@@ -276,7 +276,7 @@ pub fn handle_bomber_death(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     enemy_query: Query<(&Transform, &Enemy, &EnemyType), (With<Enemy>, Changed<Enemy>)>,
-    mut player_query: Query<(Entity, &Transform), With<Player>>,
+    mut player_query: Query<(Entity, &Transform), (With<Player>, Without<InvincibilityEffect>)>,
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
 ) {
     for (transform, enemy, enemy_type) in enemy_query.iter() {
@@ -306,6 +306,7 @@ pub fn handle_bomber_death(
                         ev_player_damaged.send(PlayerDamagedEvent {
                             damage: *explosion_damage,
                         });
+                        println!("Bomber collision!");
                     }
                 }
             }
@@ -347,8 +348,9 @@ pub fn update_explosions(
 ) {
     for (entity, mut explosion, mut sprite) in explosion_query.iter_mut() {
         explosion.timer.tick(time.delta());
-        
-        let alpha = 0.5 * (1.0 - explosion.timer.elapsed_secs() / explosion.timer.duration().as_secs_f32());
+
+        let alpha =
+            0.5 * (1.0 - explosion.timer.elapsed_secs() / explosion.timer.duration().as_secs_f32());
         sprite.color = Color::srgba(1.0, 0.5, 0.0, alpha);
 
         if explosion.timer.finished() {

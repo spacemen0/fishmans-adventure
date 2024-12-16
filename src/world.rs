@@ -5,7 +5,7 @@ use crate::{
     armor::{Armor, ArmorBundle, ArmorStats},
     configs::*,
     gun::{BulletStats, GunBundle, GunStats, GunType},
-    player::{Defense, Health, Player, PlayerInventory, PlayerState, Speed},
+    player::{Defense, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
     potion::{Potion, PotionBundle, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
     state::GameState,
@@ -48,12 +48,12 @@ fn init_world(
             Health(PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
             Defense(1),
+            OriginalColor(Color::WHITE),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
             InGameEntity,
         ))
         .id();
-
     // Spawn first gun
     let gun1 = commands
         .spawn((GunBundle {
@@ -236,9 +236,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     }
 
     // Bottom edge
-    for x in
-        (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize)
-    {
+    for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
