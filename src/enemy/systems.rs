@@ -1,6 +1,6 @@
 use super::{components::EnemyBullet, *};
 use crate::{
-    configs::{LAYER1, PLAYER_INVINCIBLE_TIME, SPAWN_RATE_PER_SECOND, SPRITE_SCALE_FACTOR, WH, WW},
+    configs::{LAYER1, SPAWN_RATE_PER_SECOND, SPRITE_SCALE_FACTOR, WH, WW},
     gun::{BulletDirection, BulletStats, HasLifespan},
     loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle, LootPool},
     player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
@@ -10,7 +10,7 @@ use crate::{
         InGameEntity,
     },
 };
-use bevy::{prelude::*, time::Stopwatch};
+use bevy::prelude::*;
 use rand::Rng;
 
 use std::time::Duration;
@@ -32,7 +32,11 @@ pub fn spawn_enemies(
     let player_pos = player_query.single().translation.truncate();
     for _ in 0..wave.enemies_left.min(SPAWN_RATE_PER_SECOND as u32) {
         let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
-        let enemy_type = EnemyType::random();
+        let enemy_type = EnemyType::Bomber {
+            explosion_radius: 100.0,
+            explosion_damage: 30,
+            speed_multiplier: 1.5,
+        };
         let _config = enemy_type.get_config();
         let loot_pool = match &enemy_type {
             EnemyType::Basic => weak_enemies_bundle(),
@@ -85,6 +89,7 @@ pub fn despawn_dead_enemies(
     mut level: ResMut<Level>,
     handle: Res<GlobalTextureAtlas>,
     mut ew: EventWriter<PlayerLevelingUpEvent>,
+    mut ew_bomber: EventWriter<BomberExplosionEvent>,
 ) {
     for (enemy, entity, transform, loot_pool) in enemy_query.iter() {
         if enemy.health == 0 {
@@ -103,7 +108,18 @@ pub fn despawn_dead_enemies(
                     );
                 }
             }
-
+            if let EnemyType::Bomber {
+                explosion_radius,
+                explosion_damage,
+                ..
+            } = enemy.enemy_type
+            {
+                ew_bomber.send(BomberExplosionEvent {
+                    translation: transform.translation,
+                    explosion_radius,
+                    explosion_damage,
+                });
+            }
             commands.entity(entity).despawn();
             wave.enemies_left = safe_subtract(wave.enemies_left, 1);
             if level.add_xp(enemy.xp) {
@@ -245,13 +261,13 @@ pub fn update_enemy_bullets(
 pub fn handle_enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Transform), With<EnemyBullet>>,
-    player_query: Query<(Entity, &Transform), (With<Player>, Without<InvincibilityEffect>)>,
+    player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let (player_entity, player_transform) = player_query.single();
+    let player_transform = player_query.single();
 
     for (bullet_entity, bullet_transform) in bullet_query.iter() {
         if player_transform
@@ -261,10 +277,10 @@ pub fn handle_enemy_bullet_collision(
         {
             ev_player_damaged.send(PlayerDamagedEvent { damage: 10 });
             println!("bullet collision!");
-            commands.entity(player_entity).insert(InvincibilityEffect(
-                Stopwatch::new(),
-                PLAYER_INVINCIBLE_TIME,
-            ));
+            // commands.entity(player_entity).insert(InvincibilityEffect(
+            //     Stopwatch::new(),
+            //     PLAYER_INVINCIBLE_TIME,
+            // ));
 
             commands.entity(bullet_entity).despawn();
         }
@@ -275,40 +291,31 @@ pub fn handle_bomber_death(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
-    enemy_query: Query<(&Transform, &Enemy, &EnemyType), (With<Enemy>, Changed<Enemy>)>,
-    mut player_query: Query<(Entity, &Transform), (With<Player>, Without<InvincibilityEffect>)>,
+    mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
+    mut events: EventReader<BomberExplosionEvent>,
 ) {
-    for (transform, enemy, enemy_type) in enemy_query.iter() {
-        if enemy.health == 0 {
-            if let EnemyType::Bomber {
-                explosion_radius,
-                explosion_damage,
-                ..
-            } = enemy_type
-            {
-                spawn_explosion(
-                    &mut commands,
-                    &mut meshes,
-                    &mut materials,
-                    transform.translation,
-                    *explosion_radius,
-                    *explosion_damage,
-                );
+    for event in events.read() {
+        spawn_explosion(
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+            event.translation,
+            event.explosion_radius,
+            event.explosion_damage,
+        );
 
-                if let Ok((player_entity, player_transform)) = player_query.get_single_mut() {
-                    let distance = player_transform.translation.distance(transform.translation);
-                    if distance <= *explosion_radius {
-                        commands.entity(player_entity).insert(InvincibilityEffect(
-                            Stopwatch::new(),
-                            PLAYER_INVINCIBLE_TIME,
-                        ));
-                        ev_player_damaged.send(PlayerDamagedEvent {
-                            damage: *explosion_damage,
-                        });
-                        println!("Bomber collision!");
-                    }
-                }
+        if let Ok(player_transform) = player_query.get_single_mut() {
+            let distance = player_transform.translation.distance(event.translation);
+            if distance <= event.explosion_radius {
+                ev_player_damaged.send(PlayerDamagedEvent {
+                    damage: event.explosion_damage,
+                });
+                // commands.entity(player_entity).insert(InvincibilityEffect(
+                //     Stopwatch::new(),
+                //     PLAYER_INVINCIBLE_TIME,
+                // ));
+                println!("Explosion collision!");
             }
         }
     }

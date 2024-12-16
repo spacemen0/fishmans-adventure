@@ -1,7 +1,7 @@
-use bevy::{time::Stopwatch, utils::Duration};
+use bevy::utils::Duration;
 
 use crate::{
-    configs::{BULLET_DAMAGE, KD_TREE_REFRESH_RATE, PLAYER_INVINCIBLE_TIME},
+    configs::{BULLET_DAMAGE, KD_TREE_REFRESH_RATE},
     player::InvincibilityEffect,
     utils::safe_subtract,
 };
@@ -46,9 +46,8 @@ impl Plugin for CollisionPlugin {
 }
 
 fn handle_enemy_player_collision(
-    mut commands: Commands,
-    mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
-    enemy_query: Query<(&Transform, &Enemy, &EnemyType)>,
+    mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
+    mut enemy_query: Query<(&Transform, &mut Enemy, &EnemyType)>,
     tree: Res<EnemyKdTree>,
     mut ew: EventWriter<PlayerDamagedEvent>,
 ) {
@@ -56,22 +55,23 @@ fn handle_enemy_player_collision(
         return;
     }
 
-    let (player_transform, player_entity) = player_query.single_mut();
+    let player_transform = player_query.single_mut();
     let player_pos = player_transform.translation;
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
     for enemy in enemies {
-        if let Ok((_, enemy_component, enemy_type)) = enemy_query.get(enemy.entity) {
+        if let Ok((_, mut enemy_component, enemy_type)) = enemy_query.get_mut(enemy.entity) {
             match enemy_type {
                 EnemyType::Bomber { .. } => {
-                    let mut new_enemy = enemy_component.clone();
-                    new_enemy.health = 0;
-                    commands.entity(enemy.entity).insert(new_enemy);
-                    commands.entity(player_entity).insert(InvincibilityEffect(
-                        Stopwatch::new(),
-                        PLAYER_INVINCIBLE_TIME,
-                    ));
-                    println!("enemy collision!");
+                    // let mut new_enemy = enemy_component.clone();
+                    // new_enemy.health = 0;
+                    // commands.entity(enemy.entity).insert(new_enemy);
+                    enemy_component.health = 0;
+                    // commands.entity(player_entity).insert(InvincibilityEffect(
+                    //     Stopwatch::new(),
+                    //     PLAYER_INVINCIBLE_TIME,
+                    // ));
+                    println!("bomber collision!");
                 }
                 _ => {
                     if enemy.damage > 0 {
@@ -79,10 +79,10 @@ fn handle_enemy_player_collision(
                         ew.send(PlayerDamagedEvent {
                             damage: enemy.damage,
                         });
-                        commands.entity(player_entity).insert(InvincibilityEffect(
-                            Stopwatch::new(),
-                            PLAYER_INVINCIBLE_TIME,
-                        ));
+                        // commands.entity(player_entity).insert(InvincibilityEffect(
+                        //     Stopwatch::new(),
+                        //     PLAYER_INVINCIBLE_TIME,
+                        // ));
                     }
                 }
             }
@@ -91,8 +91,7 @@ fn handle_enemy_player_collision(
 }
 
 fn handle_player_trail_collision(
-    mut commands: Commands,
-    mut player_query: Query<(&Transform, Entity), (With<Player>, Without<InvincibilityEffect>)>,
+    mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
     trail_query: Query<(&Transform, &Trail)>,
     mut ew: EventWriter<PlayerDamagedEvent>,
 ) {
@@ -100,7 +99,7 @@ fn handle_player_trail_collision(
         return;
     }
 
-    let (translation, entity) = player_query.single_mut();
+    let translation = player_query.single_mut();
     let player_pos = translation.translation.xy();
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
@@ -108,10 +107,10 @@ fn handle_player_trail_collision(
             ew.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });
-            commands.entity(entity).insert(InvincibilityEffect(
-                Stopwatch::new(),
-                PLAYER_INVINCIBLE_TIME,
-            ));
+            // commands.entity(entity).insert(InvincibilityEffect(
+            //     Stopwatch::new(),
+            //     PLAYER_INVINCIBLE_TIME,
+            // ));
 
             println!("trail collision!");
             break;

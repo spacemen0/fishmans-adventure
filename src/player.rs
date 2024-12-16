@@ -5,7 +5,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER1, WH, WW},
+    configs::{LAYER1, PLAYER_INVINCIBLE_TIME, WH, WW},
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
@@ -91,8 +91,9 @@ fn handle_player_damaged_events(
             &Defense,
             &mut PlayerInventory,
             &Transform,
+            Entity,
         ),
-        With<Player>,
+        (With<Player>, Without<InvincibilityEffect>),
     >,
     mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
     mut events: EventReader<PlayerDamagedEvent>,
@@ -101,7 +102,7 @@ fn handle_player_damaged_events(
     if player_query.is_empty() {
         return;
     }
-    let (mut health, _player_state, player_defense, mut inventory, player_transform) =
+    let (mut health, _player_state, player_defense, mut inventory, player_transform, entity) =
         player_query.single_mut();
 
     for event in events.read() {
@@ -129,6 +130,10 @@ fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
+                        commands.entity(entity).insert(InvincibilityEffect(
+                            Stopwatch::new(),
+                            PLAYER_INVINCIBLE_TIME,
+                        ));
                         spawn_damage_text(
                             &mut commands,
                             &font.0,

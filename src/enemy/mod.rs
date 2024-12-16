@@ -8,11 +8,17 @@ use bevy::prelude::*;
 
 pub use self::{bundles::*, components::*, systems::*, types::*};
 
+#[derive(Event)]
+pub struct BomberExplosionEvent {
+    pub translation: Vec3,
+    pub explosion_radius: f32,
+    pub explosion_damage: u32,
+}
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<BomberExplosionEvent>().add_systems(
             Update,
             (
                 spawn_enemies,
