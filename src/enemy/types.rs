@@ -23,6 +23,11 @@ pub enum EnemyType {
         reload_timer: Timer,
         in_range: bool,
     },
+    Bomber {
+        explosion_radius: f32,
+        explosion_damage: u32,
+        speed_multiplier: f32,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -62,6 +67,11 @@ impl EnemyType {
                 charge_speed: 15,
                 target_position: None,
             },
+            3 => EnemyType::Bomber {
+                explosion_radius: 100.0,
+                explosion_damage: 30,
+                speed_multiplier: 1.5,
+            },
             _ => EnemyType::Basic,
         }
     }
@@ -95,6 +105,13 @@ impl EnemyType {
                 damage: 0,
                 sprite_index: 28,
                 xp: 10,
+            },
+            EnemyType::Bomber { .. } => EnemyConfig {
+                health: 30,
+                speed: 8,
+                damage: 0,
+                sprite_index: 59,
+                xp: 12,
             },
         }
     }
@@ -170,6 +187,9 @@ impl EnemyType {
                 } else {
                     Vec3::ZERO
                 }
+            },
+            EnemyType::Bomber { speed_multiplier, .. } => {
+                (player_pos - current_pos).normalize() * base_speed as f32 * *speed_multiplier
             }
         }
     }

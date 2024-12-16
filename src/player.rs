@@ -73,6 +73,7 @@ impl Plugin for PlayerPlugin {
                     handle_acceleration_effect,
                     handle_leveling_up,
                     handle_loot_picking,
+                    update_player_invincibility_visual,
                 )
                     .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
             );
@@ -89,8 +90,7 @@ fn handle_player_damaged_events(
             &mut PlayerInventory,
             &Transform,
         ),
-        With<Player>,
-    >,
+        (With<Player>, Without<InvincibilityEffect>)>, 
     mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
     mut events: EventReader<PlayerDamagedEvent>,
     font: Res<UiFont>,
@@ -301,5 +301,15 @@ fn handle_loot_picking(
             commands.entity(loot_entity).insert(Visibility::Hidden);
             commands.entity(loot_entity).remove::<Pickable>();
         }
+    }
+}
+
+fn update_player_invincibility_visual(
+    mut player_query: Query<&mut Sprite, (With<Player>, With<InvincibilityEffect>)>,
+    time: Res<Time>,
+) {
+    if let Ok(mut sprite) = player_query.get_single_mut() {
+        let flash_rate = 4.0; 
+        sprite.color = sprite.color.with_alpha((time.elapsed_seconds() * flash_rate).sin().abs());
     }
 }

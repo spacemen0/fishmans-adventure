@@ -22,6 +22,8 @@ impl Plugin for EnemyPlugin {
                 handle_shooter_enemies,
                 update_enemy_bullets,
                 handle_enemy_bullet_collision,
+                handle_bomber_death,
+                update_explosions,
             )
                 .run_if(in_state(GameState::Combat)),
         );

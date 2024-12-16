@@ -39,6 +39,7 @@ pub fn spawn_enemies(
             EnemyType::LeaveTrail { .. } => medium_enemies_bundle(),
             EnemyType::Charge { .. } => medium_enemies_bundle(),
             EnemyType::Shooter { .. } => strong_enemies_bundle(),
+            EnemyType::Bomber { .. } => strong_enemies_bundle(),
         };
         commands.spawn(EnemyBundle::new(
             enemy_type,
@@ -207,7 +208,7 @@ fn spawn_enemy_bullets(
             0.0,
         );
         let bullet_direction = direction + spread;
-        
+
         commands.spawn((
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
@@ -217,7 +218,7 @@ fn spawn_enemy_bullets(
             },
             TextureAtlas {
                 layout: handle.layout.clone().unwrap(),
-                index: 41, 
+                index: 41,
             },
             EnemyBullet,
             BulletDirection(bullet_direction),
@@ -266,6 +267,92 @@ pub fn handle_enemy_bullet_collision(
             ));
 
             commands.entity(bullet_entity).despawn();
+        }
+    }
+}
+
+pub fn handle_bomber_death(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    enemy_query: Query<(&Transform, &Enemy, &EnemyType), (With<Enemy>, Changed<Enemy>)>,
+    mut player_query: Query<(Entity, &Transform), With<Player>>,
+    mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
+) {
+    for (transform, enemy, enemy_type) in enemy_query.iter() {
+        if enemy.health == 0 {
+            if let EnemyType::Bomber {
+                explosion_radius,
+                explosion_damage,
+                ..
+            } = enemy_type
+            {
+                spawn_explosion(
+                    &mut commands,
+                    &mut meshes,
+                    &mut materials,
+                    transform.translation,
+                    *explosion_radius,
+                    *explosion_damage,
+                );
+
+                if let Ok((player_entity, player_transform)) = player_query.get_single_mut() {
+                    let distance = player_transform.translation.distance(transform.translation);
+                    if distance <= *explosion_radius {
+                        commands.entity(player_entity).insert(InvincibilityEffect(
+                            Stopwatch::new(),
+                            PLAYER_INVINCIBLE_TIME,
+                        ));
+                        ev_player_damaged.send(PlayerDamagedEvent {
+                            damage: *explosion_damage,
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn spawn_explosion(
+    commands: &mut Commands,
+    _meshes: &mut Assets<Mesh>,
+    _materials: &mut Assets<ColorMaterial>,
+    position: Vec3,
+    radius: f32,
+    damage: u32,
+) {
+    commands.spawn((
+        SpriteBundle {
+            sprite: Sprite {
+                color: Color::srgba(1.0, 0.5, 0.0, 0.5),
+                custom_size: Some(Vec2::new(radius * 2.0, radius * 2.0)),
+                ..default()
+            },
+            transform: Transform::from_translation(position),
+            ..default()
+        },
+        Explosion {
+            radius,
+            damage,
+            timer: Timer::from_seconds(0.3, TimerMode::Once),
+        },
+        InGameEntity,
+    ));
+}
+
+pub fn update_explosions(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut explosion_query: Query<(Entity, &mut Explosion, &mut Sprite)>,
+) {
+    for (entity, mut explosion, mut sprite) in explosion_query.iter_mut() {
+        explosion.timer.tick(time.delta());
+        
+        let alpha = 0.5 * (1.0 - explosion.timer.elapsed_secs() / explosion.timer.duration().as_secs_f32());
+        sprite.color = Color::srgba(1.0, 0.5, 0.0, alpha);
+
+        if explosion.timer.finished() {
+            commands.entity(entity).despawn();
         }
     }
 }
