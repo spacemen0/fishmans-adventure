@@ -1,16 +1,12 @@
-pub mod builder;
 pub mod bundles;
 pub mod components;
-pub mod presets;
 pub mod systems;
-
-pub use builder::*;
-pub use components::*;
-pub use presets::*;
-pub use systems::*;
+pub mod types;
 
 use crate::state::GameState;
 use bevy::prelude::*;
+
+pub use self::{bundles::*, components::*, systems::*, types::*};
 
 #[derive(Event)]
 pub struct BomberExplosionEvent {
@@ -18,7 +14,6 @@ pub struct BomberExplosionEvent {
     pub explosion_radius: f32,
     pub explosion_damage: u32,
 }
-
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
@@ -28,14 +23,13 @@ impl Plugin for EnemyPlugin {
             (
                 spawn_enemies,
                 update_enemy_movement,
+                despawn_dead_enemies,
+                handle_enemy_collision,
+                handle_shooter_enemies,
                 update_enemy_bullets,
-                handle_ranged_movement,
-                handle_trail_abilities,
-                handle_shooting_abilities,
-                handle_charge_abilities,
-                handle_enemy_death,
-                handle_explosions,
-                handle_enemy_bullet_player_collision,
+                handle_enemy_bullet_collision,
+                handle_bomber_death,
+                update_explosions,
             )
                 .run_if(in_state(GameState::Combat)),
         );

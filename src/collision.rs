@@ -1,7 +1,7 @@
 use bevy::utils::Duration;
 
 use crate::{
-    configs::{BULLET_DAMAGE, KD_TREE_REFRESH_RATE},
+    configs::KD_TREE_REFRESH_RATE,
     player::InvincibilityEffect,
     utils::safe_subtract,
 };
@@ -15,15 +15,12 @@ use crate::{
     state::GameState,
 };
 
-use crate::enemy::EnemyType;
-
 pub struct CollisionPlugin;
 
 #[derive(Component)]
 struct Collidable {
     pos: Vec2,
     entity: Entity,
-    damage: u32,
 }
 
 #[derive(Resource)]
@@ -31,25 +28,26 @@ struct EnemyKdTree(KdTree<Collidable>);
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(EnemyKdTree::default()).add_systems(
-            Update,
-            (
-                handle_enemy_bullet_collision,
-                handle_enemy_player_collision,
-                handle_player_trail_collision,
-                update_enemy_kd_tree
-                    .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
-            )
+        app.insert_resource(EnemyKdTree::default())
+            .add_systems(
+                Update,
+                (
+                    handle_enemy_bullet_collision,
+                    handle_enemy_player_collision,
+                    handle_player_trail_collision,
+                    update_enemy_kd_tree
+                        .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
+                )
                 .run_if(in_state(GameState::Combat)),
-        );
+            );
     }
 }
 
 fn handle_enemy_player_collision(
     mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
-    mut enemy_query: Query<(&Transform, &mut Enemy, &EnemyType)>,
+    mut enemy_query: Query<(&Transform, &mut Enemy)>,
     tree: Res<EnemyKdTree>,
-    mut ew: EventWriter<PlayerDamagedEvent>,
+    mut ev: EventWriter<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -60,31 +58,11 @@ fn handle_enemy_player_collision(
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
     for enemy in enemies {
-        if let Ok((_, mut enemy_component, enemy_type)) = enemy_query.get_mut(enemy.entity) {
-            match enemy_type {
-                EnemyType::Bomber { .. } => {
-                    // let mut new_enemy = enemy_component.clone();
-                    // new_enemy.health = 0;
-                    // commands.entity(enemy.entity).insert(new_enemy);
-                    enemy_component.health = 0;
-                    // commands.entity(player_entity).insert(InvincibilityEffect(
-                    //     Stopwatch::new(),
-                    //     PLAYER_INVINCIBLE_TIME,
-                    // ));
-                    println!("bomber collision!");
-                }
-                _ => {
-                    if enemy.damage > 0 {
-                        println!("enemy collision!");
-                        ew.send(PlayerDamagedEvent {
-                            damage: enemy.damage,
-                        });
-                        // commands.entity(player_entity).insert(InvincibilityEffect(
-                        //     Stopwatch::new(),
-                        //     PLAYER_INVINCIBLE_TIME,
-                        // ));
-                    }
-                }
+        if let Ok((_, enemy_component)) = enemy_query.get_mut(enemy.entity) {
+            if enemy_component.damage > 0 {
+                ev.send(PlayerDamagedEvent {
+                    damage: enemy_component.damage,
+                });
             }
         }
     }
@@ -93,7 +71,7 @@ fn handle_enemy_player_collision(
 fn handle_player_trail_collision(
     mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
     trail_query: Query<(&Transform, &Trail)>,
-    mut ew: EventWriter<PlayerDamagedEvent>,
+    mut ev: EventWriter<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -104,15 +82,9 @@ fn handle_player_trail_collision(
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
         if player_pos.distance(trail_pos) <= trail.radius {
-            ew.send(PlayerDamagedEvent {
+            ev.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });
-            // commands.entity(entity).insert(InvincibilityEffect(
-            //     Stopwatch::new(),
-            //     PLAYER_INVINCIBLE_TIME,
-            // ));
-
-            println!("trail collision!");
             break;
         }
     }
@@ -120,14 +92,13 @@ fn handle_player_trail_collision(
 
 fn update_enemy_kd_tree(
     mut tree: ResMut<EnemyKdTree>,
-    enemy_query: Query<(&Transform, Entity, &Enemy), With<Enemy>>,
+    enemy_query: Query<(&Transform, Entity), With<Enemy>>,
 ) {
     let mut items = Vec::new();
-    for (t, e, enemy) in enemy_query.iter() {
+    for (t, e) in enemy_query.iter() {
         items.push(Collidable {
             entity: e,
             pos: t.translation.truncate(),
-            damage: enemy.damage,
         })
     }
 
@@ -150,12 +121,8 @@ fn handle_enemy_bullet_collision(
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health = safe_subtract(enemy.health, BULLET_DAMAGE);
-                commands.add(move |world: &mut World| {
-                    if let Some(entity) = world.get_entity_mut(bullet_entity) {
-                        entity.despawn();
-                    }
-                });
+                enemy.health = safe_subtract(enemy.health, 55); 
+                commands.entity(bullet_entity).despawn();
             }
         }
     }
@@ -168,7 +135,6 @@ impl KdPoint for Collidable {
         if k == 0 {
             return self.pos.x;
         }
-
         self.pos.y
     }
 }

@@ -17,22 +17,12 @@ pub struct UiFont(pub Handle<Font>);
 #[derive(Resource)]
 pub struct Wave {
     pub number: u32,
-    pub enemies_left: u32,
-    pub enemies_total: u32,
-    pub requires_portal: bool,
-    pub enemies_spawned: u32,
-    pub portal_spawned: bool,
 }
 
 impl Default for Wave {
     fn default() -> Self {
         Self {
-            number: 1,
-            enemies_left: 1,
-            enemies_total: 1,
-            requires_portal: false,
-            enemies_spawned: 0,
-            portal_spawned: false,
+            number: 0,  
         }
     }
 }

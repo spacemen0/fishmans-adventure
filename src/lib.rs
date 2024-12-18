@@ -10,7 +10,6 @@ pub mod gun;
 pub mod input;
 pub mod loot;
 pub mod player;
-pub mod portal;
 pub mod potion;
 pub mod resources;
 pub mod state;

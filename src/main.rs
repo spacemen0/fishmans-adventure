@@ -5,13 +5,11 @@ use fishmans_adventure::{
     camera::FollowCameraPlugin,
     collision::CollisionPlugin,
     configs::{BG_COLOR, WH, WW},
-    dialog::DialogPlugin,
     enemy::EnemyPlugin,
     gui::GuiPlugin,
     gun::GunPlugin,
     input::InputPlugin,
     player::PlayerPlugin,
-    portal::PortalPlugin,
     potion::PotionPlugin,
     resources::ResourcesPlugin,
     state::GameState,
@@ -49,8 +47,6 @@ fn main() {
         .add_plugins(WorldPlugin)
         .add_plugins(EnemyPlugin)
         .add_plugins(CollisionPlugin)
-        .add_plugins(DialogPlugin)
-        .add_plugins(PortalPlugin)
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
         .add_plugins(TownPlugin)

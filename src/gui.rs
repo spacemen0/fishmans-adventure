@@ -104,20 +104,20 @@ fn update_debug_text(
     wave: Res<Wave>,
     level: Res<Level>,
 ) {
-    if query.is_empty() || player_query.is_empty() || enemy_query.is_empty() {
+    if query.is_empty() || player_query.is_empty() {
         return;
     }
     let player_health = player_query.single().0 .0;
     let player_defense = player_query.single().1 .0;
     let current_wave = wave.number;
-    let enemies_total = wave.enemies_total;
-    let enemies_remaining = wave.enemies_left;
+    let enemies_remaining = enemy_query.iter().count();  // Count current enemies
     let current_level = level.level();
     let mut text = query.single_mut();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(value) = fps.smoothed() {
-            text.sections[0].value =
-                format!("Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}/{enemies_total}\nHealth: {player_health}\nDefense: {player_defense}\nLevel: {current_level}");
+            text.sections[0].value = format!(
+                "Fps: {value:.2}\nWave: {current_wave}\nEnemies left: {enemies_remaining}\nHealth: {player_health}\nDefense: {player_defense}\nLevel: {current_level}"
+            );
         }
     }
 }
