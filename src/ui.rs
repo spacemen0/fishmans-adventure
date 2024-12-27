@@ -4,7 +4,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     input::Action,
     player::{Defense, Health, Player, PlayerInventory},
-    resources::{Level, UiFont},
+    resources::{Level, UiFont, Wave},
     state::GameState,
     utils::InGameEntity,
 };
@@ -12,10 +12,16 @@ use crate::{
 pub struct UiPlugin;
 
 #[derive(Component)]
+struct MainMenuItem;
+
+#[derive(Component)]
 struct PlayerHealthText;
 
 #[derive(Component)]
 struct PlayerLevelText;
+
+#[derive(Component)]
+struct WaveDisplay;
 
 #[derive(Component)]
 struct PlayerXpText;
@@ -32,13 +38,28 @@ struct UiRoot;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Initializing), setup_ui)
+            .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
+            .add_systems(OnExit(GameState::MainMenu), despawn_main_menu)
+            .add_systems(
+                OnEnter(GameState::Combat),
+                setup_wave_display, // Setup the wave display when combat starts
+            )
+            .add_systems(
+                Update,
+                handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
+            )
             .add_systems(
                 Update,
                 (
                     update_ui.run_if(in_state(GameState::Combat)),
-                    toggle_ui_visibility
+                    toggle_loot_ui_visibility
                         .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
                 ),
+            )
+            .add_systems(
+                Update,
+                (handle_pause_input, handle_game_restart, update_wave_display)
+                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
             );
     }
 }
@@ -296,7 +317,7 @@ fn update_ui(
     }
 }
 
-fn toggle_ui_visibility(
+fn toggle_loot_ui_visibility(
     action_state: Res<ActionState<Action>>,
     mut ui_query: Query<&mut Visibility, With<UiRoot>>,
     mut next_state: ResMut<NextState<GameState>>,
@@ -311,5 +332,131 @@ fn toggle_ui_visibility(
                 next_state.set(GameState::Combat);
             }
         }
+    }
+}
+
+fn setup_main_menu(mut commands: Commands) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(ButtonBundle {
+                    style: Style {
+                        width: Val::Px(150.0),
+                        height: Val::Px(65.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    border_color: BorderColor(Color::BLACK),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(TextBundle::from_section(
+                        "Play",
+                        TextStyle {
+                            font_size: 40.0,
+                            color: Color::BLACK,
+                            ..default()
+                        },
+                    ));
+                });
+        })
+        .insert(MainMenuItem);
+}
+
+fn handle_main_menu_buttons(
+    interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>)>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for interaction in interaction_query.iter() {
+        if interaction == &Interaction::Pressed {
+            next_state.set(GameState::Initializing);
+        }
+    }
+}
+
+fn despawn_main_menu(mut commands: Commands, menu_items_query: Query<Entity, With<MainMenuItem>>) {
+    for e in menu_items_query.iter() {
+        commands.entity(e).despawn_recursive();
+    }
+}
+
+fn handle_pause_input(
+    action_state: Res<ActionState<Action>>,
+    mut next_state: ResMut<NextState<GameState>>,
+    current_state: Res<State<GameState>>,
+) {
+    if action_state.just_pressed(&Action::TogglePause) {
+        match current_state.get() {
+            GameState::Combat => {
+                next_state.set(GameState::Paused);
+            }
+            GameState::Paused => {
+                next_state.set(GameState::Combat);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn handle_game_restart(
+    action_state: Res<ActionState<Action>>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if action_state.just_pressed(&Action::Restart) {
+        next_state.set(GameState::Initializing);
+    }
+}
+
+fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    top: Val::Px(10.0),
+                    left: Val::Percent(50.0),
+                    // Center the text horizontally
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                ..default()
+            },
+            InGameEntity,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                TextBundle::from_section(
+                    "Wave 1",
+                    TextStyle {
+                        font: font.0.clone(),
+                        font_size: 40.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                WaveDisplay,
+            ));
+        });
+}
+
+// Update wave display
+fn update_wave_display(
+    mut wave_query: Query<&mut Text, With<WaveDisplay>>,
+    wave: Res<Wave>, // Assuming you have a Wave resource tracking the current wave number
+) {
+    if let Ok(mut text) = wave_query.get_single_mut() {
+        text.sections[0].value = format!("Wave {}", wave.number);
     }
 }

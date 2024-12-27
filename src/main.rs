@@ -9,7 +9,6 @@ use fishmans_adventure::{
     collision::CollisionPlugin,
     configs::{BG_COLOR, WH, WW},
     enemy::EnemyPlugin,
-    gui::GuiPlugin,
     gun::GunPlugin,
     input::InputPlugin,
     player::PlayerPlugin,
@@ -52,7 +51,6 @@ fn main() {
             WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
         )
         .add_plugins(FollowCameraPlugin)
-        .add_plugins(GuiPlugin)
         .add_plugins(GunPlugin)
         .add_plugins(PlayerPlugin)
         .add_plugins(AnimationPlugin)

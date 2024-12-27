@@ -134,7 +134,6 @@ fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
-                        println!("player hits");
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
