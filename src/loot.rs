@@ -57,6 +57,12 @@ pub struct LootDefinition {
 }
 
 #[derive(Component)]
+pub struct MovingToPlayer;
+
+#[derive(Component)]
+pub struct ReadyForPickup;
+
+#[derive(Component)]
 pub struct LootPool {
     pub items: Vec<LootDefinition>,
 }

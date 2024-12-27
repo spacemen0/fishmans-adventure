@@ -109,7 +109,7 @@ fn handle_enemy_bullet_collision(
     if bullet_query.is_empty() || enemy_query.is_empty() {
         return;
     }
-
+    println!("Enemy hits bullets");
     for (bullet_transform, bullet_entity) in bullet_query.iter() {
         let pos = bullet_transform.translation;
         let enemies_in_radius = tree.0.within_radius(&[pos.x, pos.y], 30.0);

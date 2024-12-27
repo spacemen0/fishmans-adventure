@@ -9,6 +9,7 @@ use crate::{
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
+    loot::{MovingToPlayer, ReadyForPickup},
     potion::Potion,
     resources::UiFont,
     state::GameState,
@@ -74,8 +75,10 @@ impl Plugin for PlayerPlugin {
                     handle_invincibility_effect,
                     handle_acceleration_effect,
                     handle_leveling_up,
-                    handle_sprite_reset,
-                    handle_loot_picking,
+                    handle_sprite_reset.run_if(any_component_removed::<InvincibilityEffect>()),
+                    handle_loot_pickup,
+                    move_loot_to_player,
+                    mark_loot_for_pickup,
                     update_player_invincibility_visual,
                 )
                     .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
@@ -131,6 +134,7 @@ fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
+                        println!("player hits");
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
@@ -227,12 +231,7 @@ fn handle_invincibility_effect(
     }
     invincibility_effect.0.tick(time.delta());
 }
-fn handle_sprite_reset(
-    mut player_query: Query<
-        (&OriginalColor, &mut Sprite),
-        (With<Player>, Without<InvincibilityEffect>),
-    >,
-) {
+fn handle_sprite_reset(mut player_query: Query<(&OriginalColor, &mut Sprite), With<Player>>) {
     if player_query.is_empty() {
         return;
     }
@@ -280,56 +279,100 @@ pub fn handle_player_input(
     }
 }
 
-fn handle_loot_picking(
+fn mark_loot_for_pickup(
     mut commands: Commands,
-    loot_query: Query<
-        (
-            Entity,
-            &Transform,
-            Option<&Potion>,
-            Option<&Gun>,
-            Option<&Armor>,
-        ),
-        With<Pickable>,
-    >,
-    mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
+    loot_query: Query<(Entity, &Transform), With<Pickable>>,
+    player_query: Query<&Transform, With<Player>>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
-    // Check if the player pressed the "PickLoot" action
-    let (mut inventory, player_transform) = player_query.single_mut();
+    let player_transform = player_query.single();
     let player_pos = player_transform.translation.xy();
 
-    // Iterate over nearby loot items
-    for (loot_entity, loot_transform, potion, gun, armor) in loot_query.iter() {
+    for (loot_entity, loot_transform) in loot_query.iter() {
         let loot_pos = loot_transform.translation.xy();
 
         // Check if loot is within a certain range of the player
-        if player_pos.distance(loot_pos) <= 50.0 {
-            if let Some(_potion) = potion {
-                inventory.speed_potions.push(loot_entity);
-            }
-            if let Some(_gun) = gun {
-                inventory.guns.push(loot_entity);
-            }
-            if let Some(_armor) = armor {
-                inventory.armors.push(loot_entity);
-            }
-
-            commands.entity(loot_entity).insert(Visibility::Hidden);
-            commands.entity(loot_entity).remove::<Pickable>();
+        if player_pos.distance(loot_pos) <= 400.0 {
+            commands.entity(loot_entity).insert(MovingToPlayer);
         }
     }
 }
 
+fn move_loot_to_player(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut loot_query: Query<(Entity, &mut Transform), (With<MovingToPlayer>, Without<Player>)>,
+    player_query: Query<&Transform, With<Player>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+
+    let player_transform = player_query.single();
+    let player_pos = player_transform.translation.xy();
+
+    for (loot_entity, mut transform) in loot_query.iter_mut() {
+        let current_pos = transform.translation.xy();
+        let direction = (player_pos - current_pos).normalize_or_zero();
+        let distance = player_pos.distance(current_pos);
+
+        // Move loot closer to the player
+        let movement = direction * 500.0 * time.delta_seconds();
+        transform.translation += movement.extend(0.0);
+
+        // Check if loot has reached the player
+        if distance <= 20.0 {
+            // Mark loot as ready for pickup
+            commands.entity(loot_entity).insert(ReadyForPickup);
+        }
+    }
+}
+
+fn handle_loot_pickup(
+    mut commands: Commands,
+    mut player_query: Query<&mut PlayerInventory, With<Player>>,
+    loot_query: Query<
+        (Entity, Option<&Potion>, Option<&Gun>, Option<&Armor>),
+        With<ReadyForPickup>,
+    >,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+
+    let mut inventory = player_query.single_mut();
+
+    for (loot_entity, potion, gun, armor) in loot_query.iter() {
+        // Add the loot to the appropriate inventory category
+        if potion.is_some() {
+            inventory.speed_potions.push(loot_entity);
+        }
+        if gun.is_some() {
+            inventory.guns.push(loot_entity);
+        }
+        if armor.is_some() {
+            inventory.armors.push(loot_entity);
+        }
+
+        // Hide the entity and clean up components
+        commands
+            .entity(loot_entity)
+            .insert(Visibility::Hidden)
+            .remove::<Pickable>()
+            .remove::<MovingToPlayer>()
+            .remove::<ReadyForPickup>();
+    }
+}
+
 fn update_player_invincibility_visual(
-    mut player_query: Query<&mut Sprite, (With<Player>, Changed<InvincibilityEffect>)>,
+    mut player_query: Query<&mut Sprite, (With<Player>, With<InvincibilityEffect>)>,
     time: Res<Time>,
 ) {
     if let Ok(mut sprite) = player_query.get_single_mut() {
-        let flash_rate = 4.0;
+        let flash_rate = 2.0;
         sprite.color = sprite
             .color
             .with_alpha((time.elapsed_seconds() * flash_rate).sin().abs());
