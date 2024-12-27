@@ -1,3 +1,4 @@
+use iyes_perf_ui::prelude::PerfUiCompleteBundle;
 use rand::Rng;
 
 use crate::{
@@ -32,6 +33,7 @@ fn init_world(
 ) {
     commands.insert_resource(Wave::default());
     commands.insert_resource(Level::default());
+    commands.spawn(PerfUiCompleteBundle::default());
     // Spawn player
     let player_entity = commands
         .spawn((

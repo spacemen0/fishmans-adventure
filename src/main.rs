@@ -1,4 +1,7 @@
-use bevy::{asset::embedded_asset, prelude::*};
+use bevy::{
+    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active, prelude::*,
+};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use fishmans_adventure::{
     animation::AnimationPlugin,
     armor::ArmorPlugin,
@@ -16,6 +19,7 @@ use fishmans_adventure::{
     town::TownPlugin,
     world::WorldPlugin,
 };
+use iyes_perf_ui::PerfUiPlugin;
 
 fn main() {
     App::new()
@@ -38,6 +42,13 @@ fn main() {
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
         .add_plugins(EmbeddedAssetPlugin)
+        .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_plugins(EntityCountDiagnosticsPlugin)
+        .add_plugins(SystemInformationDiagnosticsPlugin)
+        .add_plugins(PerfUiPlugin)
+        .add_plugins(
+            WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
+        )
         .add_plugins(FollowCameraPlugin)
         .add_plugins(GuiPlugin)
         .add_plugins(GunPlugin)
