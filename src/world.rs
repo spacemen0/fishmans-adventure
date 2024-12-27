@@ -33,6 +33,7 @@ fn init_world(
 ) {
     commands.insert_resource(Wave::default());
     commands.insert_resource(Level::default());
+    #[cfg(not(target_arch = "wasm32"))]
     commands.spawn(PerfUiCompleteBundle::default());
     // Spawn player
     let player_entity = commands

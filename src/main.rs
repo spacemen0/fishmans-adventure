@@ -62,7 +62,6 @@ fn main() {
         .add_plugins(ArmorPlugin)
         .add_plugins(TownPlugin)
         .add_plugins(InputPlugin)
-        // .add_systems(Update, exit_game)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
         .run();
