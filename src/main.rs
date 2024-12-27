@@ -49,7 +49,7 @@ fn main() {
         .add_plugins(PerfUiPlugin)
         .add_plugins(UiPlugin)
         .add_plugins(
-            WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
+            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
         )
         .add_plugins(FollowCameraPlugin)
         .add_plugins(GuiPlugin)

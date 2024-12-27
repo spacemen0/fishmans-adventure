@@ -4,7 +4,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     input::Action,
     player::{Defense, Health, Player, PlayerInventory},
-    resources::UiFont,
+    resources::{Level, UiFont},
     state::GameState,
     utils::InGameEntity,
 };
@@ -35,14 +35,21 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
-                    update_ui,
-                    toggle_ui_visibility.run_if(in_state(GameState::Combat)),
+                    update_ui.run_if(in_state(GameState::Combat)),
+                    toggle_ui_visibility
+                        .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
                 ),
             );
     }
 }
 
-fn setup_ui(mut commands: Commands, font: Res<UiFont>) {
+fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetServer>) {
+    // Load icons or images
+    let health_icon = asset_server.load("icons/health.png");
+    let level_icon = asset_server.load("icons/level.png");
+    let xp_icon = asset_server.load("icons/xp.png");
+    let defense_icon = asset_server.load("icons/defense.png");
+
     commands
         .spawn((
             NodeBundle {
@@ -52,11 +59,12 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>) {
                     flex_direction: FlexDirection::Row,
                     ..default()
                 },
-                background_color: BackgroundColor(Color::linear_rgb(1.0, 2.0, 1.0)),
+                background_color: BackgroundColor(Color::linear_rgb(0.6, 0.2, 0.2)),
+                visibility: Visibility::Hidden,
+                z_index: ZIndex::Global(3),
                 ..default()
             },
             InGameEntity,
-            Visibility::Hidden,
         ))
         .with_children(|parent| {
             // Left side: Loot information
@@ -66,6 +74,8 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>) {
                         width: Val::Percent(30.0),
                         height: Val::Percent(100.0),
                         flex_direction: FlexDirection::Column,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        border: UiRect::all(Val::Px(2.0)),
                         ..default()
                     },
                     ..default()
@@ -91,61 +101,161 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>) {
                         width: Val::Percent(70.0),
                         height: Val::Percent(100.0),
                         flex_direction: FlexDirection::Column,
+                        align_items: AlignItems::FlexEnd,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        border: UiRect::left(Val::Px(6.0)),
                         ..default()
                     },
+                    border_color: BorderColor(Color::linear_rgb(0.0, 0.0, 0.0)),
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn((
-                        TextBundle::from_section(
-                            "Health: ",
-                            TextStyle {
-                                font: font.0.clone(),
-                                font_size: 30.0,
-                                color: Color::WHITE,
+                    // Health
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Row,
+                                align_items: AlignItems::Center,
+                                margin: UiRect::bottom(Val::Px(10.0)),
+                                ..default()
                             },
-                        ),
-                        PlayerHealthText,
-                    ));
-                    parent.spawn((
-                        TextBundle::from_section(
-                            "Level: ",
-                            TextStyle {
-                                font: font.0.clone(),
-                                font_size: 30.0,
-                                color: Color::WHITE,
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent.spawn(ImageBundle {
+                                image: health_icon.clone().into(),
+                                style: Style {
+                                    width: Val::Px(30.0),
+                                    height: Val::Px(30.0),
+                                    margin: UiRect::right(Val::Px(10.0)),
+                                    ..default()
+                                },
+                                ..default()
+                            });
+                            parent.spawn((
+                                TextBundle::from_section(
+                                    "Health: ",
+                                    TextStyle {
+                                        font: font.0.clone(),
+                                        font_size: 30.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                PlayerHealthText,
+                            ));
+                        });
+
+                    // Level
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Row,
+                                align_items: AlignItems::Center,
+                                margin: UiRect::bottom(Val::Px(10.0)),
+                                ..default()
                             },
-                        ),
-                        PlayerLevelText,
-                    ));
-                    parent.spawn((
-                        TextBundle::from_section(
-                            "XP: ",
-                            TextStyle {
-                                font: font.0.clone(),
-                                font_size: 30.0,
-                                color: Color::WHITE,
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent.spawn(ImageBundle {
+                                image: level_icon.clone().into(),
+                                style: Style {
+                                    width: Val::Px(30.0),
+                                    height: Val::Px(30.0),
+                                    margin: UiRect::right(Val::Px(10.0)),
+                                    ..default()
+                                },
+                                ..default()
+                            });
+                            parent.spawn((
+                                TextBundle::from_section(
+                                    "Level: ",
+                                    TextStyle {
+                                        font: font.0.clone(),
+                                        font_size: 30.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                PlayerLevelText,
+                            ));
+                        });
+
+                    // XP
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Row,
+                                align_items: AlignItems::Center,
+                                margin: UiRect::bottom(Val::Px(10.0)),
+                                ..default()
                             },
-                        ),
-                        PlayerXpText,
-                    ));
-                    parent.spawn((
-                        TextBundle::from_section(
-                            "Defense: ",
-                            TextStyle {
-                                font: font.0.clone(),
-                                font_size: 30.0,
-                                color: Color::WHITE,
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent.spawn(ImageBundle {
+                                image: xp_icon.clone().into(),
+                                style: Style {
+                                    width: Val::Px(30.0),
+                                    height: Val::Px(30.0),
+                                    margin: UiRect::right(Val::Px(10.0)),
+                                    ..default()
+                                },
+                                ..default()
+                            });
+                            parent.spawn((
+                                TextBundle::from_section(
+                                    "XP: ",
+                                    TextStyle {
+                                        font: font.0.clone(),
+                                        font_size: 30.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                PlayerXpText,
+                            ));
+                        });
+
+                    // Defense
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Row,
+                                align_items: AlignItems::Center,
+                                margin: UiRect::bottom(Val::Px(10.0)),
+                                ..default()
                             },
-                        ),
-                        PlayerDefenseText,
-                    ));
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent.spawn(ImageBundle {
+                                image: defense_icon.clone().into(),
+                                style: Style {
+                                    width: Val::Px(30.0),
+                                    height: Val::Px(30.0),
+                                    margin: UiRect::right(Val::Px(10.0)),
+                                    ..default()
+                                },
+                                ..default()
+                            });
+                            parent.spawn((
+                                TextBundle::from_section(
+                                    "Defense: ",
+                                    TextStyle {
+                                        font: font.0.clone(),
+                                        font_size: 30.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                PlayerDefenseText,
+                            ));
+                        });
                 });
         })
         .insert(UiRoot);
 }
 
 fn update_ui(
+    level: Res<Level>,
     player_query: Query<(&Health, &Defense), With<Player>>,
     mut param_set: ParamSet<(
         Query<&mut Text, With<PlayerHealthText>>,
@@ -165,13 +275,13 @@ fn update_ui(
         }
     }
 
-    // if let Ok(mut level_text) = param_set.p1().get_single_mut() {
-    //     level_text.sections[0].value = format!("Level: {}", level.level());
-    // }
+    if let Ok(mut level_text) = param_set.p1().get_single_mut() {
+        level_text.sections[0].value = format!("Level: {}", level.level());
+    }
 
-    // if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
-    //     xp_text.sections[0].value = format!("XP: {}/{}", level.current_xp(), level.xp_threshold());
-    // }
+    if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
+        xp_text.sections[0].value = format!("XP: {}/{}", level.current_xp(), level.xp_threshold());
+    }
 
     if let Ok(player_inventory) = player_inventory_query.get_single() {
         if let Ok(mut loot_text) = param_set.p4().get_single_mut() {
