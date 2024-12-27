@@ -14,5 +14,6 @@ pub mod potion;
 pub mod resources;
 pub mod state;
 pub mod town;
+pub mod ui;
 pub mod utils;
 pub mod world;

@@ -14,12 +14,10 @@ pub struct CursorPosition(pub Option<Vec2>);
 #[derive(Resource)]
 pub struct UiFont(pub Handle<Font>);
 
-#[derive(Resource)]
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct Wave {
     pub number: u32,
 }
-
 
 #[derive(Resource)]
 pub struct Level {

@@ -15,6 +15,7 @@ pub enum Action {
     NavigateDown,
     UsePotion1,
     UsePotion2,
+    ToggleLootBoard,
 }
 
 impl Action {
@@ -30,6 +31,7 @@ impl Action {
             (Self::NavigateDown, KeyCode::ArrowDown),
             (Self::UsePotion1, KeyCode::Digit1),
             (Self::UsePotion2, KeyCode::Digit2),
+            (Self::ToggleLootBoard, KeyCode::Tab),
         ])
         .with_dual_axis(
             Self::Move,

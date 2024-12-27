@@ -70,10 +70,7 @@ pub struct Explosion {
 
 #[derive(Component, Debug)]
 pub enum EnemyState {
-    Wandering {
-        direction: Vec2,
-        timer: Timer,
-    },
+    Wandering { direction: Vec2, timer: Timer },
     Pursuing,
     Retreating,
     MaintainingDistance,
@@ -82,14 +79,14 @@ pub enum EnemyState {
 #[derive(Component)]
 pub struct RangedBehavior {
     pub preferred_distance: f32,
-    pub tolerance: f32, 
+    pub tolerance: f32,
 }
 
 impl Default for EnemyState {
     fn default() -> Self {
         Self::Wandering {
-            direction: Vec2::new(1.0, 0.0),  
-            timer: Timer::from_seconds(2.0, TimerMode::Repeating), 
+            direction: Vec2::new(1.0, 0.0),
+            timer: Timer::from_seconds(2.0, TimerMode::Repeating),
         }
     }
 }

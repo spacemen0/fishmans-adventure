@@ -74,6 +74,7 @@ impl Plugin for PlayerPlugin {
                     handle_invincibility_effect,
                     handle_acceleration_effect,
                     handle_leveling_up,
+                    handle_sprite_reset,
                     handle_loot_picking,
                     update_player_invincibility_visual,
                 )
@@ -214,28 +215,30 @@ fn handle_player_death(
 fn handle_invincibility_effect(
     time: Res<Time>,
     mut commands: Commands,
+    mut player_query: Query<(&mut InvincibilityEffect, Entity), With<Player>>,
+) {
+    if player_query.is_empty() {
+        return;
+    }
+    let (mut invincibility_effect, entity) = player_query.single_mut();
+
+    if invincibility_effect.0.elapsed_secs() >= invincibility_effect.1 {
+        commands.entity(entity).remove::<InvincibilityEffect>();
+    }
+    invincibility_effect.0.tick(time.delta());
+}
+fn handle_sprite_reset(
     mut player_query: Query<
-        (
-            &mut InvincibilityEffect,
-            &OriginalColor,
-            &mut Sprite,
-            Entity,
-        ),
-        With<Player>,
+        (&OriginalColor, &mut Sprite),
+        (With<Player>, Without<InvincibilityEffect>),
     >,
 ) {
     if player_query.is_empty() {
         return;
     }
-    let (mut invincibility_effect, color, mut sprite, entity) = player_query.single_mut();
-
-    if invincibility_effect.0.elapsed_secs() >= invincibility_effect.1 {
-        sprite.color = color.0;
-        commands.entity(entity).remove::<InvincibilityEffect>();
-    }
-    invincibility_effect.0.tick(time.delta());
+    let (color, mut sprite) = player_query.single_mut();
+    sprite.color = color.0;
 }
-
 fn handle_acceleration_effect(
     time: Res<Time>,
     mut commands: Commands,
@@ -322,7 +325,7 @@ fn handle_loot_picking(
 }
 
 fn update_player_invincibility_visual(
-    mut player_query: Query<&mut Sprite, (With<Player>, With<InvincibilityEffect>)>,
+    mut player_query: Query<&mut Sprite, (With<Player>, Changed<InvincibilityEffect>)>,
     time: Res<Time>,
 ) {
     if let Ok(mut sprite) = player_query.get_single_mut() {

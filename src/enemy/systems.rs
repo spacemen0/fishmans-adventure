@@ -1,13 +1,11 @@
-use super::components::*;
-use super::presets::*;
-use crate::utils::InGameEntity;
+use super::{components::*, presets::*};
 use crate::{
     configs::*,
     gun::{BulletDirection, BulletStats, HasLifespan},
-    player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
-    resources::{GlobalTextureAtlas, Wave, Level},
-    utils::{calculate_enemies_for_wave, get_random_position_around},
     loot::LootPool,
+    player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
+    resources::{GlobalTextureAtlas, Level, Wave},
+    utils::{calculate_enemies_for_wave, get_random_position_around, InGameEntity},
 };
 use bevy::prelude::*;
 use rand::Rng;
@@ -80,15 +78,15 @@ pub fn spawn_enemies(
     }
 
     wave.number += 1;
-    
+
     if player_query.is_empty() {
         return;
     }
 
     let player_pos = player_query.single().translation.truncate();
-    
+
     let num_enemies = calculate_enemies_for_wave(wave.number);
-    
+
     for _ in 0..num_enemies {
         let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
         let position = Vec3::new(x, y, LAYER1);
@@ -102,13 +100,11 @@ pub fn spawn_enemies(
                     create_charging_enemy()
                 }
             }
-            5..=7 => {
-                match rand::random::<f32>() {
-                    x if x < 0.4 => create_shooter_enemy(),
-                    x if x < 0.7 => create_bomber_enemy(),
-                    _ => create_trail_enemy(),
-                }
-            }
+            5..=7 => match rand::random::<f32>() {
+                x if x < 0.4 => create_shooter_enemy(),
+                x if x < 0.7 => create_bomber_enemy(),
+                _ => create_trail_enemy(),
+            },
             _ => {
                 if wave.number % 10 == 0 {
                     create_boss_enemy()
@@ -253,7 +249,13 @@ pub fn handle_charge_abilities(
 
 pub fn handle_enemy_death(
     mut commands: Commands,
-    mut enemy_query: Query<(Entity, &Enemy, &Transform, Option<&ExplosionAbility>, Option<&LootPool>)>,
+    mut enemy_query: Query<(
+        Entity,
+        &Enemy,
+        &Transform,
+        Option<&ExplosionAbility>,
+        Option<&LootPool>,
+    )>,
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
     mut level: ResMut<Level>,
     handle: Res<GlobalTextureAtlas>,

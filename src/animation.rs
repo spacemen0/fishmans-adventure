@@ -59,9 +59,7 @@ fn animate_player(
     }
 }
 
-fn animate_enemy(
-    mut enemy_query: Query<(&mut TextureAtlas, &AnimationTimer), With<Enemy>>,
-) {
+fn animate_enemy(mut enemy_query: Query<(&mut TextureAtlas, &AnimationTimer), With<Enemy>>) {
     for (mut atlas, timer) in enemy_query.iter_mut() {
         if timer.just_finished() {
             // Get the base sprite index (the first frame of the animation)

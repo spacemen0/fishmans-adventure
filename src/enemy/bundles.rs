@@ -2,11 +2,8 @@ use bevy::prelude::*;
 
 use super::components::*;
 use crate::{
-    animation::AnimationTimer,
-    configs::SPRITE_SCALE_FACTOR,
-    loot::LootPool,
-    resources::GlobalTextureAtlas,
-    utils::InGameEntity,
+    animation::AnimationTimer, configs::SPRITE_SCALE_FACTOR, loot::LootPool,
+    resources::GlobalTextureAtlas, utils::InGameEntity,
 };
 
 #[derive(Bundle)]

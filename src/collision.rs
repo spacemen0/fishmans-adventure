@@ -1,10 +1,6 @@
 use bevy::utils::Duration;
 
-use crate::{
-    configs::KD_TREE_REFRESH_RATE,
-    player::InvincibilityEffect,
-    utils::safe_subtract,
-};
+use crate::{configs::KD_TREE_REFRESH_RATE, player::InvincibilityEffect, utils::safe_subtract};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 
@@ -28,18 +24,17 @@ struct EnemyKdTree(KdTree<Collidable>);
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(EnemyKdTree::default())
-            .add_systems(
-                Update,
-                (
-                    handle_enemy_bullet_collision,
-                    handle_enemy_player_collision,
-                    handle_player_trail_collision,
-                    update_enemy_kd_tree
-                        .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
-                )
+        app.insert_resource(EnemyKdTree::default()).add_systems(
+            Update,
+            (
+                handle_enemy_bullet_collision,
+                handle_enemy_player_collision,
+                handle_player_trail_collision,
+                update_enemy_kd_tree
+                    .run_if(on_timer(Duration::from_secs_f32(KD_TREE_REFRESH_RATE))),
+            )
                 .run_if(in_state(GameState::Combat)),
-            );
+        );
     }
 }
 
@@ -121,8 +116,12 @@ fn handle_enemy_bullet_collision(
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health = safe_subtract(enemy.health, 55); 
-                commands.entity(bullet_entity).despawn();
+                enemy.health = safe_subtract(enemy.health, 55); //add bullet damage to gun
+                commands.add(move |world: &mut World| {
+                    if let Some(entity) = world.get_entity_mut(bullet_entity) {
+                        entity.despawn();
+                    }
+                });
             }
         }
     }

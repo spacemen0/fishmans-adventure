@@ -18,7 +18,7 @@ pub fn calculate_enemies_per_wave(_wave_number: u32) -> u32 {
 
 pub fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
     if wave_number % 10 == 0 {
-        1  
+        1
     } else {
         let base = 3 + (wave_number / 2);
         base + (rand::random::<u32>() % 3)

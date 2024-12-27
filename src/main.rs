@@ -17,6 +17,7 @@ use fishmans_adventure::{
     resources::ResourcesPlugin,
     state::GameState,
     town::TownPlugin,
+    ui::UiPlugin,
     world::WorldPlugin,
 };
 use iyes_perf_ui::PerfUiPlugin;
@@ -46,6 +47,7 @@ fn main() {
         .add_plugins(EntityCountDiagnosticsPlugin)
         .add_plugins(SystemInformationDiagnosticsPlugin)
         .add_plugins(PerfUiPlugin)
+        .add_plugins(UiPlugin)
         .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
         )

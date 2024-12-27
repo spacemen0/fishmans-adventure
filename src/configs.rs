@@ -46,3 +46,4 @@ pub const LAYER0: f32 = 0.0;
 pub const LAYER1: f32 = 1.0;
 pub const LAYER2: f32 = 2.0;
 pub const LAYER3: f32 = 3.0;
+pub const LAYER4: f32 = 4.0;
