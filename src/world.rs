@@ -26,7 +26,7 @@ impl Plugin for WorldPlugin {
     }
 }
 
-fn init_world(
+pub fn init_world(
     mut commands: Commands,
     handle: Res<GlobalTextureAtlas>,
     mut next_state: ResMut<NextState<GameState>>,
@@ -48,7 +48,7 @@ fn init_world(
                 index: 0,
             },
             Player,
-            Health(PLAYER_HEALTH),
+            Health(PLAYER_HEALTH, 200),
             Speed(PLAYER_SPEED),
             Defense(1),
             OriginalColor(Color::WHITE),
@@ -296,7 +296,7 @@ fn despawn_all_game_entities(
     player_query: Query<Entity, With<Player>>,
     next_state: Res<State<GameState>>,
 ) {
-    if *next_state.get() != GameState::Paused {
+    if *next_state.get() != GameState::Paused && *next_state.get() != GameState::Ui {
         for e in all_entities.iter() {
             if let Some(entity) = commands.get_entity(e) {
                 entity.despawn_recursive();

@@ -57,6 +57,9 @@ fn apply_potion_effects(
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*health_potion_entity) {
                 // Apply health effect
                 health.0 += potion_stats.effect_amount;
+                if health.0 >= health.1 {
+                    health.0 = health.1;
+                }
                 commands.entity(potion_entity).despawn(); // Despawn the potion entity
                 player_inventory.health_potions.remove(0);
             }

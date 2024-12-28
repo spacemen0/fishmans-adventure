@@ -26,7 +26,7 @@ pub struct Player;
 #[derive(Component)]
 pub struct OriginalColor(pub Color);
 #[derive(Component)]
-pub struct Health(pub u32);
+pub struct Health(pub u32, pub u32); //(current, max)
 #[derive(Component)]
 pub struct Speed(pub u32);
 #[derive(Component)]

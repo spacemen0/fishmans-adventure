@@ -7,6 +7,7 @@ use crate::{
     resources::{Level, UiFont, Wave},
     state::GameState,
     utils::InGameEntity,
+    world::init_world,
 };
 
 pub struct UiPlugin;
@@ -33,39 +34,47 @@ struct PlayerDefenseText;
 struct LootInfoText;
 
 #[derive(Component)]
+struct PlayerHealthBar;
+
+#[derive(Component)]
 struct UiRoot;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Initializing), setup_ui)
-            .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
-            .add_systems(OnExit(GameState::MainMenu), despawn_main_menu)
-            .add_systems(
-                OnEnter(GameState::Combat),
-                setup_wave_display, // Setup the wave display when combat starts
+        app.add_systems(
+            OnEnter(GameState::Initializing),
+            (setup_ui, setup_health_bar.after(init_world)),
+        )
+        .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
+        .add_systems(OnExit(GameState::MainMenu), despawn_main_menu)
+        .add_systems(
+            OnEnter(GameState::Combat),
+            setup_wave_display, // Setup the wave display when combat starts
+        )
+        .add_systems(
+            Update,
+            handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
+        )
+        .add_systems(
+            Update,
+            (toggle_loot_ui_visibility
+                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Ui))),),
+        )
+        .add_systems(OnEnter(GameState::Ui), update_ui)
+        .add_systems(
+            Update,
+            (
+                handle_pause_input,
+                handle_game_restart,
+                update_wave_display,
+                update_health_bar,
             )
-            .add_systems(
-                Update,
-                handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
-            )
-            .add_systems(
-                Update,
-                (
-                    update_ui.run_if(in_state(GameState::Combat)),
-                    toggle_loot_ui_visibility
-                        .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
-                ),
-            )
-            .add_systems(
-                Update,
-                (handle_pause_input, handle_game_restart, update_wave_display)
-                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
-            );
+                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
+        );
     }
 }
 
 fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetServer>) {
-    // Load icons or images
     let health_icon = asset_server.load("icons/health.png");
     let level_icon = asset_server.load("icons/level.png");
     let xp_icon = asset_server.load("icons/xp.png");
@@ -326,7 +335,7 @@ fn toggle_loot_ui_visibility(
         for mut visibility in ui_query.iter_mut() {
             if *visibility == Visibility::Hidden {
                 *visibility = Visibility::Visible;
-                next_state.set(GameState::Paused);
+                next_state.set(GameState::Ui);
             } else {
                 *visibility = Visibility::Hidden;
                 next_state.set(GameState::Combat);
@@ -416,6 +425,55 @@ fn handle_game_restart(
 ) {
     if action_state.just_pressed(&Action::Restart) {
         next_state.set(GameState::Initializing);
+    }
+}
+
+fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+    if let Ok(player_entity) = player_query.get_single() {
+        commands.entity(player_entity).with_children(|parent| {
+            // Health bar background
+            parent.spawn(SpriteBundle {
+                sprite: Sprite {
+                    color: Color::linear_rgb(0.5, 0.5, 0.5),
+                    custom_size: Some(Vec2::new(18.0, 4.0)), // Background size
+                    ..default()
+                },
+                transform: Transform {
+                    translation: Vec3::new(0.0, 16.0, 0.0), // Position above the player
+                    ..default()
+                },
+                ..default()
+            });
+
+            // Health bar fill
+            parent
+                .spawn(SpriteBundle {
+                    sprite: Sprite {
+                        color: Color::linear_rgb(0.0, 1.0, 0.0),
+                        custom_size: Some(Vec2::new(18.0, 4.0)), // Fill size, will be updated dynamically
+                        ..default()
+                    },
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 16.0, 1.0), // Position above the player, slightly in front
+                        ..default()
+                    },
+                    ..default()
+                })
+                .insert(PlayerHealthBar);
+        });
+    }
+}
+
+fn update_health_bar(
+    player_query: Query<&Health, With<Player>>,
+    mut health_bar_query: Query<(&mut Transform, &mut Sprite), With<PlayerHealthBar>>,
+) {
+    if let Ok(health) = player_query.get_single() {
+        if let Ok((mut transform, mut sprite)) = health_bar_query.get_single_mut() {
+            let health_percentage = health.0 as f32 / health.1 as f32;
+            sprite.custom_size = Some(Vec2::new(18.0 * health_percentage, 4.0));
+            transform.translation.x = -9.0 + (9.0 * health_percentage); // Adjust position to keep it aligned
+        }
     }
 }
 
