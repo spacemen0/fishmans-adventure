@@ -55,6 +55,7 @@ fn handle_enemy_player_collision(
     for enemy in enemies {
         if let Ok((_, enemy_component)) = enemy_query.get_mut(enemy.entity) {
             if enemy_component.damage > 0 {
+                println!("send enemy collision event");
                 ev.send(PlayerDamagedEvent {
                     damage: enemy_component.damage,
                 });
@@ -77,6 +78,7 @@ fn handle_player_trail_collision(
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
         if player_pos.distance(trail_pos) <= trail.radius {
+            println!("send trail event");
             ev.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });

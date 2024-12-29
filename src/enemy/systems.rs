@@ -82,7 +82,7 @@ pub fn spawn_enemies(
     if player_query.is_empty() {
         return;
     }
-
+    println!("wave number: {:?}", wave.number);
     let player_pos = player_query.single().translation.truncate();
 
     let num_enemies = calculate_enemies_for_wave(wave.number);
