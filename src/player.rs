@@ -209,14 +209,22 @@ fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec
 }
 
 fn handle_player_death(
-    player_query: Query<(&Health, Entity), With<Player>>,
+    mut commands: Commands,
+    all_entities: Query<Entity, With<InGameEntity>>,
+    player_query: Query<(Entity, &Health), With<Player>>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
     if player_query.is_empty() {
         return;
     }
     let player = player_query.single();
-    if player.0 .0 == 0 {
+    if player.1 .0 == 0 {
+        // Despawn all game entities
+        for e in all_entities.iter() {
+            if let Some(entity) = commands.get_entity(e) {
+                entity.despawn_recursive();
+            }
+        }
         next_state.set(GameState::MainMenu);
     }
 }

@@ -21,8 +21,8 @@ impl Plugin for WorldPlugin {
         app.add_systems(
             OnEnter(GameState::Initializing),
             (init_world, spawn_world_decorations, spawn_world_edges),
-        )
-        .add_systems(OnExit(GameState::Combat), despawn_all_game_entities);
+        );
+        // .add_systems(OnExit(GameState::Combat), despawn_all_game_entities);
     }
 }
 
@@ -34,7 +34,11 @@ pub fn init_world(
     commands.insert_resource(Wave::default());
     commands.insert_resource(Level::default());
     #[cfg(not(target_arch = "wasm32"))]
-    commands.spawn((PerfUiCompleteBundle::default(), Name::new("Debug Ui")));
+    commands.spawn((
+        PerfUiCompleteBundle::default(),
+        Name::new("Debug Ui"),
+        InGameEntity,
+    ));
     // Spawn player
     let player_entity = commands
         .spawn((
@@ -308,25 +312,5 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             },
             InGameEntity,
         ));
-    }
-}
-
-fn despawn_all_game_entities(
-    mut commands: Commands,
-    all_entities: Query<Entity, With<InGameEntity>>,
-    player_query: Query<Entity, With<Player>>,
-    next_state: Res<State<GameState>>,
-) {
-    if *next_state.get() != GameState::Paused && *next_state.get() != GameState::Ui {
-        for e in all_entities.iter() {
-            if let Some(entity) = commands.get_entity(e) {
-                entity.despawn_recursive();
-            }
-        }
-    }
-
-    // Ensure the player entity is not despawned
-    if let Ok(player_entity) = player_query.get_single() {
-        commands.entity(player_entity).remove::<InGameEntity>();
     }
 }
