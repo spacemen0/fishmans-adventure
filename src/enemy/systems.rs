@@ -5,7 +5,7 @@ use crate::{
     loot::LootPool,
     player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{calculate_enemies_for_wave, get_random_position_around, InGameEntity},
+    utils::{calculate_enemies_for_wave, clamp_position, get_random_position_around, InGameEntity},
 };
 use bevy::prelude::*;
 use rand::Rng;
@@ -89,7 +89,8 @@ pub fn spawn_enemies(
 
     for _ in 0..num_enemies {
         let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
-        let position = Vec3::new(x, y, LAYER1);
+        let mut position = Vec3::new(x, y, LAYER1);
+        clamp_position(&mut position);
 
         let enemy = match wave.number {
             1..=2 => create_basic_enemy(),
@@ -273,8 +274,9 @@ pub fn handle_enemy_death(
                         explosion.explosion_damage,
                     );
 
-                    let distance = player_transform.translation.distance(transform.translation);
+                    let distance = player_transform.translation.distance(transform.translation); // should separate this logic
                     if distance <= explosion.explosion_radius {
+                        println!("send explosion event");
                         ev_player_damaged.send(PlayerDamagedEvent {
                             damage: explosion.explosion_damage,
                         });

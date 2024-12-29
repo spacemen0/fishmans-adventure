@@ -118,8 +118,10 @@ fn handle_player_damaged_events(
                     armor_query.get_mut(*active_armor_entity)
                 {
                     total_defense += armor_stats.defense;
-
+                    println!("total defense: {total_defense:?}");
+                    println!("damage: {:?}", event.damage);
                     let damage_after_defense = safe_subtract(event.damage, total_defense);
+                    println!("damage after defense: {:?}", damage_after_defense);
                     health.0 = safe_subtract(health.0, damage_after_defense);
 
                     armor_stats.durability =
@@ -134,6 +136,7 @@ fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
+                        println!("Enter Block");
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
@@ -158,6 +161,8 @@ fn handle_player_damaged_events(
                     );
                 }
             }
+        } else {
+            println!("Dead");
         }
     }
 }
