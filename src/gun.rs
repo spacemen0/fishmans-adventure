@@ -204,6 +204,7 @@ fn handle_gun_firing(
                                 bullet_direction.z,
                             );
                             commands.spawn((
+                                Name::new("Bullet"),
                                 SpriteBundle {
                                     texture: handle.image.clone().unwrap(),
                                     transform: Transform::from_translation(vec3(
@@ -243,6 +244,7 @@ fn handle_gun_firing(
                                 bullet_direction.z,
                             );
                             commands.spawn((
+                                Name::new("Bullet"),
                                 SpriteBundle {
                                     texture: handle.image.clone().unwrap(),
                                     transform: Transform::from_translation(vec3(

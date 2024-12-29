@@ -99,6 +99,7 @@ fn spawn_gun(
         };
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
+            Name::new("Gun"),
             GunBundle {
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
@@ -134,6 +135,7 @@ fn spawn_armor(
         };
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
+            Name::new("Armor"),
             ArmorBundle {
                 armor: Armor,
                 armor_stats,
@@ -167,8 +169,15 @@ fn spawn_potion(
             effect_duration: rng.gen_range(range.effect_duration.0..=range.effect_duration.1),
             effect_amount: rng.gen_range(range.effect_amount.0..=range.effect_amount.1),
         };
+        let potion_type = match rng.gen_range(0..2) {
+            0 => PotionType::Speed,
+            1 => PotionType::Health,
+            _ => unreachable!(),
+        };
+        let name_string = format!("{:?} Potion ", potion_type.clone());
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
+            Name::new(name_string),
             PotionBundle {
                 sprite_bundle: SpriteBundle {
                     texture: image.unwrap(),
@@ -178,7 +187,7 @@ fn spawn_potion(
                 },
                 potion: Potion,
                 potion_stats,
-                potion_type: PotionType::Speed,
+                potion_type,
                 texture_bundle: TextureAtlas {
                     layout: layout.unwrap(),
                     index: 96,

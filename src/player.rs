@@ -25,13 +25,13 @@ pub struct PlayerPlugin;
 pub struct Player;
 #[derive(Component)]
 pub struct OriginalColor(pub Color);
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Health(pub u32, pub u32); //(current, max)
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Speed(pub u32);
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct Defense(pub u32);
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
     pub health_potions: Vec<Entity>,
@@ -41,12 +41,12 @@ pub struct PlayerInventory {
     pub active_armor_index: usize,
 }
 
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct InvincibilityEffect(pub Stopwatch, pub f32);
-#[derive(Component)]
+#[derive(Component, Reflect)]
 pub struct AccelerationEffect(pub Stopwatch, pub f32, pub u32);
 
-#[derive(Component, Default, Debug)]
+#[derive(Component, Default, Debug, Reflect)]
 pub enum PlayerState {
     #[default]
     Idle,
@@ -186,6 +186,7 @@ fn handle_leveling_up(
 
 fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec3, damage: u32) {
     commands.spawn((
+        Name::new("Damage Text"),
         Text2dBundle {
             text: Text::from_section(
                 format!("-{}", damage),

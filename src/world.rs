@@ -34,10 +34,11 @@ pub fn init_world(
     commands.insert_resource(Wave::default());
     commands.insert_resource(Level::default());
     #[cfg(not(target_arch = "wasm32"))]
-    commands.spawn(PerfUiCompleteBundle::default());
+    commands.spawn((PerfUiCompleteBundle::default(), Name::new("Debug Ui")));
     // Spawn player
     let player_entity = commands
         .spawn((
+            Name::new("Player"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
@@ -59,67 +60,76 @@ pub fn init_world(
         .id();
     // Spawn first gun
     let gun1 = commands
-        .spawn((GunBundle {
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+        .spawn((
+            Name::new("Gun1"),
+            GunBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    ..default()
+                },
+                texture_bundle: TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 65,
+                },
                 ..default()
             },
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 65,
-            },
-            ..default()
-        },))
+        ))
         .id();
 
     // Spawn second gun
     let gun2 = commands
-        .spawn((GunBundle {
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                visibility: Visibility::Hidden,
+        .spawn((
+            Name::new("Gun2"),
+            GunBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                gun_type: GunType::Gun1,
+                gun_stats: GunStats {
+                    bullets_per_shot: 20,
+                    firing_interval: 0.1,
+                    bullet_spread: 0.3,
+                },
+                bullet_stats: BulletStats {
+                    speed: 30,
+                    damage: 100,
+                    lifespan: 0.5,
+                },
+                texture_bundle: TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 66,
+                },
                 ..default()
             },
-            gun_type: GunType::Gun1,
-            gun_stats: GunStats {
-                bullets_per_shot: 20,
-                firing_interval: 0.1,
-                bullet_spread: 0.3,
-            },
-            bullet_stats: BulletStats {
-                speed: 30,
-                damage: 100,
-                lifespan: 0.5,
-            },
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 66,
-            },
-            ..default()
-        },))
+        ))
         .id();
     let potion1 = commands
-        .spawn((PotionBundle {
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                visibility: Visibility::Hidden,
-                ..default()
+        .spawn((
+            Name::new("Potion1"),
+            PotionBundle {
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                potion: Potion,
+                potion_stats: PotionStats {
+                    effect_duration: 2.0,
+                    effect_amount: 10,
+                },
+                potion_type: PotionType::Health,
+                in_game_entity: InGameEntity,
+                texture_bundle: TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 98,
+                },
             },
-            potion: Potion,
-            potion_stats: PotionStats {
-                effect_duration: 2.0,
-                effect_amount: 10,
-            },
-            potion_type: PotionType::Health,
-            in_game_entity: InGameEntity,
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 98,
-            },
-        },))
+        ))
         .id();
     let potion2 = commands
         .spawn(PotionBundle {
@@ -145,45 +155,51 @@ pub fn init_world(
 
     // Add both guns to the player's inventory
     let armor1 = commands
-        .spawn((ArmorBundle {
-            armor: Armor,
-            armor_stats: ArmorStats {
-                defense: 2,
-                durability: 20,
+        .spawn((
+            Name::new("Armor1"),
+            ArmorBundle {
+                armor: Armor,
+                armor_stats: ArmorStats {
+                    defense: 2,
+                    durability: 20,
+                },
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                in_game_entity: InGameEntity,
+                texture_bundle: TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 99,
+                },
             },
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                visibility: Visibility::Hidden,
-                ..default()
-            },
-            in_game_entity: InGameEntity,
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 99,
-            },
-        },))
+        ))
         .id();
 
     let armor2 = commands
-        .spawn(ArmorBundle {
-            armor: Armor,
-            armor_stats: ArmorStats {
-                defense: 3,
-                durability: 30,
+        .spawn((
+            Name::new("Armor2"),
+            ArmorBundle {
+                armor: Armor,
+                armor_stats: ArmorStats {
+                    defense: 3,
+                    durability: 30,
+                },
+                sprite_bundle: SpriteBundle {
+                    texture: handle.image.clone().unwrap(),
+                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    visibility: Visibility::Hidden,
+                    ..default()
+                },
+                in_game_entity: InGameEntity,
+                texture_bundle: TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 99,
+                },
             },
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                visibility: Visibility::Hidden,
-                ..default()
-            },
-            in_game_entity: InGameEntity,
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 99,
-            },
-        })
+        ))
         .id();
 
     // Add guns, potions, and armors to the player's inventory
@@ -205,6 +221,7 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
         let x = rng.gen_range((-WW + TILE_W as f32)..(WW - TILE_W as f32));
         let y = rng.gen_range((-WH + TILE_H as f32)..(WH - TILE_H as f32));
         commands.spawn((
+            Name::new("Decoration"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(vec3(x, y, LAYER0))
@@ -224,6 +241,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     // Top edge
     for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
+            Name::new("Edge"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(vec3(x as f32, WH, LAYER0))
@@ -241,6 +259,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     // Bottom edge
     for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
+            Name::new("Edge"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(vec3(x as f32, -WH, LAYER0))
@@ -258,6 +277,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     // Left edge
     for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
+            Name::new("Edge"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(vec3(-WW, y as f32, LAYER0))
@@ -275,6 +295,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     // Right edge
     for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
+            Name::new("Edge"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(vec3(WW, y as f32, LAYER0))

@@ -274,7 +274,7 @@ pub fn handle_enemy_death(
                         explosion.explosion_damage,
                     );
 
-                    let distance = player_transform.translation.distance(transform.translation); // should separate this logic
+                    let distance = player_transform.translation.distance(transform.translation); // should separate this logic use old explosionEvent?
                     if distance <= explosion.explosion_radius {
                         println!("send explosion event");
                         ev_player_damaged.send(PlayerDamagedEvent {
@@ -310,6 +310,7 @@ pub fn handle_enemy_death(
 
 fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32) {
     commands.spawn((
+        Name::new("Trail"),
         SpriteBundle {
             sprite: Sprite {
                 color: Color::srgba(0.0, 0.8, 0.0, 0.5),
@@ -327,6 +328,7 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32
 
 fn spawn_explosion(commands: &mut Commands, position: Vec3, radius: f32, damage: u32) {
     commands.spawn((
+        Name::new("Explosion"),
         SpriteBundle {
             sprite: Sprite {
                 color: Color::srgba(1.0, 0.5, 0.0, 0.5),
@@ -378,6 +380,7 @@ fn spawn_enemy_bullets(
         let bullet_direction = (direction + spread).normalize();
 
         commands.spawn((
+            Name::new("Enemy Bullet"),
             SpriteBundle {
                 texture: handle.image.clone().unwrap(),
                 transform: Transform::from_translation(enemy_pos)

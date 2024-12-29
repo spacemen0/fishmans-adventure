@@ -82,6 +82,7 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
 
     commands
         .spawn((
+            Name::new("Ui"),
             NodeBundle {
                 style: Style {
                     width: Val::Percent(100.0),
@@ -480,6 +481,7 @@ fn update_health_bar(
 fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
     commands
         .spawn((
+            Name::new("Wave"),
             NodeBundle {
                 style: Style {
                     position_type: PositionType::Absolute,

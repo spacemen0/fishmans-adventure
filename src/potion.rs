@@ -10,7 +10,7 @@ use leafwing_input_manager::prelude::ActionState;
 #[derive(Component)]
 pub struct Potion;
 
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 pub enum PotionType {
     Health,
     Speed,
