@@ -2,11 +2,12 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
+    configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
     input::Action,
     player::{Defense, Health, Player, PlayerInventory},
     resources::{Level, UiFont, Wave},
     state::GameState,
-    utils::{InGameEntity, cleanup_entities},
+    utils::{cleanup_entities, InGameEntity},
     world::init_world,
 };
 
@@ -63,22 +64,25 @@ impl Plugin for UiPlugin {
         .add_systems(OnEnter(GameState::Ui), update_ui)
         .add_systems(
             Update,
-            (
-                handle_pause_input,
-                handle_game_restart,
-                update_wave_display,
-                update_health_bar,
-            )
+            update_wave_display.run_if(
+                in_state(GameState::Combat)
+                    .or_else(in_state(GameState::Paused))
+                    .and_then(resource_changed::<Wave>),
+            ),
+        )
+        .add_systems(
+            Update,
+            (handle_pause_input, handle_game_restart, update_health_bar)
                 .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
         );
     }
 }
 
 fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetServer>) {
-    let health_icon = asset_server.load("icons/health.png");
-    let level_icon = asset_server.load("icons/level.png");
-    let xp_icon = asset_server.load("icons/xp.png");
-    let defense_icon = asset_server.load("icons/defense.png");
+    let health_icon = asset_server.load(HEALTH_ICON_PATH);
+    let level_icon = asset_server.load(LEVEL_ICON_PATH);
+    let xp_icon = asset_server.load(XP_ICON_PATH);
+    let defense_icon = asset_server.load(DEFENSE_ICON_PATH);
 
     commands
         .spawn((
@@ -514,11 +518,8 @@ fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
         });
 }
 
-// Update wave display
-fn update_wave_display(
-    mut wave_query: Query<&mut Text, With<WaveDisplay>>,
-    wave: Res<Wave>, // Assuming you have a Wave resource tracking the current wave number
-) {
+fn update_wave_display(mut wave_query: Query<&mut Text, With<WaveDisplay>>, wave: Res<Wave>) {
+    println!("wave system");
     if let Ok(mut text) = wave_query.get_single_mut() {
         text.sections[0].value = format!("Wave {}", wave.number);
     }

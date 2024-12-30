@@ -71,5 +71,9 @@ impl Plugin for EmbeddedAssetPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "../assets/assets.png");
         embedded_asset!(app, "../assets/monogram.ttf");
+        embedded_asset!(app, "../assets/icons/health.png");
+        embedded_asset!(app, "../assets/icons/level.png");
+        embedded_asset!(app, "../assets/icons/xp.png");
+        embedded_asset!(app, "../assets/icons/defense.png");
     }
 }
