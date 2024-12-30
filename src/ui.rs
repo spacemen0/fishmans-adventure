@@ -40,6 +40,9 @@ struct PlayerHealthBar;
 #[derive(Component)]
 struct UiRoot;
 
+#[derive(Component)]
+struct WaveDisplayRoot;
+
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -485,7 +488,15 @@ fn update_health_bar(
     }
 }
 
-fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
+fn setup_wave_display(
+    mut commands: Commands,
+    font: Res<UiFont>,
+    existing_displays: Query<Entity, With<WaveDisplayRoot>>,
+) {
+    for entity in existing_displays.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+
     commands
         .spawn((
             Name::new("Wave"),
@@ -494,7 +505,6 @@ fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
                     position_type: PositionType::Absolute,
                     top: Val::Px(10.0),
                     left: Val::Percent(50.0),
-                    // Center the text horizontally
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..default()
@@ -502,6 +512,7 @@ fn setup_wave_display(mut commands: Commands, font: Res<UiFont>) {
                 ..default()
             },
             InGameEntity,
+            WaveDisplayRoot, 
         ))
         .with_children(|parent| {
             parent.spawn((
