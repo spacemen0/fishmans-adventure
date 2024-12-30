@@ -3,7 +3,7 @@ use crate::{
     configs::*,
     gun::{BulletDirection, BulletStats, HasLifespan},
     loot::LootPool,
-    player::{InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
+    player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
     utils::{calculate_enemies_for_wave, clamp_position, get_random_position_around, InGameEntity},
 };
@@ -69,7 +69,7 @@ pub fn update_enemy_movement(
 pub fn spawn_enemies(
     mut commands: Commands,
     handle: Res<GlobalTextureAtlas>,
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<(&Transform, &Health), With<Player>>,
     enemy_query: Query<(), With<Enemy>>,
     mut wave: ResMut<Wave>,
 ) {
@@ -77,13 +77,20 @@ pub fn spawn_enemies(
         return;
     }
 
-    wave.number += 1;
-
     if player_query.is_empty() {
         return;
     }
+
+    let (player_transform, health) = player_query.single();
+
+    if health.0 == 0 {
+        return;
+    }
+
+    wave.number += 1;
+
     println!("wave number: {:?}", wave.number);
-    let player_pos = player_query.single().translation.truncate();
+    let player_pos = player_transform.translation.truncate();
 
     let num_enemies = calculate_enemies_for_wave(wave.number);
 
@@ -260,7 +267,7 @@ pub fn handle_enemy_death(
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
     mut level: ResMut<Level>,
     handle: Res<GlobalTextureAtlas>,
-    player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
+    player_query: Query<&Transform, With<Player>>,
     mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {

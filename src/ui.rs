@@ -6,7 +6,7 @@ use crate::{
     player::{Defense, Health, Player, PlayerInventory},
     resources::{Level, UiFont, Wave},
     state::GameState,
-    utils::InGameEntity,
+    utils::{InGameEntity, cleanup_entities},
     world::init_world,
 };
 
@@ -421,18 +421,14 @@ fn handle_pause_input(
 }
 
 fn handle_game_restart(
-    mut commands: Commands,
+    commands: Commands,
     action_state: Res<ActionState<Action>>,
     all_entities: Query<Entity, With<InGameEntity>>,
     mut next_state: ResMut<NextState<GameState>>, // bug still possible, maybe only allow it when paused
 ) {
     if action_state.just_pressed(&Action::Restart) {
         next_state.set(GameState::Initializing);
-        for e in all_entities.iter() {
-            if let Some(entity) = commands.get_entity(e) {
-                entity.despawn_recursive();
-            }
-        }
+        cleanup_entities(commands, all_entities);
     }
 }
 

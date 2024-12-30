@@ -63,12 +63,14 @@ fn handle_enemy_player_collision(
             enemy_query.get_mut(enemy.entity) 
         {
             if enemy_component.damage > 0 {
+                println!("send enemy collision event");
                 ev.send(PlayerDamagedEvent {
                     damage: enemy_component.damage,
                 });
             }
 
             if let Some(explosion) = explosion_ability {
+                println!("send explosion event");
                 spawn_explosion(
                     &mut commands,
                     transform.translation,

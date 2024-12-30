@@ -15,7 +15,7 @@ use crate::{
     state::GameState,
     utils::{
         calculate_defense_increase, calculate_health_increase, safe_subtract, InGameEntity,
-        Pickable,
+        Pickable, cleanup_entities,
     },
 };
 
@@ -150,6 +150,7 @@ fn handle_player_damaged_events(
                     }
                 }
             } else {
+                println!("No active armor");
                 let damage_after_defense = safe_subtract(event.damage, player_defense.0);
                 health.0 = safe_subtract(health.0, damage_after_defense);
                 if damage_after_defense > 0 {
@@ -209,7 +210,7 @@ fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec
 }
 
 fn handle_player_death(
-    mut commands: Commands,
+    commands: Commands,
     all_entities: Query<Entity, With<InGameEntity>>,
     player_query: Query<(Entity, &Health), With<Player>>,
     mut next_state: ResMut<NextState<GameState>>,
@@ -220,11 +221,7 @@ fn handle_player_death(
     let player = player_query.single();
     if player.1 .0 == 0 {
         // Despawn all game entities
-        for e in all_entities.iter() {
-            if let Some(entity) = commands.get_entity(e) {
-                entity.despawn_recursive();
-            }
-        }
+        cleanup_entities(commands, all_entities);
         next_state.set(GameState::MainMenu);
     }
 }
@@ -294,22 +291,20 @@ pub fn handle_player_input(
 
 fn mark_loot_for_pickup(
     mut commands: Commands,
-    loot_query: Query<(Entity, &Transform), With<Pickable>>,
+    loot_query: Query<(Entity, &Transform), (With<Pickable>, Without<MovingToPlayer>)>,
     player_query: Query<&Transform, With<Player>>,
 ) {
-    if player_query.is_empty() {
+    let Ok(player_transform) = player_query.get_single() else {
         return;
-    }
-
-    let player_transform = player_query.single();
+    };
     let player_pos = player_transform.translation.xy();
 
     for (loot_entity, loot_transform) in loot_query.iter() {
         let loot_pos = loot_transform.translation.xy();
-
-        // Check if loot is within a certain range of the player
         if player_pos.distance(loot_pos) <= 400.0 {
-            commands.entity(loot_entity).insert(MovingToPlayer);
+            if let Some(mut entity_commands) = commands.get_entity(loot_entity) {
+                entity_commands.insert(MovingToPlayer);
+            }
         }
     }
 }

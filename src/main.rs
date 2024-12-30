@@ -15,7 +15,6 @@ use fishmans_adventure::{
     potion::PotionPlugin,
     resources::ResourcesPlugin,
     state::GameState,
-    town::TownPlugin,
     ui::UiPlugin,
     world::WorldPlugin,
 };
@@ -60,7 +59,6 @@ fn main() {
         .add_plugins(CollisionPlugin)
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
-        .add_plugins(TownPlugin)
         .add_plugins(InputPlugin)
         .init_state::<GameState>()
         .insert_resource(Msaa::Off)
