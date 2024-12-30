@@ -49,12 +49,12 @@ impl Plugin for UiPlugin {
             OnEnter(GameState::Initializing),
             (setup_ui, setup_health_bar.after(init_world)),
         )
-        .add_systems(OnEnter(GameState::MainMenu), setup_main_menu)
-        .add_systems(OnExit(GameState::MainMenu), despawn_main_menu)
         .add_systems(
-            OnEnter(GameState::Combat),
-            setup_wave_display, // Setup the wave display when combat starts
+            OnEnter(GameState::MainMenu),
+            (setup_main_menu, cleanup_entities),
         )
+        .add_systems(OnExit(GameState::MainMenu), despawn_main_menu)
+        .add_systems(OnEnter(GameState::Combat), setup_wave_display)
         .add_systems(
             Update,
             handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
@@ -493,8 +493,8 @@ fn setup_wave_display(
     font: Res<UiFont>,
     existing_displays: Query<Entity, With<WaveDisplayRoot>>,
 ) {
-    for entity in existing_displays.iter() {
-        commands.entity(entity).despawn_recursive();
+    if !existing_displays.is_empty() {
+        return;
     }
 
     commands
@@ -512,7 +512,7 @@ fn setup_wave_display(
                 ..default()
             },
             InGameEntity,
-            WaveDisplayRoot, 
+            WaveDisplayRoot,
         ))
         .with_children(|parent| {
             parent.spawn((
