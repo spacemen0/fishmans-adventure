@@ -5,7 +5,7 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 
 use crate::{
-    enemy::{Enemy, Trail},
+    enemy::{Enemy, Trail, ExplosionAbility, spawn_explosion},
     gun::Bullet,
     player::{Player, PlayerDamagedEvent},
     state::GameState,
@@ -39,8 +39,14 @@ impl Plugin for CollisionPlugin {
 }
 
 fn handle_enemy_player_collision(
-    mut player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
-    mut enemy_query: Query<(&Transform, &mut Enemy)>,
+    mut commands: Commands,
+    player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
+    mut enemy_query: Query<(
+        Entity,
+        &Transform,
+        &mut Enemy,
+        Option<&ExplosionAbility>
+    )>,
     tree: Res<EnemyKdTree>,
     mut ev: EventWriter<PlayerDamagedEvent>,
 ) {
@@ -48,17 +54,33 @@ fn handle_enemy_player_collision(
         return;
     }
 
-    let player_transform = player_query.single_mut();
+    let player_transform = player_query.single();
     let player_pos = player_transform.translation;
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
     for enemy in enemies {
-        if let Ok((_, enemy_component)) = enemy_query.get_mut(enemy.entity) {
+        if let Ok((entity, transform, enemy_component, explosion_ability)) = 
+            enemy_query.get_mut(enemy.entity) 
+        {
             if enemy_component.damage > 0 {
-                println!("send enemy collision event");
                 ev.send(PlayerDamagedEvent {
                     damage: enemy_component.damage,
                 });
+            }
+
+            if let Some(explosion) = explosion_ability {
+                spawn_explosion(
+                    &mut commands,
+                    transform.translation,
+                    explosion.explosion_radius,
+                    explosion.explosion_damage,
+                );
+                
+                ev.send(PlayerDamagedEvent {
+                    damage: explosion.explosion_damage,
+                });
+                
+                commands.entity(entity).despawn();
             }
         }
     }

@@ -326,7 +326,7 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32
     ));
 }
 
-fn spawn_explosion(commands: &mut Commands, position: Vec3, radius: f32, damage: u32) {
+pub fn spawn_explosion(commands: &mut Commands, position: Vec3, radius: f32, damage: u32) {
     commands.spawn((
         Name::new("Explosion"),
         SpriteBundle {
