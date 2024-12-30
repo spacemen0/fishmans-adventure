@@ -10,12 +10,12 @@ use crate::{
     gun::{Gun, HasLifespan},
     input::Action,
     loot::{MovingToPlayer, ReadyForPickup},
-    potion::Potion,
+    potion::PotionType,
     resources::UiFont,
     state::GameState,
     utils::{
-        calculate_defense_increase, calculate_health_increase, safe_subtract, InGameEntity,
-        Pickable, cleanup_entities,
+        calculate_defense_increase, calculate_health_increase, cleanup_entities, safe_subtract,
+        InGameEntity, Pickable,
     },
 };
 
@@ -343,7 +343,7 @@ fn handle_loot_pickup(
     mut commands: Commands,
     mut player_query: Query<&mut PlayerInventory, With<Player>>,
     loot_query: Query<
-        (Entity, Option<&Potion>, Option<&Gun>, Option<&Armor>),
+        (Entity, Option<&PotionType>, Option<&Gun>, Option<&Armor>),
         With<ReadyForPickup>,
     >,
 ) {
@@ -353,10 +353,12 @@ fn handle_loot_pickup(
 
     let mut inventory = player_query.single_mut();
 
-    for (loot_entity, potion, gun, armor) in loot_query.iter() {
+    for (loot_entity, potion_type, gun, armor) in loot_query.iter() {
         // Add the loot to the appropriate inventory category
-        if potion.is_some() {
+        if let Some(PotionType::Speed) = potion_type {
             inventory.speed_potions.push(loot_entity);
+        } else if let Some(PotionType::Health) = potion_type {
+            inventory.health_potions.push(loot_entity);
         }
         if gun.is_some() {
             inventory.guns.push(loot_entity);

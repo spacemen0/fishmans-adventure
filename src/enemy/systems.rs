@@ -267,10 +267,10 @@ pub fn handle_enemy_death(
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
     mut level: ResMut<Level>,
     handle: Res<GlobalTextureAtlas>,
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<(&Transform, Option<&InvincibilityEffect>), With<Player>>,
     mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
 ) {
-    if let Ok(player_transform) = player_query.get_single() {
+    if let Ok((player_transform, is_invincible)) = player_query.get_single() {
         for (entity, enemy, transform, explosion_ability, loot_pool) in enemy_query.iter_mut() {
             if enemy.health == 0 {
                 if let Some(explosion) = explosion_ability {
@@ -280,9 +280,8 @@ pub fn handle_enemy_death(
                         explosion.explosion_radius,
                         explosion.explosion_damage,
                     );
-
-                    let distance = player_transform.translation.distance(transform.translation); // should separate this logic use old explosionEvent?
-                    if distance <= explosion.explosion_radius {
+                    let distance = player_transform.translation.distance(transform.translation);
+                    if distance <= explosion.explosion_radius && is_invincible.is_none() {
                         println!("send explosion event");
                         ev_player_damaged.send(PlayerDamagedEvent {
                             damage: explosion.explosion_damage,
