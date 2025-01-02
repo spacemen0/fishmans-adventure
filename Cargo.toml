@@ -4,13 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.14.1"
+bevy = "0.15.0"
 kd-tree = "0.6.0"
-leafwing-input-manager = "0.15.1"
+leafwing-input-manager = "0.16"
 rand = "0.8.5"
 typenum = "1.17.0"
-iyes_perf_ui = "0.3.0"
-bevy-inspector-egui = "0.27"
+iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui" }
+bevy-inspector-egui = "0.28"
 
 [workspace]
 resolver = "2"

@@ -1,13 +1,13 @@
-use iyes_perf_ui::prelude::PerfUiCompleteBundle;
+use iyes_perf_ui::prelude::PerfUiDefaultEntries;
 use rand::Rng;
 
 use crate::{
     animation::AnimationTimer,
-    armor::{Armor, ArmorBundle, ArmorStats},
+    armor::{Armor, ArmorStats},
     configs::*,
-    gun::{BulletStats, GunBundle, GunStats, GunType},
+    gun::{BulletStats, Gun, GunStats, GunType},
     player::{Defense, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
-    potion::{Potion, PotionBundle, PotionStats, PotionType},
+    potion::{Potion, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
     state::GameState,
     utils::InGameEntity,
@@ -22,7 +22,6 @@ impl Plugin for WorldPlugin {
             OnEnter(GameState::Initializing),
             (init_world, spawn_world_decorations, spawn_world_edges),
         );
-        // .add_systems(OnExit(GameState::Combat), despawn_all_game_entities);
     }
 }
 
@@ -35,7 +34,7 @@ pub fn init_world(
     commands.insert_resource(Level::default());
     #[cfg(not(target_arch = "wasm32"))]
     commands.spawn((
-        PerfUiCompleteBundle::default(),
+        PerfUiDefaultEntries::default(),
         Name::new("Debug Ui"),
         InGameEntity,
     ));
@@ -43,15 +42,15 @@ pub fn init_world(
     let player_entity = commands
         .spawn((
             Name::new("Player"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 0,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 0,
-            },
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Player,
             Health(PLAYER_HEALTH, 200),
             Speed(PLAYER_SPEED),
@@ -66,18 +65,16 @@ pub fn init_world(
     let gun1 = commands
         .spawn((
             Name::new("Gun1"),
-            GunBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
-                texture_bundle: TextureAtlas {
+            Gun,
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: handle.layout.clone().unwrap(),
                     index: 65,
-                },
+                }),
                 ..default()
             },
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
         ))
         .id();
 
@@ -85,124 +82,113 @@ pub fn init_world(
     let gun2 = commands
         .spawn((
             Name::new("Gun2"),
-            GunBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                gun_type: GunType::Gun1,
-                gun_stats: GunStats {
-                    bullets_per_shot: 20,
-                    firing_interval: 0.1,
-                    bullet_spread: 0.3,
-                },
-                bullet_stats: BulletStats {
-                    speed: 30,
-                    damage: 100,
-                    lifespan: 0.5,
-                },
-                texture_bundle: TextureAtlas {
+            Gun,
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: handle.layout.clone().unwrap(),
                     index: 66,
-                },
+                }),
                 ..default()
+            },
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            GunType::Gun1,
+            GunStats {
+                bullets_per_shot: 20,
+                firing_interval: 0.1,
+                bullet_spread: 0.3,
+            },
+            BulletStats {
+                speed: 30,
+                damage: 100,
+                lifespan: 0.5,
             },
         ))
         .id();
     let potion1 = commands
         .spawn((
             Name::new("Potion1"),
-            PotionBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                potion: Potion,
-                potion_stats: PotionStats {
-                    effect_duration: 2.0,
-                    effect_amount: 10,
-                },
-                potion_type: PotionType::Health,
-                in_game_entity: InGameEntity,
-                texture_bundle: TextureAtlas {
+            Potion,
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: handle.layout.clone().unwrap(),
                     index: 98,
-                },
+                }),
+
+                ..default()
             },
+            Visibility::Hidden,
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            PotionStats {
+                effect_duration: 2.0,
+                effect_amount: 10,
+            },
+            PotionType::Health,
         ))
         .id();
     let potion2 = commands
-        .spawn(PotionBundle {
-            sprite_bundle: SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                visibility: Visibility::Hidden,
+        .spawn((
+            Potion,
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 98,
+                }),
+
                 ..default()
             },
-            potion: Potion,
-            potion_stats: PotionStats {
+            Visibility::Hidden,
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            PotionStats {
                 effect_duration: 5.0,
                 effect_amount: 10,
             },
-            potion_type: PotionType::Speed,
-            in_game_entity: InGameEntity,
-            texture_bundle: TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 98,
-            },
-        })
+            PotionType::Health,
+        ))
         .id();
 
     // Add both guns to the player's inventory
     let armor1 = commands
         .spawn((
             Name::new("Armor1"),
-            ArmorBundle {
-                armor: Armor,
-                armor_stats: ArmorStats {
-                    defense: 2,
-                    durability: 20,
-                },
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                in_game_entity: InGameEntity,
-                texture_bundle: TextureAtlas {
+            Armor,
+            ArmorStats {
+                defense: 2,
+                durability: 20,
+            },
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: handle.layout.clone().unwrap(),
                     index: 99,
-                },
+                }),
+                ..default()
             },
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Visibility::Hidden,
         ))
         .id();
 
     let armor2 = commands
         .spawn((
-            Name::new("Armor2"),
-            ArmorBundle {
-                armor: Armor,
-                armor_stats: ArmorStats {
-                    defense: 3,
-                    durability: 30,
-                },
-                sprite_bundle: SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    visibility: Visibility::Hidden,
-                    ..default()
-                },
-                in_game_entity: InGameEntity,
-                texture_bundle: TextureAtlas {
+            Name::new("Armor1"),
+            Armor,
+            ArmorStats {
+                defense: 3,
+                durability: 30,
+            },
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: handle.layout.clone().unwrap(),
                     index: 99,
-                },
+                }),
+                ..default()
             },
+            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Visibility::Hidden,
         ))
         .id();
 
@@ -226,16 +212,16 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
         let y = rng.gen_range((-WH + TILE_H as f32)..(WH - TILE_H as f32));
         commands.spawn((
             Name::new("Decoration"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(x, y, LAYER0))
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: rng.gen_range(111..=116),
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: rng.gen_range(111..=116),
-            },
+            Transform::from_translation(vec3(x, y, LAYER0))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
     }
@@ -246,16 +232,16 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
             Name::new("Edge"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(x as f32, WH, LAYER0))
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 113,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 113,
-            },
+            Transform::from_translation(vec3(x as f32, WH, LAYER0))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
     }
@@ -264,16 +250,16 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     for x in (-WW as i32..=WW as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
             Name::new("Edge"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(x as f32, -WH, LAYER0))
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 113,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 113,
-            },
+            Transform::from_translation(vec3(x as f32, -WH, LAYER0))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
     }
@@ -282,16 +268,16 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
             Name::new("Edge"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(-WW, y as f32, LAYER0))
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 113,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 113,
-            },
+            Transform::from_translation(vec3(-WW, y as f32, LAYER0))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
     }
@@ -300,16 +286,16 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     for y in (-WH as i32..=WH as i32).step_by((TILE_H as f32 * SPRITE_SCALE_FACTOR) as usize) {
         commands.spawn((
             Name::new("Edge"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(vec3(WW, y as f32, LAYER0))
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 113,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 113,
-            },
+            Transform::from_translation(vec3(WW, y as f32, LAYER0))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
     }

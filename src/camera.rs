@@ -14,22 +14,21 @@ impl Plugin for FollowCameraPlugin {
             .add_systems(
                 Update,
                 camera_follow_player
-                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
+                    .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
             );
     }
 }
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn((
-        Camera2dBundle {
-            projection: OrthographicProjection {
-                near: -1000.0,
-                far: 1000.0,
-                scale: 1.3,
-                ..default()
-            },
-            ..default()
+        Camera2d,
+        OrthographicProjection {
+            near: -1000.0,
+            far: 1000.0,
+            scale: 1.3,
+            ..OrthographicProjection::default_2d()
         },
+        Msaa::Off,
         Name::new("Camera"),
     ));
 }

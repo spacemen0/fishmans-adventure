@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::{
-    armor::{Armor, ArmorBundle, ArmorStats},
+    armor::{Armor, ArmorStats},
     configs::{LAYER2, SPRITE_SCALE_FACTOR},
-    gun::{GunBundle, GunStats},
-    potion::{Potion, PotionBundle, PotionStats, PotionType},
-    utils::{get_random_position_around, InGameEntity, Pickable},
+    gun::{Gun, GunStats},
+    potion::{Potion, PotionStats, PotionType},
+    utils::{get_random_position_around, Pickable},
 };
 
 #[derive(Clone)]
@@ -62,7 +62,7 @@ pub struct MovingToPlayer;
 #[derive(Component)]
 pub struct ReadyForPickup;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct LootPool {
     pub items: Vec<LootDefinition>,
 }
@@ -100,21 +100,19 @@ fn spawn_gun(
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             Name::new("Gun"),
-            GunBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: image.unwrap(),
-                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
-                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
-
-                gun_stats,
-                texture_bundle: TextureAtlas {
+            Gun,
+            Sprite {
+                image: image.unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
                     index: 97,
-                },
+                }),
+
                 ..default()
             },
+            Transform::from_translation(Vec3::new(x, y, LAYER2))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            gun_stats,
             Pickable,
         ));
     }
@@ -136,21 +134,18 @@ fn spawn_armor(
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             Name::new("Armor"),
-            ArmorBundle {
-                armor: Armor,
-                armor_stats,
-                in_game_entity: InGameEntity,
-                sprite_bundle: SpriteBundle {
-                    texture: image.unwrap(),
-                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
-                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
-                texture_bundle: TextureAtlas {
+            Armor,
+            armor_stats,
+            Sprite {
+                image: image.unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
                     index: 95,
-                },
+                }),
+                ..default()
             },
+            Transform::from_translation(Vec3::new(x, y, LAYER2))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
         ));
     }
@@ -178,22 +173,19 @@ fn spawn_potion(
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         commands.spawn((
             Name::new(name_string),
-            PotionBundle {
-                sprite_bundle: SpriteBundle {
-                    texture: image.unwrap(),
-                    transform: Transform::from_translation(Vec3::new(x, y, LAYER2))
-                        .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    ..default()
-                },
-                potion: Potion,
-                potion_stats,
-                potion_type,
-                texture_bundle: TextureAtlas {
+            Potion,
+            Sprite {
+                image: image.unwrap(),
+                texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
                     index: 96,
-                },
-                in_game_entity: InGameEntity,
+                }),
+                ..default()
             },
+            potion_stats,
+            potion_type,
+            Transform::from_translation(Vec3::new(x, y, LAYER2))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
         ));
     }

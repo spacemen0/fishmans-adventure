@@ -8,21 +8,13 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
+#[require(ArmorStats, Sprite, InGameEntity)]
 pub struct Armor;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct ArmorStats {
     pub defense: u32,
     pub durability: u32,
-}
-
-#[derive(Bundle)]
-pub struct ArmorBundle {
-    pub armor: Armor,
-    pub armor_stats: ArmorStats,
-    pub sprite_bundle: SpriteBundle,
-    pub in_game_entity: InGameEntity,
-    pub texture_bundle: TextureAtlas,
 }
 
 pub struct ArmorPlugin;

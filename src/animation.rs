@@ -27,7 +27,7 @@ impl Plugin for AnimationPlugin {
             )
                 .run_if(
                     in_state(GameState::Combat)
-                        .or_else(in_state(GameState::Paused).or_else(in_state(GameState::Town))),
+                        .or(in_state(GameState::Paused).or(in_state(GameState::Town))),
                 ),
         );
     }
@@ -43,29 +43,28 @@ fn animation_timer_tick(
 }
 
 fn animate_player(
-    mut player_query: Query<(&mut TextureAtlas, &PlayerState, &AnimationTimer), With<Player>>,
+    mut player_query: Query<(&mut Sprite, &PlayerState, &AnimationTimer), With<Player>>,
 ) {
-    if player_query.is_empty() {
-        return;
-    }
-
-    let (mut atlas, state, timer) = player_query.single_mut();
-    if timer.just_finished() {
-        let base_sprite_index = match state {
-            PlayerState::Idle => 0,
-            PlayerState::Run => 4,
-        };
-        atlas.index = base_sprite_index + (atlas.index + 1) % 4;
+    if let Ok((mut sprite, state, timer)) = player_query.get_single_mut() {
+        if timer.just_finished() {
+            if let Some(texture_atlas) = &mut sprite.texture_atlas {
+                let base_sprite_index = match state {
+                    PlayerState::Idle => 0,
+                    PlayerState::Run => 4,
+                };
+                texture_atlas.index = base_sprite_index + (texture_atlas.index + 1) % 4;
+            }
+        }
     }
 }
 
-fn animate_enemy(mut enemy_query: Query<(&mut TextureAtlas, &AnimationTimer), With<Enemy>>) {
-    for (mut atlas, timer) in enemy_query.iter_mut() {
+fn animate_enemy(mut enemy_query: Query<(&mut Sprite, &AnimationTimer), With<Enemy>>) {
+    for (mut sprite, timer) in enemy_query.iter_mut() {
         if timer.just_finished() {
-            // Get the base sprite index (the first frame of the animation)
-            let base_index = atlas.index - (atlas.index % 4);
-            // Cycle through 4 frames starting from the base index
-            atlas.index = base_index + ((atlas.index + 1) % 4);
+            if let Some(texture_atlas) = &mut sprite.texture_atlas {
+                let base_index = texture_atlas.index - (texture_atlas.index % 4);
+                texture_atlas.index = base_index + ((texture_atlas.index + 1) % 4);
+            }
         }
     }
 }

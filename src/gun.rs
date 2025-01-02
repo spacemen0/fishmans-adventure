@@ -21,13 +21,23 @@ use crate::{
 pub struct GunPlugin;
 
 #[derive(Component)]
+#[require(GunTimer, GunType, BulletStats(||BulletStats {
+                speed: BULLET_SPEED,
+                damage: BULLET_DAMAGE,
+                lifespan: BULLET_TIME_SECS,
+            }), GunStats(||GunStats {
+                bullets_per_shot: NUM_BULLETS_PER_SHOT,
+                firing_interval: BULLET_SPAWN_INTERVAL,
+                bullet_spread: BULLET_SPREAD,
+            }), InGameEntity, Sprite)]
 pub struct Gun;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct GunTimer(pub Stopwatch);
 
-#[derive(Component, Clone)]
+#[derive(Component, Clone, Default)]
 pub enum GunType {
+    #[default]
     Default,
     Gun1,
     Gun2,
@@ -36,14 +46,14 @@ pub enum GunType {
 #[derive(Component)]
 pub struct Bullet;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct BulletStats {
     pub speed: u32,
     pub damage: u32,
     pub lifespan: f32,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct GunStats {
     pub bullets_per_shot: usize,
     pub firing_interval: f32,
@@ -68,41 +78,6 @@ impl HasLifespan {
 #[derive(Component)]
 pub struct BulletDirection(pub Vec3);
 
-#[derive(Bundle)]
-pub struct GunBundle {
-    pub gun: Gun,
-    pub gun_timer: GunTimer,
-    pub gun_type: GunType,
-    pub bullet_stats: BulletStats,
-    pub gun_stats: GunStats,
-    pub in_game_entity: InGameEntity,
-    pub sprite_bundle: SpriteBundle,
-    pub texture_bundle: TextureAtlas,
-}
-
-impl Default for GunBundle {
-    fn default() -> Self {
-        Self {
-            gun: Gun,
-            gun_timer: GunTimer(Stopwatch::new()),
-            gun_type: GunType::Default,
-            bullet_stats: BulletStats {
-                speed: BULLET_SPEED,
-                damage: BULLET_DAMAGE,
-                lifespan: BULLET_TIME_SECS,
-            },
-            gun_stats: GunStats {
-                bullets_per_shot: NUM_BULLETS_PER_SHOT,
-                firing_interval: BULLET_SPAWN_INTERVAL,
-                bullet_spread: BULLET_SPREAD,
-            },
-            in_game_entity: InGameEntity,
-            sprite_bundle: Default::default(),
-            texture_bundle: Default::default(),
-        }
-    }
-}
-
 impl Plugin for GunPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -114,7 +89,7 @@ impl Plugin for GunPlugin {
                 despawn_entities_reach_lifespan,
                 switch_gun,
             )
-                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
+                .run_if(in_state(GameState::Combat).or(in_state(GameState::Town))),
         );
     }
 }
@@ -162,11 +137,7 @@ fn despawn_entities_reach_lifespan(
 ) {
     for (lifespan, e) in bullet_query.iter() {
         if lifespan.spawn_time.elapsed() > lifespan.lifespan {
-            commands.add(move |world: &mut World| {
-                if let Some(entity) = world.get_entity_mut(e) {
-                    entity.despawn();
-                }
-            });
+            commands.entity(e).despawn();
         }
     }
 }
@@ -205,18 +176,16 @@ fn handle_gun_firing(
                             );
                             commands.spawn((
                                 Name::new("Bullet"),
-                                SpriteBundle {
-                                    texture: handle.image.clone().unwrap(),
-                                    transform: Transform::from_translation(vec3(
-                                        gun_pos.x, gun_pos.y, LAYER3,
-                                    ))
-                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                                Sprite {
+                                    image: handle.image.clone().unwrap(),
+                                    texture_atlas: Some(TextureAtlas {
+                                        layout: handle.layout.clone().unwrap(),
+                                        index: rng.gen_range(80..=83),
+                                    }),
                                     ..default()
                                 },
-                                TextureAtlas {
-                                    layout: handle.layout.clone().unwrap(),
-                                    index: rng.gen_range(80..=83),
-                                },
+                                Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                                 Bullet,
                                 BulletDirection(dir),
                                 BulletStats {
@@ -245,18 +214,16 @@ fn handle_gun_firing(
                             );
                             commands.spawn((
                                 Name::new("Bullet"),
-                                SpriteBundle {
-                                    texture: handle.image.clone().unwrap(),
-                                    transform: Transform::from_translation(vec3(
-                                        gun_pos.x, gun_pos.y, LAYER3,
-                                    ))
-                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                                Sprite {
+                                    image: handle.image.clone().unwrap(),
+                                    texture_atlas: Some(TextureAtlas {
+                                        layout: handle.layout.clone().unwrap(),
+                                        index: rng.gen_range(84..=87),
+                                    }),
                                     ..default()
                                 },
-                                TextureAtlas {
-                                    layout: handle.layout.clone().unwrap(),
-                                    index: rng.gen_range(84..=87),
-                                },
+                                Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                                 Bullet,
                                 BulletDirection(dir),
                                 BulletStats {

@@ -3,7 +3,7 @@ use rand::Rng;
 
 use crate::configs::{WH, WW};
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct InGameEntity;
 
 #[derive(Component)]
@@ -72,10 +72,7 @@ pub fn clamp_position(position: &mut Vec3) {
     position.y = position.y.clamp(-WH, WH);
 }
 
-pub fn cleanup_entities(
-    mut commands: Commands,
-    all_entities: Query<Entity, With<InGameEntity>>,
-) {
+pub fn cleanup_entities(mut commands: Commands, all_entities: Query<Entity, With<InGameEntity>>) {
     for entity in all_entities.iter() {
         if let Some(entity_commands) = commands.get_entity(entity) {
             entity_commands.despawn_recursive();

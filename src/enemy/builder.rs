@@ -1,7 +1,5 @@
 use super::components::*;
-use crate::{
-    animation::AnimationTimer, loot::LootPool, resources::GlobalTextureAtlas, utils::InGameEntity,
-};
+use crate::{loot::LootPool, resources::GlobalTextureAtlas};
 use bevy::prelude::*;
 
 pub struct EnemyBuilder {
@@ -112,15 +110,15 @@ impl EnemyBuilder {
     ) -> Entity {
         let entity = commands
             .spawn((
-                SpriteBundle {
-                    texture: handle.image.clone().unwrap(),
-                    transform: Transform::from_translation(position).with_scale(Vec3::splat(3.0)),
+                Sprite {
+                    image: handle.image.clone().unwrap(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: handle.layout.clone().unwrap(),
+                        index: self.sprite_index,
+                    }),
                     ..default()
                 },
-                TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
-                    index: self.sprite_index,
-                },
+                Transform::from_translation(position).with_scale(Vec3::splat(3.0)),
                 Enemy {
                     health: self.health,
                     speed: self.speed,
@@ -128,9 +126,7 @@ impl EnemyBuilder {
                     xp: self.xp,
                 },
                 EnemyState::default(),
-                AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
                 Collider { radius: 15 },
-                InGameEntity,
             ))
             .id();
 

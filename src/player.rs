@@ -75,13 +75,13 @@ impl Plugin for PlayerPlugin {
                     handle_invincibility_effect,
                     handle_acceleration_effect,
                     handle_leveling_up,
-                    handle_sprite_reset.run_if(any_component_removed::<InvincibilityEffect>()),
+                    handle_sprite_reset.run_if(any_component_removed::<InvincibilityEffect>),
                     handle_loot_pickup,
                     move_loot_to_player,
                     mark_loot_for_pickup,
                     update_player_invincibility_visual,
                 )
-                    .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Town))),
+                    .run_if(in_state(GameState::Combat).or(in_state(GameState::Town))),
             );
     }
 }
@@ -188,19 +188,15 @@ fn handle_leveling_up(
 fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec3, damage: u32) {
     commands.spawn((
         Name::new("Damage Text"),
-        Text2dBundle {
-            text: Text::from_section(
-                format!("-{}", damage),
-                TextStyle {
-                    font: font.clone(),
-                    font_size: 50.0,
-                    color: Color::srgb(1.0, 0.0, 0.0),
-                },
-            ),
-            transform: Transform {
-                translation: position + Vec3::new(0.0, 50.0, 0.0),
-                ..default()
-            },
+        Text2d::new(format!("-{}", damage)),
+        TextFont {
+            font: font.clone(),
+            font_size: 50.0,
+            ..default()
+        },
+        TextColor(Srgba::new(1.0, 0.0, 0.0, 1.0).into()),
+        Transform {
+            translation: position + Vec3::new(0.0, 50.0, 0.0),
             ..default()
         },
         Collider { radius: 5 },
@@ -328,7 +324,7 @@ fn move_loot_to_player(
         let distance = player_pos.distance(current_pos);
 
         // Move loot closer to the player
-        let movement = direction * 500.0 * time.delta_seconds();
+        let movement = direction * 500.0 * time.delta_secs();
         transform.translation += movement.extend(0.0);
 
         // Check if loot has reached the player
@@ -385,6 +381,6 @@ fn update_player_invincibility_visual(
         let flash_rate = 2.0;
         sprite.color = sprite
             .color
-            .with_alpha((time.elapsed_seconds() * flash_rate).sin().abs());
+            .with_alpha((time.elapsed_secs() * flash_rate).sin().abs());
     }
 }

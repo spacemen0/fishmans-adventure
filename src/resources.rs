@@ -113,6 +113,6 @@ fn update_cursor_position(
     let window = window_query.single();
     cursor_pos.0 = window
         .cursor_position()
-        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
-        .map(|ray| ray.origin.truncate());
+        .map(|cursor| camera.viewport_to_world(camera_transform, cursor))
+        .map(|ray| ray.unwrap().origin.truncate());
 }

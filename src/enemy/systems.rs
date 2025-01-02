@@ -1,11 +1,11 @@
 use super::{components::*, presets::*};
 use crate::{
     configs::*,
-    gun::{BulletDirection, BulletStats, HasLifespan},
+    gun::{BulletDirection, BulletStats},
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{calculate_enemies_for_wave, clamp_position, get_random_position_around, InGameEntity},
+    utils::{calculate_enemies_for_wave, clamp_position, get_random_position_around},
 };
 use bevy::prelude::*;
 use rand::Rng;
@@ -317,39 +317,30 @@ pub fn handle_enemy_death(
 fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32) {
     commands.spawn((
         Name::new("Trail"),
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::srgba(0.0, 0.8, 0.0, 0.5),
-                custom_size: Some(Vec2::new(20.0, 20.0)),
-                ..default()
-            },
-            transform: Transform::from_translation(position),
+        Sprite {
+            color: Color::srgba(0.0, 0.8, 0.0, 0.5),
+            custom_size: Some(Vec2::new(20.0, 20.0)),
             ..default()
         },
+        Transform::from_translation(position),
         Trail { damage, radius },
-        HasLifespan::new(std::time::Duration::from_secs_f32(5.0)),
-        crate::utils::InGameEntity,
     ));
 }
 
 pub fn spawn_explosion(commands: &mut Commands, position: Vec3, radius: f32, damage: u32) {
     commands.spawn((
         Name::new("Explosion"),
-        SpriteBundle {
-            sprite: Sprite {
-                color: Color::srgba(1.0, 0.5, 0.0, 0.5),
-                custom_size: Some(Vec2::new(radius * 2.0, radius * 2.0)),
-                ..default()
-            },
-            transform: Transform::from_translation(position),
+        Sprite {
+            color: Color::srgba(1.0, 0.5, 0.0, 0.5),
+            custom_size: Some(Vec2::new(radius * 2.0, radius * 2.0)),
             ..default()
         },
+        Transform::from_translation(position),
         Explosion {
             radius,
             damage,
             timer: Timer::from_seconds(0.3, TimerMode::Once),
         },
-        crate::utils::InGameEntity,
     ));
 }
 
@@ -362,7 +353,7 @@ pub fn update_enemy_bullets(
     >,
 ) {
     for (entity, mut transform, direction, stats) in bullet_query.iter_mut() {
-        transform.translation += direction.0 * stats.speed as f32 * time.delta_seconds();
+        transform.translation += direction.0 * stats.speed as f32 * time.delta_secs();
 
         if transform.translation.x.abs() > WW || transform.translation.y.abs() > WH {
             commands.entity(entity).despawn();
@@ -387,25 +378,17 @@ fn spawn_enemy_bullets(
 
         commands.spawn((
             Name::new("Enemy Bullet"),
-            SpriteBundle {
-                texture: handle.image.clone().unwrap(),
-                transform: Transform::from_translation(enemy_pos)
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout.clone().unwrap(),
+                    index: 81,
+                }),
                 ..default()
             },
-            TextureAtlas {
-                layout: handle.layout.clone().unwrap(),
-                index: 81,
-            },
+            Transform::from_translation(enemy_pos).with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             EnemyBullet,
             BulletDirection(bullet_direction),
-            BulletStats {
-                speed: 200,
-                damage: 10,
-                lifespan: 2.0,
-            },
-            InGameEntity,
-            HasLifespan::new(std::time::Duration::from_secs(2)),
         ));
     }
 }

@@ -8,28 +8,20 @@ use bevy::{prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
+#[require(PotionStats, PotionType, InGameEntity, Sprite)]
 pub struct Potion;
 
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Clone, Debug, Default)]
 pub enum PotionType {
+    #[default]
     Health,
     Speed,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct PotionStats {
     pub effect_duration: f32,
     pub effect_amount: u32,
-}
-
-#[derive(Bundle)]
-pub struct PotionBundle {
-    pub potion: Potion,
-    pub potion_stats: PotionStats,
-    pub potion_type: PotionType,
-    pub in_game_entity: InGameEntity,
-    pub sprite_bundle: SpriteBundle,
-    pub texture_bundle: TextureAtlas,
 }
 
 pub struct PotionPlugin;

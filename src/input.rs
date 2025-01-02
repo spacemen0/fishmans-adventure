@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use leafwing_input_manager::{prelude::*, user_input::KeyboardVirtualDPad};
+use leafwing_input_manager::prelude::*;
 
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {
@@ -35,7 +35,7 @@ impl Action {
         ])
         .with_dual_axis(
             Self::Move,
-            KeyboardVirtualDPad::new(KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyA, KeyCode::KeyD),
+            VirtualDPad::new(KeyCode::KeyW, KeyCode::KeyS, KeyCode::KeyA, KeyCode::KeyD),
         )
     }
 }

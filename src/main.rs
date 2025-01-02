@@ -61,7 +61,6 @@ fn main() {
         .add_plugins(ArmorPlugin)
         .add_plugins(InputPlugin)
         .init_state::<GameState>()
-        .insert_resource(Msaa::Off)
         .run();
 }
 

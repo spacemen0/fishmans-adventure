@@ -1,6 +1,14 @@
 use bevy::prelude::*;
 
+use crate::{
+    animation::AnimationTimer,
+    gun::{BulletStats, HasLifespan},
+    loot::LootPool,
+    utils::InGameEntity,
+};
+
 #[derive(Component)]
+#[require(Sprite, Transform, AnimationTimer(||AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating))), InGameEntity, LootPool, Collider)]
 pub struct Enemy {
     pub health: u32,
     pub speed: u32,
@@ -8,12 +16,17 @@ pub struct Enemy {
     pub xp: u32,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct Collider {
     pub radius: u32,
 }
 
 #[derive(Component)]
+#[require(InGameEntity,HasLifespan(||HasLifespan::new(std::time::Duration::from_secs(2))),BulletStats(||            BulletStats {
+                speed: 200,
+                damage: 10,
+                lifespan: 2.0,
+            }))]
 pub struct EnemyBullet;
 
 #[derive(Component)]
@@ -56,12 +69,14 @@ pub struct ChargeAbility {
 }
 
 #[derive(Component)]
+#[require(InGameEntity, HasLifespan(||HasLifespan::new(std::time::Duration::from_secs_f32(5.0))))]
 pub struct Trail {
     pub damage: u32,
     pub radius: f32,
 }
 
 #[derive(Component)]
+#[require(InGameEntity)]
 pub struct Explosion {
     pub radius: f32,
     pub damage: u32,

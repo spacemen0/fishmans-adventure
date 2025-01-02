@@ -77,23 +77,19 @@ impl Plugin for UiPlugin {
             Update,
             (toggle_loot_ui_visibility.run_if(
                 in_state(GameState::Combat)
-                    .or_else(in_state(GameState::Ui))
-                    .or_else(in_state(GameState::Paused)),
+                    .or(in_state(GameState::Ui))
+                    .or(in_state(GameState::Paused)),
             ),),
         )
         .add_systems(OnEnter(GameState::Ui), update_ui)
         .add_systems(
             Update,
-            update_wave_display.run_if(
-                in_state(GameState::Combat)
-                    .or_else(in_state(GameState::Paused))
-                    .and_then(resource_changed::<Wave>),
-            ),
+            update_wave_display.run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
         )
         .add_systems(
             Update,
             (handle_pause_input, update_health_bar)
-                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
+                .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
         );
     }
 }
@@ -107,52 +103,46 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
     commands
         .spawn((
             Name::new("Ui"),
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    flex_direction: FlexDirection::Row,
-                    ..default()
-                },
-                background_color: BackgroundColor(Color::linear_rgb(0.6, 0.2, 0.2)),
-                visibility: Visibility::Hidden,
-                z_index: ZIndex::Global(3),
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                flex_direction: FlexDirection::Row,
                 ..default()
             },
+            GlobalZIndex(3),
+            Visibility::Hidden,
+            BackgroundColor(Color::linear_rgb(0.6, 0.2, 0.2)),
             InGameEntity,
         ))
         .with_children(|parent| {
             // Left side: Loot information
             parent
-                .spawn(NodeBundle {
-                    style: Style {
-                        width: Val::Percent(30.0),
-                        height: Val::Percent(100.0),
-                        flex_direction: FlexDirection::Column,
-                        padding: UiRect::all(Val::Px(10.0)),
-                        border: UiRect::all(Val::Px(2.0)),
-                        ..default()
-                    },
+                .spawn(Node {
+                    width: Val::Percent(30.0),
+                    height: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
+                    padding: UiRect::all(Val::Px(10.0)),
+                    border: UiRect::all(Val::Px(2.0)),
+
                     ..default()
                 })
                 .with_children(|parent| {
                     parent.spawn((
-                        TextBundle::from_section(
-                            "Loot Information",
-                            TextStyle {
-                                font: font.0.clone(),
-                                font_size: 30.0,
-                                color: Color::WHITE,
-                            },
-                        ),
+                        Text::new("Loot Information"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
                         LootInfoText,
                     ));
                 });
 
             // Right side: Player information
             parent
-                .spawn(NodeBundle {
-                    style: Style {
+                .spawn((
+                    Node {
                         width: Val::Percent(70.0),
                         height: Val::Percent(100.0),
                         flex_direction: FlexDirection::Column,
@@ -161,146 +151,142 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
                         border: UiRect::left(Val::Px(6.0)),
                         ..default()
                     },
-                    border_color: BorderColor(Color::linear_rgb(0.0, 0.0, 0.0)),
-                    ..default()
-                })
+                    BorderColor(Color::linear_rgb(0.0, 0.0, 0.0)),
+                ))
                 .with_children(|parent| {
                     // Health
                     parent
-                        .spawn(NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Row,
-                                align_items: AlignItems::Center,
-                                margin: UiRect::bottom(Val::Px(10.0)),
-                                ..default()
-                            },
+                        .spawn(Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            margin: UiRect::bottom(Val::Px(10.0)),
                             ..default()
                         })
                         .with_children(|parent| {
-                            parent.spawn(ImageBundle {
-                                image: health_icon.clone().into(),
-                                style: Style {
+                            parent.spawn((
+                                ImageNode {
+                                    image: health_icon.clone(),
+
+                                    ..default()
+                                },
+                                Node {
                                     width: Val::Px(30.0),
                                     height: Val::Px(30.0),
                                     margin: UiRect::right(Val::Px(10.0)),
                                     ..default()
                                 },
-                                ..default()
-                            });
+                            ));
                             parent.spawn((
-                                TextBundle::from_section(
-                                    "Health: ",
-                                    TextStyle {
-                                        font: font.0.clone(),
-                                        font_size: 30.0,
-                                        color: Color::WHITE,
-                                    },
-                                ),
+                                Text::new("Health: "),
+                                TextFont {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
                                 PlayerHealthText,
                             ));
                         });
 
                     // Level
                     parent
-                        .spawn(NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Row,
-                                align_items: AlignItems::Center,
-                                margin: UiRect::bottom(Val::Px(10.0)),
-                                ..default()
-                            },
+                        .spawn(Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            margin: UiRect::bottom(Val::Px(10.0)),
                             ..default()
                         })
                         .with_children(|parent| {
-                            parent.spawn(ImageBundle {
-                                image: level_icon.clone().into(),
-                                style: Style {
+                            parent.spawn((
+                                ImageNode {
+                                    image: level_icon.clone(),
+
+                                    ..default()
+                                },
+                                Node {
                                     width: Val::Px(30.0),
                                     height: Val::Px(30.0),
                                     margin: UiRect::right(Val::Px(10.0)),
                                     ..default()
                                 },
-                                ..default()
-                            });
+                            ));
                             parent.spawn((
-                                TextBundle::from_section(
-                                    "Level: ",
-                                    TextStyle {
-                                        font: font.0.clone(),
-                                        font_size: 30.0,
-                                        color: Color::WHITE,
-                                    },
-                                ),
+                                Text::new("Level: "),
+                                TextFont {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
                                 PlayerLevelText,
                             ));
                         });
 
                     // XP
                     parent
-                        .spawn(NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Row,
-                                align_items: AlignItems::Center,
-                                margin: UiRect::bottom(Val::Px(10.0)),
-                                ..default()
-                            },
+                        .spawn(Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+
                             ..default()
                         })
                         .with_children(|parent| {
-                            parent.spawn(ImageBundle {
-                                image: xp_icon.clone().into(),
-                                style: Style {
+                            parent.spawn((
+                                ImageNode {
+                                    image: xp_icon.clone(),
+
+                                    ..default()
+                                },
+                                Node {
                                     width: Val::Px(30.0),
                                     height: Val::Px(30.0),
                                     margin: UiRect::right(Val::Px(10.0)),
                                     ..default()
                                 },
-                                ..default()
-                            });
+                            ));
                             parent.spawn((
-                                TextBundle::from_section(
-                                    "XP: ",
-                                    TextStyle {
-                                        font: font.0.clone(),
-                                        font_size: 30.0,
-                                        color: Color::WHITE,
-                                    },
-                                ),
+                                Text::new("XP: "),
+                                TextFont {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
                                 PlayerXpText,
                             ));
                         });
 
                     // Defense
                     parent
-                        .spawn(NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Row,
-                                align_items: AlignItems::Center,
-                                margin: UiRect::bottom(Val::Px(10.0)),
-                                ..default()
-                            },
+                        .spawn(Node {
+                            flex_direction: FlexDirection::Row,
+                            align_items: AlignItems::Center,
+                            margin: UiRect::bottom(Val::Px(10.0)),
+
                             ..default()
                         })
                         .with_children(|parent| {
-                            parent.spawn(ImageBundle {
-                                image: defense_icon.clone().into(),
-                                style: Style {
+                            parent.spawn((
+                                ImageNode {
+                                    image: defense_icon.clone(),
+
+                                    ..default()
+                                },
+                                Node {
                                     width: Val::Px(30.0),
                                     height: Val::Px(30.0),
                                     margin: UiRect::right(Val::Px(10.0)),
                                     ..default()
                                 },
-                                ..default()
-                            });
+                            ));
                             parent.spawn((
-                                TextBundle::from_section(
-                                    "Defense: ",
-                                    TextStyle {
-                                        font: font.0.clone(),
-                                        font_size: 30.0,
-                                        color: Color::WHITE,
-                                    },
-                                ),
+                                Text::new("Defense: "),
+                                TextFont {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    ..default()
+                                },
+                                TextColor(Color::WHITE),
                                 PlayerDefenseText,
                             ));
                         });
@@ -323,30 +309,31 @@ fn update_ui(
 ) {
     if let Ok((health, defense)) = player_query.get_single() {
         if let Ok(mut health_text) = param_set.p0().get_single_mut() {
-            health_text.sections[0].value = format!("Health: {}", health.0);
+            *health_text = format!("Health: {}", health.0).into();
         }
         if let Ok(mut defense_text) = param_set.p3().get_single_mut() {
-            defense_text.sections[0].value = format!("Defense: {}", defense.0);
+            *defense_text = format!("Defense: {}", defense.0).into();
         }
     }
 
     if let Ok(mut level_text) = param_set.p1().get_single_mut() {
-        level_text.sections[0].value = format!("Level: {}", level.level());
+        *level_text = format!("Level: {}", level.level()).into();
     }
 
     if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
-        xp_text.sections[0].value = format!("XP: {}/{}", level.current_xp(), level.xp_threshold());
+        *xp_text = format!("XP: {}/{}", level.current_xp(), level.xp_threshold()).into();
     }
 
     if let Ok(player_inventory) = player_inventory_query.get_single() {
         if let Ok(mut loot_text) = param_set.p4().get_single_mut() {
-            loot_text.sections[0].value = format!(
+            *loot_text = format!(
                 "Health Potions: {}\nSpeed Potions: {}\nGuns: {}\nArmors: {}",
                 player_inventory.health_potions.len(),
                 player_inventory.speed_potions.len(),
                 player_inventory.guns.len(),
                 player_inventory.armors.len()
-            );
+            )
+            .into();
         }
     }
 }
@@ -371,20 +358,18 @@ fn toggle_loot_ui_visibility(
 
 fn setup_main_menu(mut commands: Commands) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            },
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
             ..default()
         })
         .with_children(|parent| {
             parent
-                .spawn(ButtonBundle {
-                    style: Style {
+                .spawn((
+                    Button,
+                    Node {
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
@@ -392,17 +377,16 @@ fn setup_main_menu(mut commands: Commands) {
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    border_color: BorderColor(Color::BLACK),
-                    ..default()
-                })
+                    BorderColor(Color::BLACK),
+                ))
                 .with_children(|parent| {
-                    parent.spawn(TextBundle::from_section(
-                        "Play",
-                        TextStyle {
+                    parent.spawn((
+                        Text::new("Play"),
+                        TextFont {
                             font_size: 40.0,
-                            color: Color::BLACK,
                             ..default()
                         },
+                        TextColor(Color::BLACK),
                     ));
                 });
         })
@@ -434,13 +418,10 @@ fn handle_pause_input(
 ) {
     if action_state.just_pressed(&Action::TogglePause) {
         let mut visibility = query.single_mut();
-        match current_state.get() {
-            GameState::Combat => {
-                next_state.set(GameState::Paused);
+        if current_state.get() == &GameState::Combat {
+            next_state.set(GameState::Paused);
 
-                *visibility = Visibility::Visible;
-            }
-            _ => {}
+            *visibility = Visibility::Visible;
         }
     }
 }
@@ -449,24 +430,21 @@ fn setup_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>, font
     let _ = asset_server;
     commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
-                visibility: Visibility::Hidden,
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
                 ..default()
             },
+            Visibility::Hidden,
             PauseMenuRoot,
             InGameEntity,
         ))
         .with_children(|parent| {
             parent
-                .spawn(NodeBundle {
-                    style: Style {
+                .spawn((
+                    Node {
                         width: Val::Px(300.0),
                         height: Val::Px(200.0),
                         flex_direction: FlexDirection::Column,
@@ -474,88 +452,84 @@ fn setup_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>, font
                         align_items: AlignItems::Center,
                         ..default()
                     },
-                    background_color: BackgroundColor(Color::linear_rgb(0.2, 0.2, 0.2)),
-                    ..default()
-                })
+                    BackgroundColor(Color::linear_rgb(0.2, 0.2, 0.2)),
+                ))
                 .with_children(|parent| {
                     // Resume button
                     parent
                         .spawn((
-                            ButtonBundle {
-                                style: Style {
-                                    width: Val::Px(200.0),
-                                    height: Val::Px(50.0),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                            Button,
+                            Node {
+                                width: Val::Px(200.0),
+                                height: Val::Px(50.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
                                 ..default()
                             },
+                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
                             MenuButton::Resume,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "Resume",
-                                TextStyle {
+                            parent.spawn((
+                                Text::new("Resume"),
+                                TextFont {
                                     font: font.0.clone(),
                                     font_size: 30.0,
-                                    color: Color::BLACK,
+                                    ..default()
                                 },
+                                TextColor(Color::BLACK),
                             ));
                         });
 
                     // Restart button
                     parent
                         .spawn((
-                            ButtonBundle {
-                                style: Style {
-                                    width: Val::Px(200.0),
-                                    height: Val::Px(50.0),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                            Button,
+                            Node {
+                                width: Val::Px(200.0),
+                                height: Val::Px(50.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
                                 ..default()
                             },
+                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
                             MenuButton::Restart,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "Restart",
-                                TextStyle {
+                            parent.spawn((
+                                Text::new("Restart"),
+                                TextFont {
                                     font: font.0.clone(),
                                     font_size: 30.0,
-                                    color: Color::BLACK,
+                                    ..default()
                                 },
+                                TextColor(Color::BLACK),
                             ));
                         });
 
                     // Quit button
                     parent
                         .spawn((
-                            ButtonBundle {
-                                style: Style {
-                                    width: Val::Px(200.0),
-                                    height: Val::Px(50.0),
-                                    justify_content: JustifyContent::Center,
-                                    align_items: AlignItems::Center,
-                                    ..default()
-                                },
-                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                            Button,
+                            Node {
+                                width: Val::Px(200.0),
+                                height: Val::Px(50.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
                                 ..default()
                             },
+                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
                             MenuButton::Quit,
                         ))
                         .with_children(|parent| {
-                            parent.spawn(TextBundle::from_section(
-                                "Quit",
-                                TextStyle {
+                            parent.spawn((
+                                Text::new("Quit"),
+                                TextFont {
                                     font: font.0.clone(),
                                     font_size: 30.0,
-                                    color: Color::BLACK,
+                                    ..default()
                                 },
+                                TextColor(Color::BLACK),
                             ));
                         });
                 });
@@ -616,33 +590,31 @@ fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With<Pla
     if let Ok(player_entity) = player_query.get_single() {
         commands.entity(player_entity).with_children(|parent| {
             // Health bar background
-            parent.spawn(SpriteBundle {
-                sprite: Sprite {
+            parent.spawn((
+                Sprite {
                     color: Color::linear_rgb(0.5, 0.5, 0.5),
                     custom_size: Some(Vec2::new(18.0, 4.0)), // Background size
                     ..default()
                 },
-                transform: Transform {
+                Transform {
                     translation: Vec3::new(0.0, 16.0, 0.0), // Position above the player
                     ..default()
                 },
-                ..default()
-            });
+            ));
 
             // Health bar fill
             parent
-                .spawn(SpriteBundle {
-                    sprite: Sprite {
+                .spawn((
+                    Sprite {
                         color: Color::linear_rgb(0.0, 1.0, 0.0),
                         custom_size: Some(Vec2::new(18.0, 4.0)), // Fill size, will be updated dynamically
                         ..default()
                     },
-                    transform: Transform {
+                    Transform {
                         translation: Vec3::new(0.0, 16.0, 1.0), // Position above the player, slightly in front
                         ..default()
                     },
-                    ..default()
-                })
+                ))
                 .insert(PlayerHealthBar);
         });
     }
@@ -673,15 +645,12 @@ fn setup_wave_display(
     commands
         .spawn((
             Name::new("Wave"),
-            NodeBundle {
-                style: Style {
-                    position_type: PositionType::Absolute,
-                    top: Val::Px(10.0),
-                    left: Val::Percent(50.0),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
+            Node {
+                position_type: PositionType::Absolute,
+                top: Val::Px(10.0),
+                left: Val::Percent(50.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
                 ..default()
             },
             InGameEntity,
@@ -689,21 +658,22 @@ fn setup_wave_display(
         ))
         .with_children(|parent| {
             parent.spawn((
-                TextBundle::from_section(
-                    "Wave 1",
-                    TextStyle {
-                        font: font.0.clone(),
-                        font_size: 40.0,
-                        color: Color::WHITE,
-                    },
-                ),
+                Text::new("Wave 1"),
+                TextFont {
+                    font: font.0.clone(),
+                    font_size: 40.0,
+                    ..default()
+                },
+                TextColor::WHITE,
                 WaveDisplay,
             ));
         });
 }
 
 fn update_wave_display(mut wave_query: Query<&mut Text, With<WaveDisplay>>, wave: Res<Wave>) {
-    if let Ok(mut text) = wave_query.get_single_mut() {
-        text.sections[0].value = format!("Wave {}", wave.number);
+    if wave.is_changed() {
+        if let Ok(mut text) = wave_query.get_single_mut() {
+            *text = Text::from(format!("Wave {}", wave.number));
+        }
     }
 }

@@ -5,7 +5,7 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 
 use crate::{
-    enemy::{Enemy, Trail, ExplosionAbility, spawn_explosion},
+    enemy::{spawn_explosion, Enemy, ExplosionAbility, Trail},
     gun::Bullet,
     player::{Player, PlayerDamagedEvent},
     state::GameState,
@@ -41,12 +41,7 @@ impl Plugin for CollisionPlugin {
 fn handle_enemy_player_collision(
     mut commands: Commands,
     player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
-    mut enemy_query: Query<(
-        Entity,
-        &Transform,
-        &mut Enemy,
-        Option<&ExplosionAbility>
-    )>,
+    mut enemy_query: Query<(Entity, &Transform, &mut Enemy, Option<&ExplosionAbility>)>,
     tree: Res<EnemyKdTree>,
     mut ev: EventWriter<PlayerDamagedEvent>,
 ) {
@@ -59,8 +54,8 @@ fn handle_enemy_player_collision(
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
     for enemy in enemies {
-        if let Ok((entity, transform, enemy_component, explosion_ability)) = 
-            enemy_query.get_mut(enemy.entity) 
+        if let Ok((entity, transform, enemy_component, explosion_ability)) =
+            enemy_query.get_mut(enemy.entity)
         {
             if enemy_component.damage > 0 {
                 println!("send enemy collision event");
@@ -77,11 +72,11 @@ fn handle_enemy_player_collision(
                     explosion.explosion_radius,
                     explosion.explosion_damage,
                 );
-                
+
                 ev.send(PlayerDamagedEvent {
                     damage: explosion.explosion_damage,
                 });
-                
+
                 commands.entity(entity).despawn();
             }
         }
@@ -142,11 +137,7 @@ fn handle_enemy_bullet_collision(
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
                 enemy.health = safe_subtract(enemy.health, 55); //add bullet damage to gun
-                commands.add(move |world: &mut World| {
-                    if let Some(entity) = world.get_entity_mut(bullet_entity) {
-                        entity.despawn();
-                    }
-                });
+                commands.entity(bullet_entity).despawn();
             }
         }
     }
