@@ -14,6 +14,15 @@ use crate::{
 pub struct UiPlugin;
 
 #[derive(Component)]
+struct PauseMenuRoot;
+#[derive(Component)]
+enum MenuButton {
+    Resume,
+    Restart,
+    Quit,
+}
+
+#[derive(Component)]
 struct MainMenuItem;
 
 #[derive(Component)]
@@ -47,8 +56,13 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(GameState::Initializing),
-            (setup_ui, setup_health_bar.after(init_world)),
+            (
+                setup_ui,
+                setup_pause_menu,
+                setup_health_bar.after(init_world),
+            ),
         )
+        .add_systems(Update, menu_navigation.run_if(in_state(GameState::Paused)))
         .add_systems(
             OnEnter(GameState::MainMenu),
             (setup_main_menu, cleanup_entities),
@@ -61,8 +75,11 @@ impl Plugin for UiPlugin {
         )
         .add_systems(
             Update,
-            (toggle_loot_ui_visibility
-                .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Ui))),),
+            (toggle_loot_ui_visibility.run_if(
+                in_state(GameState::Combat)
+                    .or_else(in_state(GameState::Ui))
+                    .or_else(in_state(GameState::Paused)),
+            ),),
         )
         .add_systems(OnEnter(GameState::Ui), update_ui)
         .add_systems(
@@ -75,7 +92,7 @@ impl Plugin for UiPlugin {
         )
         .add_systems(
             Update,
-            (handle_pause_input, handle_game_restart, update_health_bar)
+            (handle_pause_input, update_health_bar)
                 .run_if(in_state(GameState::Combat).or_else(in_state(GameState::Paused))),
         );
     }
@@ -412,30 +429,186 @@ fn despawn_main_menu(mut commands: Commands, menu_items_query: Query<Entity, Wit
 fn handle_pause_input(
     action_state: Res<ActionState<Action>>,
     mut next_state: ResMut<NextState<GameState>>,
+    mut query: Query<&mut Visibility, With<PauseMenuRoot>>,
     current_state: Res<State<GameState>>,
 ) {
     if action_state.just_pressed(&Action::TogglePause) {
+        let mut visibility = query.single_mut();
         match current_state.get() {
             GameState::Combat => {
                 next_state.set(GameState::Paused);
-            }
-            GameState::Paused => {
-                next_state.set(GameState::Combat);
+
+                *visibility = Visibility::Visible;
             }
             _ => {}
         }
     }
 }
 
-fn handle_game_restart(
-    commands: Commands,
+fn setup_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>, font: Res<UiFont>) {
+    let _ = asset_server;
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                visibility: Visibility::Hidden,
+                ..default()
+            },
+            PauseMenuRoot,
+            InGameEntity,
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        width: Val::Px(300.0),
+                        height: Val::Px(200.0),
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    background_color: BackgroundColor(Color::linear_rgb(0.2, 0.2, 0.2)),
+                    ..default()
+                })
+                .with_children(|parent| {
+                    // Resume button
+                    parent
+                        .spawn((
+                            ButtonBundle {
+                                style: Style {
+                                    width: Val::Px(200.0),
+                                    height: Val::Px(50.0),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                                ..default()
+                            },
+                            MenuButton::Resume,
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section(
+                                "Resume",
+                                TextStyle {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    color: Color::BLACK,
+                                },
+                            ));
+                        });
+
+                    // Restart button
+                    parent
+                        .spawn((
+                            ButtonBundle {
+                                style: Style {
+                                    width: Val::Px(200.0),
+                                    height: Val::Px(50.0),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                                ..default()
+                            },
+                            MenuButton::Restart,
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section(
+                                "Restart",
+                                TextStyle {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    color: Color::BLACK,
+                                },
+                            ));
+                        });
+
+                    // Quit button
+                    parent
+                        .spawn((
+                            ButtonBundle {
+                                style: Style {
+                                    width: Val::Px(200.0),
+                                    height: Val::Px(50.0),
+                                    justify_content: JustifyContent::Center,
+                                    align_items: AlignItems::Center,
+                                    ..default()
+                                },
+                                background_color: BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+                                ..default()
+                            },
+                            MenuButton::Quit,
+                        ))
+                        .with_children(|parent| {
+                            parent.spawn(TextBundle::from_section(
+                                "Quit",
+                                TextStyle {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    color: Color::BLACK,
+                                },
+                            ));
+                        });
+                });
+        });
+}
+
+fn menu_navigation(
+    mut next_state: ResMut<NextState<GameState>>,
     action_state: Res<ActionState<Action>>,
     all_entities: Query<Entity, With<InGameEntity>>,
-    mut next_state: ResMut<NextState<GameState>>, // bug still possible, maybe only allow it when paused
+    mut visibility_query: Query<&mut Visibility, With<PauseMenuRoot>>,
+    mut selected_button: Local<usize>,
+    mut query: Query<(&MenuButton, &mut BackgroundColor)>,
+    commands: Commands,
+    mut exit: EventWriter<AppExit>,
 ) {
-    if action_state.just_pressed(&Action::Restart) {
-        next_state.set(GameState::Initializing);
-        cleanup_entities(commands, all_entities);
+    let button_count = query.iter().count();
+
+    if action_state.just_pressed(&Action::NavigateUp) {
+        *selected_button = (*selected_button + button_count - 1) % button_count;
+    }
+
+    if action_state.just_pressed(&Action::NavigateDown) {
+        *selected_button = (*selected_button + 1) % button_count;
+    }
+
+    for (i, (_, mut color)) in query.iter_mut().enumerate() {
+        if i == *selected_button {
+            *color = BackgroundColor(Color::linear_rgb(0.5, 0.5, 0.5));
+        } else {
+            *color = BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8));
+        }
+    }
+
+    if action_state.just_pressed(&Action::Confirm) {
+        let mut visibility = visibility_query.single_mut();
+
+        if let Some((button, _)) = query.iter().nth(*selected_button) {
+            match button {
+                MenuButton::Resume => {
+                    next_state.set(GameState::Combat);
+                    *visibility = Visibility::Hidden;
+                }
+                MenuButton::Restart => {
+                    next_state.set(GameState::Initializing);
+                    cleanup_entities(commands, all_entities);
+                }
+                MenuButton::Quit => {
+                    exit.send(AppExit::Success);
+                }
+            }
+            *selected_button = 0;
+        }
     }
 }
 
@@ -530,7 +703,6 @@ fn setup_wave_display(
 }
 
 fn update_wave_display(mut wave_query: Query<&mut Text, With<WaveDisplay>>, wave: Res<Wave>) {
-    println!("wave system");
     if let Ok(mut text) = wave_query.get_single_mut() {
         text.sections[0].value = format!("Wave {}", wave.number);
     }

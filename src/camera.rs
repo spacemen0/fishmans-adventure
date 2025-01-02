@@ -1,5 +1,4 @@
 use bevy::{math::vec3, prelude::*};
-use bevy_pancam::{DirectionKeys, PanCam, PanCamPlugin};
 
 use crate::{
     configs::{WH, WW},
@@ -11,8 +10,7 @@ pub struct FollowCameraPlugin;
 
 impl Plugin for FollowCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(PanCamPlugin)
-            .add_systems(OnEnter(GameState::Loading), setup_camera)
+        app.add_systems(OnEnter(GameState::Loading), setup_camera)
             .add_systems(
                 Update,
                 camera_follow_player
@@ -22,16 +20,18 @@ impl Plugin for FollowCameraPlugin {
 }
 
 fn setup_camera(mut commands: Commands) {
-    commands
-        .spawn((Camera2dBundle::default(), Name::new("Camera")))
-        .insert(PanCam {
-            grab_buttons: vec![],
-            move_keys: DirectionKeys::NONE,
-            zoom_to_cursor: false,
-            min_scale: 1.0,
-            max_scale: 1.0,
+    commands.spawn((
+        Camera2dBundle {
+            projection: OrthographicProjection {
+                near: -1000.0,
+                far: 1000.0,
+                scale: 1.3,
+                ..default()
+            },
             ..default()
-        });
+        },
+        Name::new("Camera"),
+    ));
 }
 
 fn camera_follow_player(
