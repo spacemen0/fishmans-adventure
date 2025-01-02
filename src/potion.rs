@@ -41,18 +41,14 @@ fn apply_potion_effects(
     potion_query: Query<(Entity, &PotionStats), With<Potion>>,
     action_state: Res<ActionState<Action>>,
 ) {
-    // Ensure there's only one player entity
     let (mut health, mut player_inventory, entity, mut speed) = player_query.single_mut();
-    // Assuming health and speed effects are keyed to specific keys
     if action_state.just_pressed(&Action::UsePotion1) {
+        println!("Use potion 1");
+        println!("Player inventory: {:?}", player_inventory);
         if let Some(health_potion_entity) = player_inventory.health_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*health_potion_entity) {
-                // Apply health effect
-                health.0 += potion_stats.effect_amount;
-                if health.0 >= health.1 {
-                    health.0 = health.1;
-                }
-                commands.entity(potion_entity).despawn(); // Despawn the potion entity
+                health.0 = (health.0 + potion_stats.effect_amount).min(health.1);
+                commands.entity(potion_entity).despawn();
                 player_inventory.health_potions.remove(0);
             }
         }
@@ -61,14 +57,13 @@ fn apply_potion_effects(
     if action_state.just_pressed(&Action::UsePotion2) {
         if let Some(speed_potion_entity) = player_inventory.speed_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*speed_potion_entity) {
-                // Apply speed potion effect
                 commands.entity(entity).insert(AccelerationEffect(
                     Stopwatch::new(),
                     potion_stats.effect_duration,
                     potion_stats.effect_amount,
                 ));
                 speed.0 += potion_stats.effect_amount;
-                commands.entity(potion_entity).despawn(); // Despawn the potion entity
+                commands.entity(potion_entity).despawn();
                 player_inventory.speed_potions.remove(0);
             }
         }

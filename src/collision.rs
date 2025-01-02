@@ -14,13 +14,13 @@ use crate::{
 pub struct CollisionPlugin;
 
 #[derive(Component)]
-struct Collidable {
-    pos: Vec2,
-    entity: Entity,
+pub struct Collidable {
+    pub pos: Vec2,
+    pub entity: Entity,
 }
 
 #[derive(Resource)]
-struct EnemyKdTree(KdTree<Collidable>);
+pub struct EnemyKdTree(pub KdTree<Collidable>);
 
 impl Plugin for CollisionPlugin {
     fn build(&self, app: &mut App) {

@@ -5,7 +5,7 @@ use crate::{
     animation::AnimationTimer,
     armor::{Armor, ArmorStats},
     configs::*,
-    gun::{BulletStats, Gun, GunStats, GunType},
+    gun::{ActiveGun, BulletStats, Gun, GunStats, GunType},
     player::{Defense, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
     potion::{Potion, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
@@ -50,7 +50,8 @@ pub fn init_world(
                 }),
                 ..default()
             },
-            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER1))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Player,
             Health(PLAYER_HEALTH, 200),
             Speed(PLAYER_SPEED),
@@ -66,6 +67,7 @@ pub fn init_world(
         .spawn((
             Name::new("Gun1"),
             Gun,
+            ActiveGun,
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -74,7 +76,8 @@ pub fn init_world(
                 }),
                 ..default()
             },
-            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
         ))
         .id();
 
@@ -91,7 +94,9 @@ pub fn init_world(
                 }),
                 ..default()
             },
-            Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Visibility::Hidden,
+            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             GunType::Gun1,
             GunStats {
                 bullets_per_shot: 20,

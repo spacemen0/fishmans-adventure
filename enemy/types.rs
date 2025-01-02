@@ -187,10 +187,10 @@ impl EnemyType {
                 } else {
                     Vec3::ZERO
                 }
-            },
-            EnemyType::Bomber { speed_multiplier, .. } => {
-                (player_pos - current_pos).normalize() * base_speed as f32 * *speed_multiplier
             }
+            EnemyType::Bomber {
+                speed_multiplier, ..
+            } => (player_pos - current_pos).normalize() * base_speed as f32 * *speed_multiplier,
         }
     }
 
@@ -247,7 +247,7 @@ fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32) {
             damage,
             radius: 10.0,
         },
-        crate::gun::HasLifespan::new(Duration::from_secs_f32(5.0)),
+        HasLifespan::new(Duration::from_secs_f32(5.0)),
         InGameEntity,
     ));
 }

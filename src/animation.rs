@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
+    collision::EnemyKdTree,
     enemy::Enemy,
-    gun::Gun,
-    player::{Player, PlayerInventory, PlayerState},
+    gun::ActiveGun,
+    player::{Player, PlayerState},
     resources::CursorPosition,
     state::GameState,
 };
@@ -25,10 +26,7 @@ impl Plugin for AnimationPlugin {
                 flip_player_sprite_x,
                 flip_enemy_sprite_x,
             )
-                .run_if(
-                    in_state(GameState::Combat)
-                        .or(in_state(GameState::Paused).or(in_state(GameState::Town))),
-                ),
+                .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
         );
     }
 }
@@ -98,19 +96,24 @@ fn flip_enemy_sprite_x(
 }
 
 fn flip_gun_sprite_y(
-    cursor_position: Res<CursorPosition>,
-    player_query: Query<&PlayerInventory, With<Player>>,
-    mut gun_query: Query<(&mut Sprite, &Transform), With<Gun>>,
+    player_query: Query<(), With<Player>>,
+    enemy_kd_tree: Res<EnemyKdTree>,
+    mut gun_query: Query<(&mut Sprite, &Transform), With<ActiveGun>>,
 ) {
-    // Check if player has an active gun
-    if let Ok(inventory) = player_query.get_single() {
-        if let Some(active_gun) = inventory.guns.get(inventory.active_gun_index) {
-            // Get the sprite and transform of the active gun
-            if let Ok((mut sprite, transform)) = gun_query.get_mut(*active_gun) {
-                if let Some(cursor_position) = cursor_position.0 {
-                    // Flip the gun sprite based on cursor position relative to gun
-                    sprite.flip_y = cursor_position.x <= transform.translation.x;
-                }
+    if let Ok(_) = player_query.get_single() {
+        if let Ok((mut sprite, transform)) = gun_query.get_single_mut() {
+            let gun_pos = transform.translation.truncate();
+            let nearest_enemy = enemy_kd_tree
+                .0
+                .nearest(&[gun_pos.x, gun_pos.y])
+                .into_iter()
+                .next();
+
+            if let Some(nearest_enemy) = nearest_enemy {
+                let nearest_enemy_pos =
+                    Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]);
+
+                sprite.flip_y = nearest_enemy_pos.x <= gun_pos.x;
             }
         }
     }

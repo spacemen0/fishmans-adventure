@@ -40,7 +40,7 @@ pub fn update_enemy_movement(
                         }
 
                         transform.translation +=
-                            Vec3::new(direction.x, direction.y, 0.0) * enemy.speed as f32 * 0.5;
+                            Vec3::new(direction.x, direction.y, LAYER1) * enemy.speed as f32 * 0.5;
                     }
                 }
                 EnemyState::Pursuing => {
@@ -133,7 +133,7 @@ pub fn spawn_enemies(
 pub fn handle_trail_abilities(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&Transform, &mut TrailAbility)>,
+    mut query: Query<(&Transform, &mut TrailAbility), With<Enemy>>,
 ) {
     for (transform, mut trail_ability) in query.iter_mut() {
         trail_ability.timer.tick(time.delta());
@@ -171,7 +171,7 @@ pub fn handle_enemy_bullet_player_collision(
 pub fn handle_shooting_abilities(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemy_query: Query<(&Transform, &mut ShootingAbility)>,
+    mut enemy_query: Query<(&Transform, &mut ShootingAbility), With<Enemy>>,
     player_query: Query<&Transform, With<Player>>,
     handle: Res<GlobalTextureAtlas>,
 ) {

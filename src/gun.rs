@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    math::{vec2, vec3},
+    math::vec3,
     prelude::*,
     time::Stopwatch,
     utils::{Duration, Instant},
@@ -10,10 +10,11 @@ use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 
 use crate::{
+    collision::EnemyKdTree,
     configs::*,
     input::Action,
     player::{handle_player_input, Player, PlayerInventory},
-    resources::{CursorPosition, GlobalTextureAtlas},
+    resources::GlobalTextureAtlas,
     state::GameState,
     utils::InGameEntity,
 };
@@ -40,9 +41,10 @@ pub enum GunType {
     #[default]
     Default,
     Gun1,
-    Gun2,
 }
 
+#[derive(Component)]
+pub struct ActiveGun;
 #[derive(Component)]
 pub struct Bullet;
 
@@ -89,46 +91,50 @@ impl Plugin for GunPlugin {
                 despawn_entities_reach_lifespan,
                 switch_gun,
             )
-                .run_if(in_state(GameState::Combat).or(in_state(GameState::Town))),
+                .run_if(in_state(GameState::Combat)),
         );
     }
 }
 
 fn update_gun_transform(
-    cursor_pos: Res<CursorPosition>,
-    player_query: Query<(&Transform, &PlayerInventory), With<Player>>,
-    mut gun_query: Query<&mut Transform, (With<Gun>, Without<Player>)>,
+    player_query: Query<&Transform, With<Player>>,
+    enemy_kd_tree: Res<EnemyKdTree>,
+    mut gun_query: Query<&mut Transform, (With<ActiveGun>, Without<Player>)>,
 ) {
-    if player_query.is_empty() || gun_query.is_empty() {
+    let player_transform = if let Ok(transform) = player_query.get_single() {
+        transform
+    } else {
         return;
-    }
-
-    let (player_transform, gun_inventory) = player_query.single();
-    let player_pos = player_transform.translation.truncate();
-
-    // Get cursor position or default to player's position
-    let cursor_pos = match cursor_pos.0 {
-        Some(pos) => pos,
-        None => player_pos,
     };
 
-    // Retrieve the active gun from the player's inventory
-    if let Some(active_gun_entity) = gun_inventory.guns.get(gun_inventory.active_gun_index) {
-        if let Ok(mut gun_transform) = gun_query.get_mut(*active_gun_entity) {
-            let angle = (player_pos.y - cursor_pos.y).atan2(player_pos.x - cursor_pos.x) + PI;
+    let mut gun_transform = if let Ok(transform) = gun_query.get_single_mut() {
+        transform
+    } else {
+        return;
+    };
+
+    let player_pos = player_transform.translation.truncate();
+    let nearest_enemy = enemy_kd_tree
+        .0
+        .nearest(&[player_pos.x, player_pos.y])
+        .into_iter()
+        .next();
+
+    if let Some(nearest_enemy) = nearest_enemy {
+        let nearest_enemy_pos = Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]);
+        const MAX_RANGE: f32 = 500.0;
+
+        if player_pos.distance(nearest_enemy_pos) <= MAX_RANGE {
+            let angle =
+                (player_pos.y - nearest_enemy_pos.y).atan2(player_pos.x - nearest_enemy_pos.x) + PI;
             gun_transform.rotation = Quat::from_rotation_z(angle);
-
-            let offset = 20.0;
-            let new_gun_pos = vec2(
-                player_pos.x + offset * angle.cos() - 5.0,
-                player_pos.y + offset * angle.sin() - 10.0,
-            );
-
-            gun_transform.translation =
-                vec3(new_gun_pos.x, new_gun_pos.y, gun_transform.translation.z);
-            gun_transform.translation.z = LAYER2;
         }
     }
+    gun_transform.translation = vec3(
+        player_pos.x + 10.0, // offset from player, need adjustment
+        player_pos.y,
+        gun_transform.translation.z,
+    );
 }
 
 fn despawn_entities_reach_lifespan(
@@ -145,13 +151,16 @@ fn despawn_entities_reach_lifespan(
 fn handle_gun_firing(
     mut commands: Commands,
     time: Res<Time>,
-    player_query: Query<&PlayerInventory, With<Player>>,
-    mut gun_query: Query<(&Transform, &mut GunTimer, &GunType, &BulletStats, &GunStats), With<Gun>>,
+    player_query: Query<(), With<Player>>,
+    mut gun_query: Query<
+        (&Transform, &mut GunTimer, &GunType, &BulletStats, &GunStats),
+        With<ActiveGun>,
+    >,
     handle: Res<GlobalTextureAtlas>,
 ) {
-    if let Ok(inventory) = player_query.get_single() {
+    if let Ok(_) = player_query.get_single() {
         if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
-            gun_query.get_mut(inventory.guns[inventory.active_gun_index])
+            gun_query.get_single_mut()
         {
             gun_timer.0.tick(time.delta());
 
@@ -237,7 +246,6 @@ fn handle_gun_firing(
                             ));
                         }
                     }
-                    GunType::Gun2 => todo!(),
                 }
             }
         }
@@ -247,7 +255,8 @@ fn handle_gun_firing(
 fn switch_gun(
     mut player_query: Query<(&mut PlayerInventory, &Transform), With<Player>>,
     action_state: Res<ActionState<Action>>,
-    mut gun_query: Query<(&mut Transform, &mut Visibility), (With<Gun>, Without<Player>)>,
+    mut commands: Commands,
+    mut gun_query: Query<(&mut Transform, &mut Visibility, Entity), (With<Gun>, Without<Player>)>,
 ) {
     if player_query.is_empty() {
         return;
@@ -256,20 +265,23 @@ fn switch_gun(
     let (mut inventory, player_transform) = player_query.single_mut();
 
     if action_state.just_pressed(&Action::SwitchGun) {
-        // Cycle to the next gun in the inventory
         inventory.active_gun_index = (inventory.active_gun_index + 1) % inventory.guns.len();
-    }
-
-    // Update the visibility of all guns and the position of the active gun
-    for (gun_index, gun_entity) in inventory.guns.iter().enumerate() {
-        if let Ok((mut gun_transform, mut gun_visibility)) = gun_query.get_mut(*gun_entity) {
-            if gun_index == inventory.active_gun_index {
-                // Active gun
-                gun_transform.translation = player_transform.translation;
-                *gun_visibility = Visibility::Visible;
-            } else {
-                // Inactive gun
-                *gun_visibility = Visibility::Hidden;
+        for (gun_index, gun_entity) in inventory.guns.iter().enumerate() {
+            if let Ok((mut gun_transform, mut gun_visibility, entity)) =
+                gun_query.get_mut(*gun_entity)
+            {
+                if gun_index == inventory.active_gun_index {
+                    gun_transform.translation = vec3(
+                        player_transform.translation.x + 10.0, // offset from player, need adjustment
+                        player_transform.translation.y,
+                        gun_transform.translation.z,
+                    );
+                    commands.entity(entity).insert(ActiveGun);
+                    *gun_visibility = Visibility::Visible;
+                } else {
+                    commands.entity(entity).remove::<ActiveGun>();
+                    *gun_visibility = Visibility::Hidden;
+                }
             }
         }
     }
@@ -295,7 +307,6 @@ fn update_bullets(
                 t.translation += dir.0.normalize() * Vec3::splat(stats.speed as f32);
                 t.translation.z = 10.0;
             }
-            GunType::Gun2 => todo!(),
         }
     }
 }

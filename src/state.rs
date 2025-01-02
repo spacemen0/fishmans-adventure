@@ -7,7 +7,6 @@ pub enum GameState {
     MainMenu,
     Initializing,
     Combat,
-    Town,
     Paused,
     Ui,
 }

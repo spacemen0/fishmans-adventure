@@ -628,7 +628,7 @@ fn update_health_bar(
         if let Ok((mut transform, mut sprite)) = health_bar_query.get_single_mut() {
             let health_percentage = health.0 as f32 / health.1 as f32;
             sprite.custom_size = Some(Vec2::new(18.0 * health_percentage, 4.0));
-            transform.translation.x = -9.0 + (9.0 * health_percentage); // Adjust position to keep it aligned
+            transform.translation.x = -9.0 + (9.0 * health_percentage);
         }
     }
 }

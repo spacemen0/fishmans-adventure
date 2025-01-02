@@ -5,7 +5,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER1, PLAYER_INVINCIBLE_TIME, WH, WW},
+    configs::{LAYER2, PLAYER_INVINCIBLE_TIME, WH, WW},
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
@@ -31,7 +31,7 @@ pub struct Health(pub u32, pub u32); //(current, max)
 pub struct Speed(pub u32);
 #[derive(Component, Reflect)]
 pub struct Defense(pub u32);
-#[derive(Component, Reflect)]
+#[derive(Component, Reflect, Debug)]
 pub struct PlayerInventory {
     pub guns: Vec<Entity>,
     pub health_potions: Vec<Entity>,
@@ -81,7 +81,7 @@ impl Plugin for PlayerPlugin {
                     mark_loot_for_pickup,
                     update_player_invincibility_visual,
                 )
-                    .run_if(in_state(GameState::Combat).or(in_state(GameState::Town))),
+                    .run_if(in_state(GameState::Combat)),
             );
     }
 }
@@ -103,9 +103,10 @@ fn handle_player_damaged_events(
     mut events: EventReader<PlayerDamagedEvent>,
     font: Res<UiFont>,
 ) {
-    if player_query.is_empty() {
+    if player_query.is_empty() || events.len() == 0 {
         return;
     }
+    println!("Handle Player Damaged Events");
     let (mut health, _player_state, player_defense, mut inventory, player_transform, entity) =
         player_query.single_mut();
 
@@ -264,6 +265,7 @@ fn handle_acceleration_effect(
 pub fn handle_player_input(
     mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed), With<Player>>,
     action_state: Res<ActionState<Action>>,
+    events: EventReader<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -277,9 +279,8 @@ pub fn handle_player_input(
         let clamped_x = desired_position.x.clamp(-WW, WW);
         let clamped_y = desired_position.y.clamp(-WH, WH);
         transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
-
-        transform.translation.z = LAYER1;
         *player_state = PlayerState::Run;
+        println!("Events: {:?}", events.len());
     } else {
         *player_state = PlayerState::Idle;
     }
@@ -324,8 +325,8 @@ fn move_loot_to_player(
         let distance = player_pos.distance(current_pos);
 
         // Move loot closer to the player
-        let movement = direction * 500.0 * time.delta_secs();
-        transform.translation += movement.extend(0.0);
+        let movement = direction * 800.0 * time.delta_secs();
+        transform.translation += movement.extend(LAYER2);
 
         // Check if loot has reached the player
         if distance <= 20.0 {
@@ -350,26 +351,45 @@ fn handle_loot_pickup(
     let mut inventory = player_query.single_mut();
 
     for (loot_entity, potion_type, gun, armor) in loot_query.iter() {
-        // Add the loot to the appropriate inventory category
-        if let Some(PotionType::Speed) = potion_type {
-            inventory.speed_potions.push(loot_entity);
-        } else if let Some(PotionType::Health) = potion_type {
-            inventory.health_potions.push(loot_entity);
-        }
-        if gun.is_some() {
-            inventory.guns.push(loot_entity);
-        }
-        if armor.is_some() {
-            inventory.armors.push(loot_entity);
+        let mut handled = false;
+
+        match (potion_type, gun, armor) {
+            (Some(PotionType::Speed), _, _) => {
+                if !inventory.speed_potions.contains(&loot_entity) {
+                    inventory.speed_potions.push(loot_entity);
+                    handled = true;
+                }
+            }
+            (Some(PotionType::Health), _, _) => {
+                if !inventory.health_potions.contains(&loot_entity) {
+                    inventory.health_potions.push(loot_entity);
+                    handled = true;
+                }
+            }
+            (_, Some(_), _) => {
+                if !inventory.guns.contains(&loot_entity) {
+                    inventory.guns.push(loot_entity);
+                    handled = true;
+                }
+            }
+            (_, _, Some(_)) => {
+                if !inventory.armors.contains(&loot_entity) {
+                    inventory.armors.push(loot_entity);
+                    handled = true;
+                }
+            }
+            _ => (),
         }
 
-        // Hide the entity and clean up components
-        commands
-            .entity(loot_entity)
-            .insert(Visibility::Hidden)
-            .remove::<Pickable>()
-            .remove::<MovingToPlayer>()
-            .remove::<ReadyForPickup>();
+        if handled {
+            commands
+                .entity(loot_entity)
+                .insert(Visibility::Hidden)
+                .remove::<Pickable>()
+                .remove::<MovingToPlayer>()
+                .remove::<ReadyForPickup>();
+            break;
+        }
     }
 }
 
