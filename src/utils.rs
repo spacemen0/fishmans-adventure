@@ -80,3 +80,9 @@ pub fn cleanup_entities(mut commands: Commands, all_entities: Query<Entity, With
         }
     }
 }
+
+pub fn apply_movement(position: &mut Vec3, movement: Vec2, layer: f32) {
+    position.x = (position.x + movement.x).clamp(-WW, WW);
+    position.y = (position.y + movement.y).clamp(-WH, WH);
+    position.z = layer;
+}

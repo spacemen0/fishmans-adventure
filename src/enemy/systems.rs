@@ -5,7 +5,7 @@ use crate::{
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{calculate_enemies_for_wave, clamp_position, get_random_position_around},
+    utils::{apply_movement, calculate_enemies_for_wave, clamp_position, get_random_position_around},
 };
 use bevy::prelude::*;
 use rand::Rng;
@@ -39,14 +39,14 @@ pub fn update_enemy_movement(
                             *direction = Vec2::new(angle.cos(), angle.sin());
                         }
 
-                        transform.translation +=
-                            Vec3::new(direction.x, direction.y, 0.0) * enemy.speed as f32 * 0.5;
-                        transform.translation.z = LAYER1;
+                        let movement = *direction * enemy.speed as f32 * 0.5;
+                        apply_movement(&mut transform.translation, movement, LAYER1);
                     }
                 }
                 EnemyState::Pursuing => {
                     let direction = (player_pos - transform.translation).normalize();
-                    transform.translation += direction * enemy.speed as f32;
+                    let movement = direction.truncate() * enemy.speed as f32;
+                    apply_movement(&mut transform.translation, movement, LAYER1);
 
                     let distance_to_player = transform.translation.distance(player_pos);
                     if distance_to_player > 400.0 {
@@ -60,8 +60,6 @@ pub fn update_enemy_movement(
                     *state = EnemyState::Pursuing;
                 }
             }
-
-            clamp_position(&mut transform.translation);
         }
     }
 }
@@ -223,9 +221,9 @@ pub fn handle_charge_abilities(
                         charge.state = ChargeState::Preparing;
                         charge.charge_timer = Timer::from_seconds(1.5, TimerMode::Once);
                     } else {
-                        let direction =
-                            (player_transform.translation - transform.translation).normalize();
-                        transform.translation += direction * enemy.speed as f32;
+                        let direction = (player_transform.translation - transform.translation).normalize();
+                        let movement = direction.truncate() * enemy.speed as f32;
+                        apply_movement(&mut transform.translation, movement, LAYER1);
                     }
                 }
                 ChargeState::Preparing => {
@@ -242,7 +240,8 @@ pub fn handle_charge_abilities(
                         charge.target_position = None;
                     } else if let Some(target) = charge.target_position {
                         let direction = (target.extend(0.0) - transform.translation).normalize();
-                        transform.translation += direction * charge.charge_speed as f32;
+                        let movement = direction.truncate() * charge.charge_speed as f32;
+                        apply_movement(&mut transform.translation, movement, LAYER1);
                     }
                 }
                 ChargeState::CoolingDown => {
@@ -251,8 +250,6 @@ pub fn handle_charge_abilities(
                     }
                 }
             }
-
-            clamp_position(&mut transform.translation);
         }
     }
 }
@@ -432,21 +429,21 @@ pub fn handle_ranged_movement(
             if distance_difference.abs() > range_behavior.tolerance {
                 if distance_difference > 0.0 {
                     *state = EnemyState::Pursuing;
-                    transform.translation += direction * enemy.speed as f32;
+                    let movement = direction.truncate() * enemy.speed as f32;
+                    apply_movement(&mut transform.translation, movement, LAYER1);
                 } else {
                     *state = EnemyState::Retreating;
-                    transform.translation -= direction * enemy.speed as f32;
+                    let movement = -direction.truncate() * enemy.speed as f32;
+                    apply_movement(&mut transform.translation, movement, LAYER1);
                 }
             } else {
                 *state = EnemyState::MaintainingDistance;
 
                 if distance_difference.abs() > range_behavior.tolerance * 0.5 {
-                    let adjustment = direction * (distance_difference * 0.1);
-                    transform.translation += adjustment;
+                    let movement = direction.truncate() * (distance_difference * 0.1);
+                    apply_movement(&mut transform.translation, movement, LAYER1);
                 }
             }
-
-            clamp_position(&mut transform.translation);
         }
     }
 }

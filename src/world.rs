@@ -110,6 +110,34 @@ pub fn init_world(
             },
         ))
         .id();
+    let gun3 = commands
+    .spawn((
+        Name::new("Debug Gun"),
+        Gun,
+        Sprite {
+            image: handle.image.clone().unwrap(),
+            texture_atlas: Some(TextureAtlas {
+                layout: handle.layout_16x16.clone().unwrap(),
+                index: 67,  
+            }),
+            ..default()
+        },
+        Visibility::Hidden,
+        Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+            .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+        GunType::Gun1,  
+        GunStats {
+            bullets_per_shot: 1,  
+            firing_interval: 100.0,  
+            bullet_spread: 0.5,    
+        },
+        BulletStats {
+            speed: 20,
+            damage: 0,  
+            lifespan: 1.0,
+        },
+    ))
+    .id();
     let potion1 = commands
         .spawn((
             Name::new("Potion1"),
@@ -199,7 +227,7 @@ pub fn init_world(
 
     // Add guns, potions, and armors to the player's inventory
     commands.entity(player_entity).insert(PlayerInventory {
-        guns: vec![gun1, gun2],
+        guns: vec![gun1, gun2, gun3],
         active_gun_index: 0,
         health_potions: vec![potion1],
         speed_potions: vec![potion2],

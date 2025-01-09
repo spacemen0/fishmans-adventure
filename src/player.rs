@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use bevy::{math::vec3, prelude::*, time::Stopwatch};
+use bevy::{prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER2, PLAYER_INVINCIBLE_TIME, WH, WW},
+    configs::{LAYER2, PLAYER_INVINCIBLE_TIME, LAYER1},
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
@@ -15,7 +15,7 @@ use crate::{
     state::GameState,
     utils::{
         calculate_defense_increase, calculate_health_increase, cleanup_entities, safe_subtract,
-        InGameEntity, Pickable,
+        InGameEntity, Pickable, apply_movement,
     },
 };
 
@@ -275,10 +275,8 @@ pub fn handle_player_input(
 
     let axis_pair = action_state.clamped_axis_pair(&Action::Move);
     if axis_pair != Vec2::ZERO {
-        let desired_position = transform.translation.xy() + axis_pair * speed.0 as f32;
-        let clamped_x = desired_position.x.clamp(-WW, WW);
-        let clamped_y = desired_position.y.clamp(-WH, WH);
-        transform.translation = vec3(clamped_x, clamped_y, transform.translation.z);
+        let movement = axis_pair * speed.0 as f32;
+        apply_movement(&mut transform.translation, movement, LAYER1);
         *player_state = PlayerState::Run;
         println!("Events: {:?}", events.len());
     } else {
