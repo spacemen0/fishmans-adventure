@@ -188,7 +188,7 @@ fn handle_gun_firing(
                                 Sprite {
                                     image: handle.image.clone().unwrap(),
                                     texture_atlas: Some(TextureAtlas {
-                                        layout: handle.layout.clone().unwrap(),
+                                        layout: handle.layout_16x16.clone().unwrap(),
                                         index: rng.gen_range(80..=83),
                                     }),
                                     ..default()
@@ -226,7 +226,7 @@ fn handle_gun_firing(
                                 Sprite {
                                     image: handle.image.clone().unwrap(),
                                     texture_atlas: Some(TextureAtlas {
-                                        layout: handle.layout.clone().unwrap(),
+                                        layout: handle.layout_16x16.clone().unwrap(),
                                         index: rng.gen_range(84..=87),
                                     }),
                                     ..default()

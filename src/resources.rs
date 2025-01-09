@@ -6,7 +6,8 @@ pub struct ResourcesPlugin;
 
 #[derive(Resource, Default)]
 pub struct GlobalTextureAtlas {
-    pub layout: Option<Handle<TextureAtlasLayout>>,
+    pub layout_16x16: Option<Handle<TextureAtlasLayout>>,
+    pub layout_32x32: Option<Handle<TextureAtlasLayout>>,
     pub image: Option<Handle<Image>>,
 }
 #[derive(Resource)]
@@ -87,14 +88,24 @@ fn load_assets(
 ) {
     handle.image = Some(asset_server.load(SPRITE_SHEET_PATH));
     commands.insert_resource(UiFont(asset_server.load(UI_FONT_PATH)));
-    let layout = TextureAtlasLayout::from_grid(
+
+    let layout_16x16 = TextureAtlasLayout::from_grid(
         UVec2::new(TILE_W, TILE_H),
         SPRITE_SHEET_W,
         SPRITE_SHEET_H,
         None,
         None,
     );
-    handle.layout = Some(texture_atlas_layouts.add(layout));
+    let layout_32x32 = TextureAtlasLayout::from_grid(
+        UVec2::new(TILE_W * 2, TILE_H * 2),
+        SPRITE_SHEET_W / 2,
+        SPRITE_SHEET_H / 2,
+        None,
+        None,
+    );
+
+    handle.layout_16x16 = Some(texture_atlas_layouts.add(layout_16x16));
+    handle.layout_32x32 = Some(texture_atlas_layouts.add(layout_32x32));
 
     next_state.set(GameState::MainMenu);
 }

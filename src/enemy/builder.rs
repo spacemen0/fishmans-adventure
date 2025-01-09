@@ -8,6 +8,7 @@ pub struct EnemyBuilder {
     damage: u32,
     xp: u32,
     sprite_index: usize,
+    sprite_size: (u32, u32),
     abilities: Vec<Box<dyn FnOnce(&mut Commands, Entity)>>,
     loot_pool: Option<LootPool>,
 }
@@ -20,6 +21,7 @@ impl Default for EnemyBuilder {
             damage: 6,
             xp: 4,
             sprite_index: 16,
+            sprite_size: (16, 16),
             abilities: Vec::new(),
             loot_pool: None,
         }
@@ -39,8 +41,9 @@ impl EnemyBuilder {
         self
     }
 
-    pub fn with_sprite(mut self, sprite_index: usize) -> Self {
+    pub fn with_sprite(mut self, sprite_index: usize, sprite_size: (u32, u32)) -> Self {
         self.sprite_index = sprite_index;
+        self.sprite_size = sprite_size;
         self
     }
 
@@ -108,12 +111,17 @@ impl EnemyBuilder {
         position: Vec3,
         handle: &GlobalTextureAtlas,
     ) -> Entity {
+        let layout = match self.sprite_size {
+            (16, 16) => handle.layout_16x16.clone().unwrap(),
+            (32, 32) => handle.layout_32x32.clone().unwrap(),
+            _ => handle.layout_16x16.clone().unwrap(),
+        };
         let entity = commands
             .spawn((
                 Sprite {
                     image: handle.image.clone().unwrap(),
                     texture_atlas: Some(TextureAtlas {
-                        layout: handle.layout.clone().unwrap(),
+                        layout,
                         index: self.sprite_index,
                     }),
                     ..default()

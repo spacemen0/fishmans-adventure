@@ -12,6 +12,8 @@ pub const DEFENSE_ICON_PATH: &str = "embedded://fishmans_adventure/../assets/ico
 pub const SPRITE_SCALE_FACTOR: f32 = 3.0;
 pub const TILE_W: u32 = 16;
 pub const TILE_H: u32 = 16;
+pub const TILE_W_32: u32 = 32;
+pub const TILE_H_32: u32 = 32;
 pub const SPRITE_SHEET_W: u32 = 256 / TILE_W;
 pub const SPRITE_SHEET_H: u32 = 256 / TILE_H;
 

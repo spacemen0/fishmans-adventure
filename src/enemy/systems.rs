@@ -296,7 +296,7 @@ pub fn handle_enemy_death(
                             &mut commands,
                             transform,
                             handle.image.clone(),
-                            handle.layout.clone(),
+                            handle.layout_16x16.clone(),
                             loot_def.stat_range,
                         );
                     }
@@ -381,7 +381,7 @@ fn spawn_enemy_bullets(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 81,
                 }),
                 ..default()

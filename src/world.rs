@@ -45,7 +45,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 0,
                 }),
                 ..default()
@@ -71,7 +71,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 65,
                 }),
                 ..default()
@@ -89,7 +89,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 66,
                 }),
                 ..default()
@@ -117,7 +117,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 98,
                 }),
 
@@ -138,7 +138,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 98,
                 }),
 
@@ -166,7 +166,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 99,
                 }),
                 ..default()
@@ -187,7 +187,7 @@ pub fn init_world(
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 99,
                 }),
                 ..default()
@@ -220,7 +220,7 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: rng.gen_range(111..=116),
                 }),
                 ..default()
@@ -240,7 +240,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 113,
                 }),
                 ..default()
@@ -258,7 +258,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 113,
                 }),
                 ..default()
@@ -276,7 +276,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 113,
                 }),
                 ..default()
@@ -294,7 +294,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout.clone().unwrap(),
+                    layout: handle.layout_16x16.clone().unwrap(),
                     index: 113,
                 }),
                 ..default()
