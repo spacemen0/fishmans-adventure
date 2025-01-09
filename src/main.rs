@@ -11,7 +11,7 @@ use fishmans_adventure::{
     enemy::EnemyPlugin,
     gun::GunPlugin,
     input::InputPlugin,
-    player::PlayerPlugin,
+    player::{PlayerInventory, PlayerPlugin},
     potion::PotionPlugin,
     resources::ResourcesPlugin,
     state::GameState,
@@ -40,6 +40,7 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb_u8(
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
+        .register_type::<PlayerInventory>()
         .add_plugins(EmbeddedAssetPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EntityCountDiagnosticsPlugin)
