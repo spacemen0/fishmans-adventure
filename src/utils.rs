@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::configs::{WH, WW};
+use crate::configs::{WH, WW, LAYER1};
 
 #[derive(Component, Default)]
 pub struct InGameEntity;
@@ -70,6 +70,7 @@ pub fn safe_subtract(a: u32, b: u32) -> u32 {
 pub fn clamp_position(position: &mut Vec3) {
     position.x = position.x.clamp(-WW, WW);
     position.y = position.y.clamp(-WH, WH);
+    position.z = LAYER1;
 }
 
 pub fn cleanup_entities(mut commands: Commands, all_entities: Query<Entity, With<InGameEntity>>) {

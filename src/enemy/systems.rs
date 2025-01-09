@@ -61,8 +61,7 @@ pub fn update_enemy_movement(
                 }
             }
 
-            transform.translation.x = transform.translation.x.clamp(-WW, WW);
-            transform.translation.y = transform.translation.y.clamp(-WH, WH);
+            clamp_position(&mut transform.translation);
         }
     }
 }
@@ -252,6 +251,8 @@ pub fn handle_charge_abilities(
                     }
                 }
             }
+
+            clamp_position(&mut transform.translation);
         }
     }
 }
@@ -445,8 +446,7 @@ pub fn handle_ranged_movement(
                 }
             }
 
-            transform.translation.x = transform.translation.x.clamp(-WW, WW);
-            transform.translation.y = transform.translation.y.clamp(-WH, WH);
+            clamp_position(&mut transform.translation);
         }
     }
 }
