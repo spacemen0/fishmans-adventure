@@ -118,6 +118,7 @@ impl EnemyBuilder {
         };
         let entity = commands
             .spawn((
+                Name::new("Enemy"),
                 Sprite {
                     image: handle.image.clone().unwrap(),
                     texture_atlas: Some(TextureAtlas {

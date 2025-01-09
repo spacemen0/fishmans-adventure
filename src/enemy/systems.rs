@@ -40,7 +40,8 @@ pub fn update_enemy_movement(
                         }
 
                         transform.translation +=
-                            Vec3::new(direction.x, direction.y, LAYER1) * enemy.speed as f32 * 0.5;
+                            Vec3::new(direction.x, direction.y, 0.0) * enemy.speed as f32 * 0.5;
+                        transform.translation.z = LAYER1;
                     }
                 }
                 EnemyState::Pursuing => {
