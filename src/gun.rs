@@ -19,6 +19,9 @@ use crate::{
     utils::InGameEntity,
 };
 
+use crate::enemy::spawn_explosion;
+use crate::enemy::ExplodingBullet;
+
 pub struct GunPlugin;
 
 #[derive(Component)]
@@ -139,11 +142,19 @@ fn update_gun_transform(
 
 fn despawn_entities_reach_lifespan(
     mut commands: Commands,
-    bullet_query: Query<(&HasLifespan, Entity)>,
+    bullet_query: Query<(Entity, &Transform, &HasLifespan, Option<&ExplodingBullet>)>,
 ) {
-    for (lifespan, e) in bullet_query.iter() {
+    for (entity, transform, lifespan, exploding) in bullet_query.iter() {
         if lifespan.spawn_time.elapsed() > lifespan.lifespan {
-            commands.entity(e).despawn();
+            if let Some(exploding_bullet) = exploding {
+                spawn_explosion(
+                    &mut commands,
+                    transform.translation,
+                    exploding_bullet.radius,
+                    exploding_bullet.damage,
+                );
+            }
+            commands.entity(entity).despawn();
         }
     }
 }

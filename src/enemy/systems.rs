@@ -5,7 +5,9 @@ use crate::{
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{apply_movement, calculate_enemies_for_wave, clamp_position, get_random_position_around},
+    utils::{
+        apply_movement, calculate_enemies_for_wave, clamp_position, get_random_position_around,
+    },
 };
 use bevy::prelude::*;
 use rand::Rng;
@@ -111,14 +113,17 @@ pub fn spawn_enemies(
                 x if x < 0.7 => create_bomber_enemy(),
                 _ => create_trail_enemy(),
             },
+            8..=9 => create_gurgle_enemy(),
             _ => {
                 if wave.number % 10 == 0 {
                     create_boss_enemy()
                 } else {
                     match rand::random::<f32>() {
-                        x if x < 0.3 => create_shooter_enemy(),
-                        x if x < 0.6 => create_bomber_enemy(),
-                        _ => create_trail_enemy(),
+                        x if x < 0.3 => create_charging_enemy(),
+                        x if x < 0.5 => create_trail_enemy(),
+                        x if x < 0.7 => create_shooter_enemy(),
+                        x if x < 0.9 => create_bomber_enemy(),
+                        _ => create_gurgle_enemy(),
                     }
                 }
             }
@@ -149,17 +154,19 @@ pub fn handle_trail_abilities(
 pub fn handle_enemy_bullet_player_collision(
     mut commands: Commands,
     player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
-    bullet_query: Query<(Entity, &Transform), With<EnemyBullet>>,
+    bullet_query: Query<(Entity, &Transform, &BulletStats), With<EnemyBullet>>,
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
-        for (bullet_entity, bullet_transform) in bullet_query.iter() {
+        for (bullet_entity, bullet_transform, bullet_stats) in bullet_query.iter() {
             let distance = player_transform
                 .translation
                 .distance(bullet_transform.translation);
 
             if distance < 30.0 {
-                ev_player_damaged.send(PlayerDamagedEvent { damage: 10 });
+                ev_player_damaged.send(PlayerDamagedEvent {
+                    damage: bullet_stats.damage,
+                });
                 commands.entity(bullet_entity).despawn();
             }
         }
@@ -169,36 +176,74 @@ pub fn handle_enemy_bullet_player_collision(
 pub fn handle_shooting_abilities(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemy_query: Query<(&Transform, &mut ShootingAbility), With<Enemy>>,
+    mut enemy_query: Query<(&Transform, &mut ShootingAbility, Option<&GurgleEnemy>)>,
     player_query: Query<&Transform, With<Player>>,
     handle: Res<GlobalTextureAtlas>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
-        for (transform, mut shooting) in enemy_query.iter_mut() {
+        for (transform, mut shooting, gurgle_marker) in enemy_query.iter_mut() {
             let distance = transform.translation.distance(player_transform.translation);
             shooting.in_range = distance <= shooting.range;
 
-            if shooting.in_range {
-                shooting.shoot_timer.tick(time.delta());
-                if shooting.shoot_timer.just_finished() {
-                    let direction =
-                        (player_transform.translation - transform.translation).normalize();
+            shooting.shoot_timer.tick(time.delta());
 
-                    spawn_enemy_bullets(
-                        &mut commands,
-                        transform.translation,
-                        direction,
-                        shooting.bullets_per_shot,
-                        &handle,
-                    );
-                    shooting.shoot_timer = Timer::from_seconds(0.5, TimerMode::Once);
-                    shooting.reload_timer = Timer::from_seconds(2.0, TimerMode::Once);
-                }
-            } else {
-                shooting.reload_timer.tick(time.delta());
-                if shooting.reload_timer.finished() {
-                    shooting.shoot_timer = Timer::from_seconds(0.5, TimerMode::Once);
-                }
+            println!("Enemy distance: {}, In range: {}, Timer: {}/{}", 
+                distance, 
+                shooting.in_range, 
+                shooting.shoot_timer.elapsed_secs(), 
+                shooting.shoot_timer.duration().as_secs_f32()
+            );
+
+            if shooting.in_range && shooting.shoot_timer.just_finished() {
+                println!("Shooting!");
+                let direction = (player_transform.translation - transform.translation).normalize();
+                
+                let is_exploding = gurgle_marker.is_some();
+
+                spawn_enemy_bullets(
+                    &mut commands,
+                    transform.translation,
+                    direction,
+                    shooting.bullets_per_shot,
+                    &handle,
+                    is_exploding,
+                    shooting.bullet_speed,
+                    shooting.bullet_damage,
+                );
+            }
+        }
+    }
+}
+
+pub fn handle_exploding_bullets(
+    mut commands: Commands,
+    bullet_query: Query<(Entity, &Transform, &ExplodingBullet), With<EnemyBullet>>,
+    player_query: Query<&Transform, With<Player>>,
+) {
+    if let Ok(player_transform) = player_query.get_single() {
+        for (bullet_entity, bullet_transform, exploding_bullet) in bullet_query.iter() {
+            let distance_to_player = bullet_transform
+                .translation
+                .distance(player_transform.translation);
+
+            if distance_to_player <= 30.0 {
+                spawn_explosion(
+                    &mut commands,
+                    bullet_transform.translation,
+                    exploding_bullet.radius,
+                    exploding_bullet.damage,
+                );
+                commands.entity(bullet_entity).despawn();
+            }
+
+            if bullet_transform.translation.y <= -WH + 20.0 {
+                spawn_explosion(
+                    &mut commands,
+                    bullet_transform.translation,
+                    exploding_bullet.radius,
+                    exploding_bullet.damage,
+                );
+                commands.entity(bullet_entity).despawn();
             }
         }
     }
@@ -221,7 +266,8 @@ pub fn handle_charge_abilities(
                         charge.state = ChargeState::Preparing;
                         charge.charge_timer = Timer::from_seconds(1.5, TimerMode::Once);
                     } else {
-                        let direction = (player_transform.translation - transform.translation).normalize();
+                        let direction =
+                            (player_transform.translation - transform.translation).normalize();
                         let movement = direction.truncate() * enemy.speed as f32;
                         apply_movement(&mut transform.translation, movement, LAYER1);
                     }
@@ -347,14 +393,28 @@ pub fn update_enemy_bullets(
     mut commands: Commands,
     time: Res<Time>,
     mut bullet_query: Query<
-        (Entity, &mut Transform, &BulletDirection, &BulletStats),
+        (
+            Entity,
+            &mut Transform,
+            &BulletDirection,
+            &BulletStats,
+            Option<&ExplodingBullet>,
+        ),
         With<EnemyBullet>,
     >,
 ) {
-    for (entity, mut transform, direction, stats) in bullet_query.iter_mut() {
+    for (entity, mut transform, direction, stats, exploding) in bullet_query.iter_mut() {
         transform.translation += direction.0 * stats.speed as f32 * time.delta_secs();
 
         if transform.translation.x.abs() > WW || transform.translation.y.abs() > WH {
+            if let Some(exploding_bullet) = exploding {
+                spawn_explosion(
+                    &mut commands,
+                    transform.translation,
+                    exploding_bullet.radius,
+                    exploding_bullet.damage,
+                );
+            }
             commands.entity(entity).despawn();
         }
     }
@@ -366,6 +426,9 @@ fn spawn_enemy_bullets(
     direction: Vec3,
     num_bullets: usize,
     handle: &GlobalTextureAtlas,
+    is_exploding: bool,
+    bullet_speed: u32,
+    bullet_damage: u32,
 ) {
     for _ in 0..num_bullets {
         let spread = Vec3::new(
@@ -375,7 +438,7 @@ fn spawn_enemy_bullets(
         );
         let bullet_direction = (direction + spread).normalize();
 
-        commands.spawn((
+        let mut bullet_entity = commands.spawn((
             Name::new("Enemy Bullet"),
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -388,7 +451,39 @@ fn spawn_enemy_bullets(
             Transform::from_translation(enemy_pos).with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             EnemyBullet,
             BulletDirection(bullet_direction),
+            BulletStats {
+                speed: bullet_speed,
+                damage: bullet_damage,
+                lifespan: BULLET_TIME_SECS,
+            },
         ));
+
+        if is_exploding {
+            bullet_entity.insert(ExplodingBullet {
+                radius: 100.0,
+                damage: 30,
+            });
+        }
+    }
+}
+
+pub fn handle_explosion_player_collision(
+    explosion_query: Query<(&Transform, &Explosion)>,
+    player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
+    mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
+) {
+    if let Ok(player_transform) = player_query.get_single() {
+        for (explosion_transform, explosion) in explosion_query.iter() {
+            let distance = player_transform
+                .translation
+                .distance(explosion_transform.translation);
+
+            if distance <= explosion.radius {
+                ev_player_damaged.send(PlayerDamagedEvent {
+                    damage: explosion.damage,
+                });
+            }
+        }
     }
 }
 

@@ -20,9 +20,9 @@ pub fn create_shooter_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
         .with_stats(100, 8, 0, 10)
         .with_sprite(52, (16, 16))
-        .with_shooting(3, 0.5, 2.0, 300.0)
+        .with_shooting(3, 2.0, 405.0, 400, 10)
         .with_loot_pool(medium_enemies_bundle())
-        .with_ranged_behavior(250.0, 50.0)
+        .with_ranged_behavior(350.0, 50.0)
 }
 
 pub fn create_charging_enemy() -> EnemyBuilder {
@@ -35,10 +35,19 @@ pub fn create_charging_enemy() -> EnemyBuilder {
 
 pub fn create_bomber_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(30, 8, 0, 12)
+        .with_stats(30, 8, 30, 12)
         .with_sprite(48, (16, 16))
         .with_explosion(100.0, 30)
         .with_loot_pool(strong_enemies_bundle())
+}
+
+pub fn create_gurgle_enemy() -> EnemyBuilder {
+    EnemyBuilder::new()
+        .with_stats(60, 8, 0, 8)
+        .with_sprite(32, (16, 16))
+        .with_shooting(1, 2.0, 605.0, 300, 30)
+        .with_ranged_behavior(550.0, 50.0)
+        .with_gurgle_marker()
 }
 
 pub fn create_boss_enemy() -> EnemyBuilder {
@@ -46,7 +55,7 @@ pub fn create_boss_enemy() -> EnemyBuilder {
         .with_stats(30000, 5, 10, 50)
         .with_sprite(56, (32, 32))
         .with_trail(8, 0.1, 15.0)
-        .with_shooting(5, 0.3, 1.5, 400.0)
+        .with_shooting(5, 1.5, 400.0, 500, 10)
         .with_explosion(150.0, 50)
         .with_loot_pool(strong_enemies_bundle())
 }

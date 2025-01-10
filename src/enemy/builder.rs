@@ -77,16 +77,18 @@ impl EnemyBuilder {
         mut self,
         bullets: usize,
         shoot_interval: f32,
-        reload_time: f32,
         range: f32,
+        bullet_speed: u32,
+        bullet_damage: u32,
     ) -> Self {
         self.abilities.push(Box::new(move |commands, entity| {
             commands.entity(entity).insert(ShootingAbility {
-                shoot_timer: Timer::from_seconds(shoot_interval, TimerMode::Once),
-                reload_timer: Timer::from_seconds(reload_time, TimerMode::Once),
+                shoot_timer: Timer::from_seconds(shoot_interval, TimerMode::Repeating),
                 bullets_per_shot: bullets,
                 range,
                 in_range: false,
+                bullet_speed,
+                bullet_damage,
             });
         }));
         self
@@ -156,6 +158,13 @@ impl EnemyBuilder {
                 preferred_distance,
                 tolerance,
             });
+        }));
+        self
+    }
+
+    pub fn with_gurgle_marker(mut self) -> Self {
+        self.abilities.push(Box::new(|commands, entity| {
+            commands.entity(entity).insert(GurgleEnemy);
         }));
         self
     }

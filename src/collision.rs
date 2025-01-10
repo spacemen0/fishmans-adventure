@@ -136,7 +136,7 @@ fn handle_enemy_bullet_collision(
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health = safe_subtract(enemy.health, 55); //add bullet damage to gun
+                enemy.health = safe_subtract(enemy.health, 55); 
                 commands.entity(bullet_entity).despawn();
             }
         }

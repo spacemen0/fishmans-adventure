@@ -45,10 +45,11 @@ pub struct ExplosionAbility {
 #[derive(Component)]
 pub struct ShootingAbility {
     pub shoot_timer: Timer,
-    pub reload_timer: Timer,
     pub bullets_per_shot: usize,
     pub range: f32,
     pub in_range: bool,
+    pub bullet_speed: u32,
+    pub bullet_damage: u32,
 }
 
 #[derive(Component, Debug)]
@@ -82,6 +83,15 @@ pub struct Explosion {
     pub damage: u32,
     pub timer: Timer,
 }
+
+#[derive(Component)]
+pub struct ExplodingBullet {
+    pub radius: f32,
+    pub damage: u32,
+}
+
+#[derive(Component)]
+pub struct GurgleEnemy;
 
 #[derive(Component, Debug)]
 pub enum EnemyState {
