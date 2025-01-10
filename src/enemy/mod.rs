@@ -37,6 +37,7 @@ impl Plugin for EnemyPlugin {
                 handle_enemy_bullet_player_collision,
                 handle_exploding_bullets,
                 handle_explosion_player_collision,
+                handle_enemy_splitting,
             )
                 .run_if(in_state(GameState::Combat)),
         );

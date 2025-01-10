@@ -107,6 +107,16 @@ impl EnemyBuilder {
         self
     }
 
+    pub fn with_splitting(mut self, splits: u8) -> Self {
+        self.abilities.push(Box::new(move |commands, entity| {
+            commands.entity(entity).insert(SplitAbility {
+                splits_remaining: splits,
+                num_splits: splits,
+            });
+        }));
+        self
+    }
+
     pub fn spawn(
         self,
         commands: &mut Commands,

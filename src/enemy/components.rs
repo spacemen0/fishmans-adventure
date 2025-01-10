@@ -22,6 +22,12 @@ pub struct Collider {
 }
 
 #[derive(Component)]
+pub struct SplitAbility {
+    pub splits_remaining: u8,
+    pub num_splits: u8,
+}
+
+#[derive(Component)]
 #[require(InGameEntity,HasLifespan(||HasLifespan::new(std::time::Duration::from_secs(2))),BulletStats(||            BulletStats {
                 speed: 200,
                 damage: 10,

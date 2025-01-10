@@ -50,6 +50,14 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
         .with_gurgle_marker()
 }
 
+pub fn create_splitting_enemy() -> EnemyBuilder {
+    EnemyBuilder::new()
+        .with_stats(120, 7, 8, 15)  
+        .with_sprite(56, (16, 16))  
+        .with_splitting(3)  
+        .with_loot_pool(strong_enemies_bundle())
+}
+
 pub fn create_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
         .with_stats(30000, 5, 10, 50)

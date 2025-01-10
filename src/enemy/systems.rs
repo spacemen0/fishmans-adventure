@@ -1,6 +1,7 @@
 use super::{components::*, presets::*};
 use crate::{
     configs::*,
+    enemy::EnemyBuilder,
     gun::{BulletDirection, BulletStats},
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
@@ -109,8 +110,9 @@ pub fn spawn_enemies(
                 }
             }
             5..=7 => match rand::random::<f32>() {
-                x if x < 0.4 => create_shooter_enemy(),
-                x if x < 0.7 => create_bomber_enemy(),
+                x if x < 0.3 => create_shooter_enemy(),
+                x if x < 0.6 => create_bomber_enemy(),
+                x if x < 0.8 => create_splitting_enemy(),
                 _ => create_trail_enemy(),
             },
             8..=9 => create_gurgle_enemy(),
@@ -120,7 +122,8 @@ pub fn spawn_enemies(
                 } else {
                     match rand::random::<f32>() {
                         x if x < 0.3 => create_charging_enemy(),
-                        x if x < 0.5 => create_trail_enemy(),
+                        x if x < 0.4 => create_trail_enemy(),
+                        x if x < 0.5 => create_splitting_enemy(),
                         x if x < 0.7 => create_shooter_enemy(),
                         x if x < 0.9 => create_bomber_enemy(),
                         _ => create_gurgle_enemy(),
@@ -187,17 +190,9 @@ pub fn handle_shooting_abilities(
 
             shooting.shoot_timer.tick(time.delta());
 
-            println!("Enemy distance: {}, In range: {}, Timer: {}/{}", 
-                distance, 
-                shooting.in_range, 
-                shooting.shoot_timer.elapsed_secs(), 
-                shooting.shoot_timer.duration().as_secs_f32()
-            );
-
             if shooting.in_range && shooting.shoot_timer.just_finished() {
-                println!("Shooting!");
                 let direction = (player_transform.translation - transform.translation).normalize();
-                
+
                 let is_exploding = gurgle_marker.is_some();
 
                 spawn_enemy_bullets(
@@ -537,6 +532,38 @@ pub fn handle_ranged_movement(
                 if distance_difference.abs() > range_behavior.tolerance * 0.5 {
                     let movement = direction.truncate() * (distance_difference * 0.1);
                     apply_movement(&mut transform.translation, movement, LAYER1);
+                }
+            }
+        }
+    }
+}
+
+pub fn handle_enemy_splitting(
+    mut commands: Commands,
+    enemy_query: Query<(Entity, &Transform, &Enemy, &SplitAbility)>,
+    handle: Res<GlobalTextureAtlas>,
+) {
+    for (_, transform, enemy, split_ability) in enemy_query.iter() {
+        if enemy.health == 0 {
+            if split_ability.splits_remaining > 0 {
+                let num_spawns = match split_ability.splits_remaining {
+                    3 => 4,
+                    2 => 2,
+                    1 => 1,
+                    _ => 0,
+                };
+
+                for i in 0..num_spawns {
+                    let angle = (i as f32 / num_spawns as f32) * 2.0 * std::f32::consts::PI;
+                    let offset = Vec2::new(angle.cos(), angle.sin()) * 30.0;
+                    let new_pos = transform.translation + Vec3::new(offset.x, offset.y, 0.0);
+
+                    let enemy_builder = EnemyBuilder::new()
+                        .with_stats(enemy.health + 20, enemy.speed, enemy.damage, enemy.xp / 2)
+                        .with_sprite(56, (16, 16))
+                        .with_splitting(split_ability.splits_remaining - 1);
+
+                    enemy_builder.spawn(&mut commands, new_pos, &handle);
                 }
             }
         }
