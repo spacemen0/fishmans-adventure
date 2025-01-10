@@ -4,7 +4,7 @@ use leafwing_input_manager::prelude::ActionState;
 use crate::{
     configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
     input::Action,
-    player::{Defense, Health, Player, PlayerInventory},
+    player::{Defense, Health, Player},
     resources::{Level, UiFont, Wave},
     state::GameState,
     utils::{cleanup_entities, InGameEntity},
@@ -26,6 +26,9 @@ enum MenuButton {
 struct MainMenuItem;
 
 #[derive(Component)]
+struct MainMenuText;
+
+#[derive(Component)]
 struct PlayerHealthText;
 
 #[derive(Component)]
@@ -39,9 +42,6 @@ struct PlayerXpText;
 
 #[derive(Component)]
 struct PlayerDefenseText;
-
-#[derive(Component)]
-struct LootInfoText;
 
 #[derive(Component)]
 struct PlayerHealthBar;
@@ -71,7 +71,7 @@ impl Plugin for UiPlugin {
         .add_systems(OnEnter(GameState::Combat), setup_wave_display)
         .add_systems(
             Update,
-            handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
+            (handle_main_menu_buttons, blink_main_menu_text).run_if(in_state(GameState::MainMenu)),
         )
         .add_systems(
             Update,
@@ -92,6 +92,46 @@ impl Plugin for UiPlugin {
                 .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
         );
     }
+}
+
+fn spawn_player_info_item(
+    parent: &mut ChildBuilder,
+    font: &Handle<Font>,
+    icon: Handle<Image>,
+    label: &str,
+    component: impl Component,
+) {
+    parent
+        .spawn(Node {
+            flex_direction: FlexDirection::Row,
+            align_items: AlignItems::Center,
+            margin: UiRect::bottom(Val::Px(10.0)),
+            ..default()
+        })
+        .with_children(|parent| {
+            parent.spawn((
+                ImageNode {
+                    image: icon.clone(),
+                    ..default()
+                },
+                Node {
+                    width: Val::Px(30.0),
+                    height: Val::Px(30.0),
+                    margin: UiRect::right(Val::Px(10.0)),
+                    ..default()
+                },
+            ));
+            parent.spawn((
+                Text::new(format!("{}: ", label)),
+                TextFont {
+                    font: font.clone(),
+                    font_size: 30.0,
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+                component,
+            ));
+        });
 }
 
 fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetServer>) {
@@ -123,20 +163,13 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::all(Val::Px(10.0)),
                     border: UiRect::all(Val::Px(2.0)),
-
                     ..default()
                 })
                 .with_children(|parent| {
-                    parent.spawn((
-                        Text::new("Loot Information"),
-                        TextFont {
-                            font: font.0.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::WHITE),
-                        LootInfoText,
-                    ));
+                    spawn_slots_grid(parent, &font.0, "Health Potions", 4);
+                    spawn_slots_grid(parent, &font.0, "Speed Potions", 4);
+                    spawn_slots_grid(parent, &font.0, "Guns", 4);
+                    spawn_slots_grid(parent, &font.0, "Armors", 4);
                 });
 
             // Right side: Player information
@@ -154,145 +187,81 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
                     BorderColor(Color::linear_rgb(0.0, 0.0, 0.0)),
                 ))
                 .with_children(|parent| {
-                    // Health
-                    parent
-                        .spawn(Node {
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-                            margin: UiRect::bottom(Val::Px(10.0)),
-                            ..default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                ImageNode {
-                                    image: health_icon.clone(),
-
-                                    ..default()
-                                },
-                                Node {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(30.0),
-                                    margin: UiRect::right(Val::Px(10.0)),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new("Health: "),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::WHITE),
-                                PlayerHealthText,
-                            ));
-                        });
-
-                    // Level
-                    parent
-                        .spawn(Node {
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-                            margin: UiRect::bottom(Val::Px(10.0)),
-                            ..default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                ImageNode {
-                                    image: level_icon.clone(),
-
-                                    ..default()
-                                },
-                                Node {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(30.0),
-                                    margin: UiRect::right(Val::Px(10.0)),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new("Level: "),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::WHITE),
-                                PlayerLevelText,
-                            ));
-                        });
-
-                    // XP
-                    parent
-                        .spawn(Node {
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-
-                            ..default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                ImageNode {
-                                    image: xp_icon.clone(),
-
-                                    ..default()
-                                },
-                                Node {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(30.0),
-                                    margin: UiRect::right(Val::Px(10.0)),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new("XP: "),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::WHITE),
-                                PlayerXpText,
-                            ));
-                        });
-
-                    // Defense
-                    parent
-                        .spawn(Node {
-                            flex_direction: FlexDirection::Row,
-                            align_items: AlignItems::Center,
-                            margin: UiRect::bottom(Val::Px(10.0)),
-
-                            ..default()
-                        })
-                        .with_children(|parent| {
-                            parent.spawn((
-                                ImageNode {
-                                    image: defense_icon.clone(),
-
-                                    ..default()
-                                },
-                                Node {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(30.0),
-                                    margin: UiRect::right(Val::Px(10.0)),
-                                    ..default()
-                                },
-                            ));
-                            parent.spawn((
-                                Text::new("Defense: "),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::WHITE),
-                                PlayerDefenseText,
-                            ));
-                        });
+                    spawn_player_info_item(
+                        parent,
+                        &font.0,
+                        health_icon,
+                        "Health",
+                        PlayerHealthText,
+                    );
+                    spawn_player_info_item(parent, &font.0, level_icon, "Level", PlayerLevelText);
+                    spawn_player_info_item(parent, &font.0, xp_icon, "XP", PlayerXpText);
+                    spawn_player_info_item(
+                        parent,
+                        &font.0,
+                        defense_icon,
+                        "Defense",
+                        PlayerDefenseText,
+                    );
                 });
         })
         .insert(UiRoot);
+}
+
+fn spawn_slots_grid(parent: &mut ChildBuilder, font: &Handle<Font>, label: &str, count: usize) {
+    parent
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Px(80.0),
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            Name::new(format!("{} Container", label)),
+        ))
+        .with_children(|container| {
+            // Row label
+            container.spawn((
+                Text::new(label),
+                TextFont {
+                    font: font.clone(),
+                    font_size: 30.0,
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+                Name::new(format!("{} Label", label)),
+            ));
+
+            // Grid slots
+            container
+                .spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        height: Val::Px(70.0),
+                        flex_direction: FlexDirection::Row,
+                        flex_wrap: FlexWrap::Wrap,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    Name::new(format!("{} Grid", label)),
+                ))
+                .with_children(|grid| {
+                    for i in 0..count {
+                        grid.spawn((
+                            Node {
+                                width: Val::Px(50.0),
+                                height: Val::Px(50.0),
+                                border: UiRect::all(Val::Px(2.0)),
+                                ..default()
+                            },
+                            BorderColor(Color::WHITE),
+                            BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+                            Name::new(format!("{} Slot {}", label, i + 1)),
+                        ));
+                    }
+                });
+        });
 }
 
 fn update_ui(
@@ -303,9 +272,7 @@ fn update_ui(
         Query<&mut Text, With<PlayerLevelText>>,
         Query<&mut Text, With<PlayerXpText>>,
         Query<&mut Text, With<PlayerDefenseText>>,
-        Query<&mut Text, With<LootInfoText>>,
     )>,
-    player_inventory_query: Query<&PlayerInventory, With<Player>>,
 ) {
     if let Ok((health, defense)) = player_query.get_single() {
         if let Ok(mut health_text) = param_set.p0().get_single_mut() {
@@ -322,19 +289,6 @@ fn update_ui(
 
     if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
         *xp_text = format!("XP: {}/{}", level.current_xp(), level.xp_threshold()).into();
-    }
-
-    if let Ok(player_inventory) = player_inventory_query.get_single() {
-        if let Ok(mut loot_text) = param_set.p4().get_single_mut() {
-            *loot_text = format!(
-                "Health Potions: {}\nSpeed Potions: {}\nGuns: {}\nArmors: {}",
-                player_inventory.health_potions.len(),
-                player_inventory.speed_potions.len(),
-                player_inventory.guns.len(),
-                player_inventory.armors.len()
-            )
-            .into();
-        }
     }
 }
 
@@ -356,13 +310,14 @@ fn toggle_loot_ui_visibility(
     }
 }
 
-fn setup_main_menu(mut commands: Commands) {
+fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
     commands
         .spawn(Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
+            flex_direction: FlexDirection::Column, // Stack items vertically
             ..default()
         })
         .with_children(|parent| {
@@ -383,24 +338,44 @@ fn setup_main_menu(mut commands: Commands) {
                     parent.spawn((
                         Text::new("Play"),
                         TextFont {
-                            font_size: 40.0,
+                            font: font.0.clone(),
+                            font_size: 50.0,
                             ..default()
                         },
                         TextColor(Color::BLACK),
                     ));
                 });
+            parent.spawn((
+                Text::new("Press Enter to Start"),
+                TextFont {
+                    font: font.0.clone(),
+                    font_size: 50.0,
+                    ..default()
+                },
+                MainMenuText,
+                TextColor(Color::BLACK),
+            ));
         })
         .insert(MainMenuItem);
 }
 
 fn handle_main_menu_buttons(
-    interaction_query: Query<&Interaction, (Changed<Interaction>, With<Button>)>,
+    action_state: Res<ActionState<Action>>,
     mut next_state: ResMut<NextState<GameState>>,
 ) {
-    for interaction in interaction_query.iter() {
-        if interaction == &Interaction::Pressed {
-            next_state.set(GameState::Initializing);
-        }
+    if action_state.just_pressed(&Action::Confirm) {
+        next_state.set(GameState::Initializing);
+    }
+}
+
+fn blink_main_menu_text(
+    mut text_query: Query<&mut TextColor, With<MainMenuText>>,
+    time: Res<Time>,
+) {
+    if let Ok(mut text_color) = text_query.get_single_mut() {
+        let flash_rate = 2.0;
+        let alpha = (time.elapsed_secs() * flash_rate).sin().abs();
+        text_color.0.set_alpha(alpha);
     }
 }
 
