@@ -58,12 +58,13 @@ pub fn create_splitting_enemy() -> EnemyBuilder {
         .with_loot_pool(strong_enemies_bundle())
 }
 
-pub fn create_boss_enemy() -> EnemyBuilder {
+pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(30000, 5, 10, 50)
+        .with_stats(50000, 8, 20, 100) 
         .with_sprite(56, (32, 32))
-        .with_trail(8, 0.1, 15.0)
-        .with_shooting(5, 1.5, 400.0, 500, 10)
-        .with_explosion(150.0, 50)
+        .with_trail(10, 0.2, 20.0) 
+        .with_shooting(5, 1.0, 500.0, 300, 15) 
+        .with_charge(600, 50, 0.6) 
+        .with_summoning(6, 12, 10.0) 
         .with_loot_pool(strong_enemies_bundle())
 }

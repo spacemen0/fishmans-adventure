@@ -113,6 +113,13 @@ pub struct RangedBehavior {
     pub tolerance: f32,
 }
 
+#[derive(Component)]
+pub struct SummoningAbility {
+    pub timer: Timer,
+    pub min_minions: u32,
+    pub max_minions: u32,
+}
+
 impl Default for EnemyState {
     fn default() -> Self {
         Self::Wandering {

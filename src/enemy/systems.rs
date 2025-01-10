@@ -118,7 +118,7 @@ pub fn spawn_enemies(
             8..=9 => create_gurgle_enemy(),
             _ => {
                 if wave.number % 10 == 0 {
-                    create_boss_enemy()
+                    create_midgame_boss_enemy()
                 } else {
                     match rand::random::<f32>() {
                         x if x < 0.3 => create_charging_enemy(),
@@ -565,6 +565,35 @@ pub fn handle_enemy_splitting(
 
                     enemy_builder.spawn(&mut commands, new_pos, &handle);
                 }
+            }
+        }
+    }
+}
+
+pub fn handle_summoning_abilities(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(&Transform, &mut SummoningAbility), With<Enemy>>,
+    handle: Res<GlobalTextureAtlas>,
+) {
+    for (transform, mut summoning_ability) in query.iter_mut() {
+        summoning_ability.timer.tick(time.delta());
+        if summoning_ability.timer.just_finished() {
+            let num_minions = rand::thread_rng().gen_range(summoning_ability.min_minions..=summoning_ability.max_minions);
+            for _ in 0..num_minions {
+                let offset = Vec2::new(
+                    rand::random::<f32>() * 100.0 - 50.0,
+                    rand::random::<f32>() * 100.0 - 50.0,
+                );
+                let position = transform.translation + Vec3::new(offset.x, offset.y, 0.0);
+                let enemy = match rand::random::<f32>() {
+                    x if x < 0.2 => create_basic_enemy(),
+                    x if x < 0.4 => create_trail_enemy(),
+                    x if x < 0.6 => create_shooter_enemy(),
+                    x if x < 0.8 => create_charging_enemy(),
+                    _ => create_bomber_enemy(),
+                };
+                enemy.spawn(&mut commands, position, &handle);
             }
         }
     }

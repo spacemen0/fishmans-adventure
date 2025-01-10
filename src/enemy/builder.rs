@@ -117,6 +117,17 @@ impl EnemyBuilder {
         self
     }
 
+    pub fn with_summoning(mut self, min_minions: u32, max_minions: u32, interval: f32) -> Self {
+        self.abilities.push(Box::new(move |commands, entity| {
+            commands.entity(entity).insert(SummoningAbility {
+                timer: Timer::from_seconds(interval, TimerMode::Repeating),
+                min_minions,
+                max_minions,
+            });
+        }));
+        self
+    }
+
     pub fn spawn(
         self,
         commands: &mut Commands,
