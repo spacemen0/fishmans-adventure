@@ -1,10 +1,10 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite};
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
     input::Action,
-    player::{Defense, Health, Player},
+    player::{Defense, Health, Player, PlayerInventory},
     resources::{Level, UiFont, Wave},
     state::GameState,
     utils::{cleanup_entities, InGameEntity},
@@ -52,6 +52,12 @@ struct UiRoot;
 #[derive(Component)]
 struct WaveDisplayRoot;
 
+#[derive(Component)]
+struct GridSlot {
+    x: usize,
+    y: usize,
+}
+
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
@@ -81,7 +87,7 @@ impl Plugin for UiPlugin {
                     .or(in_state(GameState::Paused)),
             ),),
         )
-        .add_systems(OnEnter(GameState::Ui), update_ui)
+        .add_systems(OnEnter(GameState::Ui), (update_ui, update_grid_slot_image))
         .add_systems(
             Update,
             update_wave_display.run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
@@ -166,10 +172,10 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
                     ..default()
                 })
                 .with_children(|parent| {
-                    spawn_slots_grid(parent, &font.0, "Health Potions", 4);
-                    spawn_slots_grid(parent, &font.0, "Speed Potions", 4);
-                    spawn_slots_grid(parent, &font.0, "Guns", 4);
-                    spawn_slots_grid(parent, &font.0, "Armors", 4);
+                    spawn_slots_grid(parent, &font.0, "Health Potions", 4, 0);
+                    spawn_slots_grid(parent, &font.0, "Speed Potions", 4, 1);
+                    spawn_slots_grid(parent, &font.0, "Guns", 4, 2);
+                    spawn_slots_grid(parent, &font.0, "Armors", 4, 3);
                 });
 
             // Right side: Player information
@@ -208,17 +214,20 @@ fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetSe
         .insert(UiRoot);
 }
 
-fn spawn_slots_grid(parent: &mut ChildBuilder, font: &Handle<Font>, label: &str, count: usize) {
+fn spawn_slots_grid(
+    parent: &mut ChildBuilder,
+    font: &Handle<Font>,
+    label: &str,
+    count: usize,
+    index: usize,
+) {
     parent
-        .spawn((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Px(80.0),
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            Name::new(format!("{} Container", label)),
-        ))
+        .spawn((Node {
+            width: Val::Percent(100.0),
+            height: Val::Px(80.0),
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },))
         .with_children(|container| {
             // Row label
             container.spawn((
@@ -229,23 +238,19 @@ fn spawn_slots_grid(parent: &mut ChildBuilder, font: &Handle<Font>, label: &str,
                     ..default()
                 },
                 TextColor(Color::WHITE),
-                Name::new(format!("{} Label", label)),
             ));
 
             // Grid slots
             container
-                .spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Px(70.0),
-                        flex_direction: FlexDirection::Row,
-                        flex_wrap: FlexWrap::Wrap,
-                        justify_content: JustifyContent::SpaceEvenly,
-                        align_items: AlignItems::Center,
-                        ..default()
-                    },
-                    Name::new(format!("{} Grid", label)),
-                ))
+                .spawn((Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Px(70.0),
+                    flex_direction: FlexDirection::Row,
+                    flex_wrap: FlexWrap::Wrap,
+                    justify_content: JustifyContent::SpaceEvenly,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },))
                 .with_children(|grid| {
                     for i in 0..count {
                         grid.spawn((
@@ -255,10 +260,18 @@ fn spawn_slots_grid(parent: &mut ChildBuilder, font: &Handle<Font>, label: &str,
                                 border: UiRect::all(Val::Px(2.0)),
                                 ..default()
                             },
-                            BorderColor(Color::WHITE),
+                            BorderColor(Color::BLACK),
                             BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
-                            Name::new(format!("{} Slot {}", label, i + 1)),
-                        ));
+                        ))
+                        .with_children(|slot| {
+                            slot.spawn((
+                                ImageNode {
+                                    image: Handle::default(),
+                                    ..default()
+                                },
+                                GridSlot { x: index, y: i },
+                            ));
+                        });
                     }
                 });
         });
@@ -289,6 +302,51 @@ fn update_ui(
 
     if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
         *xp_text = format!("XP: {}/{}", level.current_xp(), level.xp_threshold()).into();
+    }
+}
+
+fn update_grid_slot_image(
+    mut grid_query: Query<(&mut ImageNode, &GridSlot)>,
+    inventory_query: Query<&PlayerInventory, With<Player>>,
+    sprite_query: Query<&sprite::Sprite>,
+) {
+    // Ensure the player's inventory is updated
+    if let Ok(player_inventory) = inventory_query.get_single() {
+        for (mut image_node, grid_slot) in grid_query.iter_mut() {
+            // Determine which inventory category corresponds to this grid slot
+            let item_entity = match grid_slot.x {
+                0 => player_inventory.health_potions.get(grid_slot.y as usize),
+                1 => player_inventory.speed_potions.get(grid_slot.y as usize),
+                2 => player_inventory.guns.get(grid_slot.y as usize),
+                3 => player_inventory.armors.get(grid_slot.y as usize),
+                _ => None, // Clear the slot for invalid categories
+            };
+
+            if let Some(item_entity) = item_entity {
+                // Attempt to get the sprite for the item entity
+                if let Ok(sprite) = sprite_query.get(*item_entity) {
+                    image_node.image = sprite.image.clone();
+                    image_node.texture_atlas = sprite.texture_atlas.clone();
+                    println!(
+                        "Updated grid slot ({}, {}) with item image.",
+                        grid_slot.x, grid_slot.y
+                    );
+                } else {
+                    // Handle case where the sprite query fails
+                    println!(
+                        "Failed to fetch sprite for item at slot ({}, {}).",
+                        grid_slot.x, grid_slot.y
+                    );
+                }
+            } else {
+                // Clear the grid slot if no item is present
+                image_node.image = Default::default(); // Replace with your "empty slot" texture
+                image_node.texture_atlas = None;
+                println!("Cleared grid slot at ({}, {}).", grid_slot.x, grid_slot.y);
+            }
+        }
+    } else {
+        println!("Player inventory not found!");
     }
 }
 

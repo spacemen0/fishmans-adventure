@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::configs::{WH, WW, LAYER1};
+use crate::configs::{LAYER1, WH, WW};
 
 #[derive(Component, Default)]
 pub struct InGameEntity;

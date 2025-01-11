@@ -5,7 +5,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER2, PLAYER_INVINCIBLE_TIME, LAYER1},
+    configs::{LAYER1, LAYER2, PLAYER_INVINCIBLE_TIME},
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
@@ -14,8 +14,8 @@ use crate::{
     resources::UiFont,
     state::GameState,
     utils::{
-        calculate_defense_increase, calculate_health_increase, cleanup_entities, safe_subtract,
-        InGameEntity, Pickable, apply_movement,
+        apply_movement, calculate_defense_increase, calculate_health_increase, cleanup_entities,
+        safe_subtract, InGameEntity, Pickable,
     },
 };
 
@@ -349,45 +349,40 @@ fn handle_loot_pickup(
     let mut inventory = player_query.single_mut();
 
     for (loot_entity, potion_type, gun, armor) in loot_query.iter() {
-        let mut handled = false;
-
         match (potion_type, gun, armor) {
             (Some(PotionType::Speed), _, _) => {
-                if !inventory.speed_potions.contains(&loot_entity) {
+                if !inventory.speed_potions.contains(&loot_entity)
+                    && inventory.speed_potions.len() <= 4
+                {
                     inventory.speed_potions.push(loot_entity);
-                    handled = true;
                 }
             }
             (Some(PotionType::Health), _, _) => {
-                if !inventory.health_potions.contains(&loot_entity) {
+                if !inventory.health_potions.contains(&loot_entity)
+                    && inventory.health_potions.len() <= 4
+                {
                     inventory.health_potions.push(loot_entity);
-                    handled = true;
                 }
             }
             (_, Some(_), _) => {
-                if !inventory.guns.contains(&loot_entity) {
+                if !inventory.guns.contains(&loot_entity) && inventory.guns.len() <= 4 {
                     inventory.guns.push(loot_entity);
-                    handled = true;
                 }
             }
             (_, _, Some(_)) => {
-                if !inventory.armors.contains(&loot_entity) {
+                if !inventory.armors.contains(&loot_entity) && inventory.armors.len() <= 4 {
                     inventory.armors.push(loot_entity);
-                    handled = true;
                 }
             }
             _ => (),
         }
 
-        if handled {
-            commands
-                .entity(loot_entity)
-                .insert(Visibility::Hidden)
-                .remove::<Pickable>()
-                .remove::<MovingToPlayer>()
-                .remove::<ReadyForPickup>();
-            break;
-        }
+        commands
+            .entity(loot_entity)
+            .insert(Visibility::Hidden)
+            .remove::<Pickable>()
+            .remove::<MovingToPlayer>()
+            .remove::<ReadyForPickup>();
     }
 }
 
