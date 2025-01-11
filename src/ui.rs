@@ -522,16 +522,15 @@ fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
             height: Val::Percent(100.0),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::Center,
-            flex_direction: FlexDirection::Column, // Stack items vertically
+            flex_direction: FlexDirection::Column,
             ..default()
         })
         .with_children(|parent| {
             parent
                 .spawn((
-                    Button,
                     Node {
-                        width: Val::Px(150.0),
-                        height: Val::Px(65.0),
+                        width: Val::Px(600.0),
+                        height: Val::Px(260.0),
                         border: UiRect::all(Val::Px(5.0)),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -541,10 +540,14 @@ fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
                 ))
                 .with_children(|parent| {
                     parent.spawn((
-                        Text::new("Play"),
+                        Text::new("Fishmans Adventure"),
                         TextFont {
                             font: font.0.clone(),
-                            font_size: 50.0,
+                            font_size: 80.0,
+                            ..default()
+                        },
+                        TextLayout {
+                            justify: JustifyText::Center,
                             ..default()
                         },
                         TextColor(Color::BLACK),
@@ -555,6 +558,10 @@ fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
                 TextFont {
                     font: font.0.clone(),
                     font_size: 50.0,
+                    ..default()
+                },
+                Node {
+                    top: Val::Px(50.0),
                     ..default()
                 },
                 MainMenuText,
