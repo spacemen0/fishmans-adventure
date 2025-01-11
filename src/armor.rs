@@ -1,5 +1,6 @@
 use crate::{
     input::Action,
+    loot::Description,
     player::{Player, PlayerInventory},
     state::GameState,
     utils::InGameEntity,
@@ -8,7 +9,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
-#[require(ArmorStats, Sprite, InGameEntity)]
+#[require(ArmorStats, Sprite, InGameEntity, Description)]
 pub struct Armor;
 
 #[derive(Component, Default)]

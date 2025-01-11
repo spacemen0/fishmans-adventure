@@ -100,7 +100,7 @@ fn flip_gun_sprite_y(
     enemy_kd_tree: Res<EnemyKdTree>,
     mut gun_query: Query<(&mut Sprite, &Transform), With<ActiveGun>>,
 ) {
-    if let Ok(_) = player_query.get_single() {
+    if player_query.get_single().is_ok() {
         if let Ok((mut sprite, transform)) = gun_query.get_single_mut() {
             let gun_pos = transform.translation.truncate();
             let nearest_enemy = enemy_kd_tree

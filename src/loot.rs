@@ -62,6 +62,21 @@ pub struct MovingToPlayer;
 #[derive(Component)]
 pub struct ReadyForPickup;
 
+#[derive(Component)]
+pub struct Description {
+    pub name: String,
+    pub description: String,
+}
+
+impl Default for Description {
+    fn default() -> Self {
+        Description {
+            name: String::from("Unnamed Item"),
+            description: String::from("No description available."),
+        }
+    }
+}
+
 #[derive(Component, Default)]
 pub struct LootPool {
     pub items: Vec<LootDefinition>,

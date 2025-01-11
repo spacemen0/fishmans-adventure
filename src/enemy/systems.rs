@@ -544,27 +544,25 @@ pub fn handle_enemy_splitting(
     handle: Res<GlobalTextureAtlas>,
 ) {
     for (_, transform, enemy, split_ability) in enemy_query.iter() {
-        if enemy.health == 0 {
-            if split_ability.splits_remaining > 0 {
-                let num_spawns = match split_ability.splits_remaining {
-                    3 => 4,
-                    2 => 2,
-                    1 => 1,
-                    _ => 0,
-                };
+        if enemy.health == 0 && split_ability.splits_remaining > 0 {
+            let num_spawns = match split_ability.splits_remaining {
+                3 => 4,
+                2 => 2,
+                1 => 1,
+                _ => 0,
+            };
 
-                for i in 0..num_spawns {
-                    let angle = (i as f32 / num_spawns as f32) * 2.0 * std::f32::consts::PI;
-                    let offset = Vec2::new(angle.cos(), angle.sin()) * 30.0;
-                    let new_pos = transform.translation + Vec3::new(offset.x, offset.y, 0.0);
+            for i in 0..num_spawns {
+                let angle = (i as f32 / num_spawns as f32) * 2.0 * std::f32::consts::PI;
+                let offset = Vec2::new(angle.cos(), angle.sin()) * 30.0;
+                let new_pos = transform.translation + Vec3::new(offset.x, offset.y, 0.0);
 
-                    let enemy_builder = EnemyBuilder::new()
-                        .with_stats(enemy.health + 20, enemy.speed, enemy.damage, enemy.xp / 2)
-                        .with_sprite(56, (16, 16))
-                        .with_splitting(split_ability.splits_remaining - 1);
+                let enemy_builder = EnemyBuilder::new()
+                    .with_stats(enemy.health + 20, enemy.speed, enemy.damage, enemy.xp / 2)
+                    .with_sprite(56, (16, 16))
+                    .with_splitting(split_ability.splits_remaining - 1);
 
-                    enemy_builder.spawn(&mut commands, new_pos, &handle);
-                }
+                enemy_builder.spawn(&mut commands, new_pos, &handle);
             }
         }
     }
@@ -579,7 +577,8 @@ pub fn handle_summoning_abilities(
     for (transform, mut summoning_ability) in query.iter_mut() {
         summoning_ability.timer.tick(time.delta());
         if summoning_ability.timer.just_finished() {
-            let num_minions = rand::thread_rng().gen_range(summoning_ability.min_minions..=summoning_ability.max_minions);
+            let num_minions = rand::thread_rng()
+                .gen_range(summoning_ability.min_minions..=summoning_ability.max_minions);
             for _ in 0..num_minions {
                 let offset = Vec2::new(
                     rand::random::<f32>() * 100.0 - 50.0,

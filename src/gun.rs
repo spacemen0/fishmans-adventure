@@ -13,14 +13,14 @@ use crate::{
     collision::EnemyKdTree,
     configs::*,
     input::Action,
+    loot::Description,
     player::{handle_player_input, Player, PlayerInventory},
     resources::GlobalTextureAtlas,
     state::GameState,
     utils::InGameEntity,
 };
 
-use crate::enemy::spawn_explosion;
-use crate::enemy::ExplodingBullet;
+use crate::enemy::{spawn_explosion, ExplodingBullet};
 
 pub struct GunPlugin;
 
@@ -33,7 +33,7 @@ pub struct GunPlugin;
                 bullets_per_shot: NUM_BULLETS_PER_SHOT,
                 firing_interval: BULLET_SPAWN_INTERVAL,
                 bullet_spread: BULLET_SPREAD,
-            }), InGameEntity, Sprite)]
+            }), InGameEntity, Sprite, Description)]
 pub struct Gun;
 
 #[derive(Component, Default)]
@@ -169,7 +169,7 @@ fn handle_gun_firing(
     >,
     handle: Res<GlobalTextureAtlas>,
 ) {
-    if let Ok(_) = player_query.get_single() {
+    if player_query.get_single().is_ok() {
         if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
             gun_query.get_single_mut()
         {

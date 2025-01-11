@@ -103,7 +103,7 @@ fn handle_player_damaged_events(
     mut events: EventReader<PlayerDamagedEvent>,
     font: Res<UiFont>,
 ) {
-    if player_query.is_empty() || events.len() == 0 {
+    if player_query.is_empty() || events.is_empty() {
         return;
     }
     println!("Handle Player Damaged Events");

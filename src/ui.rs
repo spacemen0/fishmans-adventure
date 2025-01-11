@@ -1,9 +1,10 @@
-use bevy::{prelude::*, sprite};
+use bevy::prelude::*;
 use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
     input::Action,
+    loot::Description,
     player::{Defense, Health, Player, PlayerInventory},
     resources::{Level, UiFont, Wave},
     state::GameState,
@@ -15,6 +16,9 @@ pub struct UiPlugin;
 
 #[derive(Component)]
 struct PauseMenuRoot;
+#[derive(Component)]
+struct DescriptionTextBox;
+
 #[derive(Component)]
 enum MenuButton {
     Resume,
@@ -52,11 +56,15 @@ struct UiRoot;
 #[derive(Component)]
 struct WaveDisplayRoot;
 
-#[derive(Component)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
 struct GridSlot {
     x: usize,
     y: usize,
+    item: Option<Entity>,
 }
+
+#[derive(Component)]
+struct FocusedItem;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
@@ -87,7 +95,7 @@ impl Plugin for UiPlugin {
                     .or(in_state(GameState::Paused)),
             ),),
         )
-        .add_systems(OnEnter(GameState::Ui), (update_ui, update_grid_slot_image))
+        .add_systems(OnEnter(GameState::Ui), (update_ui, set_up_loot_image))
         .add_systems(
             Update,
             update_wave_display.run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
@@ -96,6 +104,10 @@ impl Plugin for UiPlugin {
             Update,
             (handle_pause_input, update_health_bar)
                 .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
+        )
+        .add_systems(
+            Update,
+            (navigate_loot_items, highlight_focused_item).run_if(in_state(GameState::Ui)),
         );
     }
 }
@@ -229,7 +241,6 @@ fn spawn_slots_grid(
             ..default()
         },))
         .with_children(|container| {
-            // Row label
             container.spawn((
                 Text::new(label),
                 TextFont {
@@ -239,8 +250,6 @@ fn spawn_slots_grid(
                 },
                 TextColor(Color::WHITE),
             ));
-
-            // Grid slots
             container
                 .spawn((Node {
                     width: Val::Percent(100.0),
@@ -253,25 +262,68 @@ fn spawn_slots_grid(
                 },))
                 .with_children(|grid| {
                     for i in 0..count {
-                        grid.spawn((
-                            Node {
-                                width: Val::Px(50.0),
-                                height: Val::Px(50.0),
-                                border: UiRect::all(Val::Px(2.0)),
-                                ..default()
-                            },
-                            BorderColor(Color::BLACK),
-                            BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
-                        ))
-                        .with_children(|slot| {
-                            slot.spawn((
-                                ImageNode {
-                                    image: Handle::default(),
+                        if i == 0 && index == 0 {
+                            grid.spawn((
+                                Node {
+                                    width: Val::Px(50.0),
+                                    height: Val::Px(50.0),
+                                    border: UiRect::all(Val::Px(2.0)),
                                     ..default()
                                 },
-                                GridSlot { x: index, y: i },
-                            ));
-                        });
+                                BorderColor(Color::BLACK),
+                                FocusedItem,
+                                GridSlot {
+                                    x: i,
+                                    y: index,
+                                    item: None,
+                                },
+                                Name::new("GridItem"),
+                                BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+                            ))
+                            .with_children(|slot| {
+                                slot.spawn((
+                                    ImageNode {
+                                        image: Handle::default(),
+                                        ..default()
+                                    },
+                                    GridSlot {
+                                        x: i,
+                                        y: index,
+                                        item: None,
+                                    },
+                                ));
+                            });
+                        } else {
+                            grid.spawn((
+                                Node {
+                                    width: Val::Px(50.0),
+                                    height: Val::Px(50.0),
+                                    border: UiRect::all(Val::Px(2.0)),
+                                    ..default()
+                                },
+                                Name::new("GridItem"),
+                                BorderColor(Color::BLACK),
+                                GridSlot {
+                                    x: i,
+                                    y: index,
+                                    item: None,
+                                },
+                                BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+                            ))
+                            .with_children(|slot| {
+                                slot.spawn((
+                                    ImageNode {
+                                        image: Handle::default(),
+                                        ..default()
+                                    },
+                                    GridSlot {
+                                        x: i,
+                                        y: index,
+                                        item: None,
+                                    },
+                                ));
+                            });
+                        }
                     }
                 });
         });
@@ -305,44 +357,139 @@ fn update_ui(
     }
 }
 
-fn update_grid_slot_image(
-    mut grid_query: Query<(&mut ImageNode, &GridSlot)>,
-    inventory_query: Query<&PlayerInventory, With<Player>>,
-    sprite_query: Query<&sprite::Sprite>,
+fn navigate_loot_items(
+    action_state: Res<ActionState<Action>>,
+    mut commands: Commands,
+    mut focused_item_query: Query<
+        (&GridSlot, Entity, &mut Node, &mut BorderColor, &Children),
+        With<FocusedItem>,
+    >,
+    mut grid_query: Query<(&GridSlot, Entity), (Without<FocusedItem>, Without<ImageNode>)>,
 ) {
-    // Ensure the player's inventory is updated
+    if focused_item_query.iter().next().is_none() {
+        return;
+    }
+    let mut focused_item = focused_item_query.single_mut();
+    let mut pressed = false;
+    let new_focus = if action_state.just_pressed(&Action::NavigateUp) {
+        pressed = true;
+        Some((0, -1))
+    } else if action_state.just_pressed(&Action::NavigateDown) {
+        pressed = true;
+        Some((0, 1))
+    } else if action_state.just_pressed(&Action::NavigationLeft) {
+        pressed = true;
+        Some((-1, 0))
+    } else if action_state.just_pressed(&Action::NavigationRight) {
+        pressed = true;
+        Some((1, 0))
+    } else {
+        None
+    };
+    if !pressed {
+        return;
+    }
+    for (grid_slot, entity) in grid_query.iter_mut() {
+        if let Some((dx, dy)) = new_focus {
+            if (grid_slot.x as isize - dx) == focused_item.0.x as isize
+                && (grid_slot.y as isize - dy) == focused_item.0.y as isize
+            {
+                commands.entity(entity).insert(FocusedItem);
+                commands.entity(focused_item.1).remove::<FocusedItem>();
+                if let Some(text_box_child) = focused_item.4.get(1) {
+                    commands
+                        .entity(focused_item.1)
+                        .remove_children(&[*text_box_child]);
+
+                    commands.entity(*text_box_child).despawn();
+                }
+                focused_item.2.border = UiRect::all(Val::Px(2.0));
+                focused_item.3 .0 = Color::BLACK;
+                break;
+            }
+        }
+    }
+}
+
+fn highlight_focused_item(
+    mut grid_query: Query<
+        (&mut Node, &mut BorderColor, &FocusedItem, Entity, &GridSlot),
+        Added<FocusedItem>,
+    >,
+    description_query: Query<&Description>,
+    font: Res<UiFont>,
+    mut commands: Commands,
+) {
+    for (mut node, mut border_color, _, entity, grid_slot) in grid_query.iter_mut() {
+        node.border = UiRect::all(Val::Px(4.0));
+        *border_color = BorderColor(Color::linear_rgb(1.0, 1.0, 0.0));
+        if let Some(item_entity) = &grid_slot.item {
+            if let Ok(description) = description_query.get(*item_entity) {
+                commands
+                    .entity(entity)
+                    .with_child((
+                        Node {
+                            min_width: Val::Px(240.0),
+                            height: Val::Px(120.0),
+                            bottom: Val::Px(4.0),
+                            left: Val::Px(6.0),
+                            ..default()
+                        },
+                        Text::new(format!(
+                            "{}\n {}",
+                            description.name, description.description
+                        )),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 25.0,
+                            ..default()
+                        },
+                        TextLayout {
+                            justify: JustifyText::Center,
+                            ..default()
+                        },
+                        GlobalZIndex(4),
+                        TextColor(Color::BLACK),
+                        BackgroundColor(Color::linear_rgba(1.0, 1.0, 1.0, 0.8)),
+                    ))
+                    .insert(DescriptionTextBox);
+            }
+        }
+    }
+}
+
+fn set_up_loot_image(
+    mut grid_query: Query<(&mut ImageNode, &mut GridSlot, &Parent)>,
+    inventory_query: Query<&PlayerInventory, With<Player>>,
+    sprite_query: Query<&Sprite>,
+    mut grid_slot_query: Query<&mut GridSlot, Without<ImageNode>>,
+) {
     if let Ok(player_inventory) = inventory_query.get_single() {
-        for (mut image_node, grid_slot) in grid_query.iter_mut() {
-            // Determine which inventory category corresponds to this grid slot
-            let item_entity = match grid_slot.x {
-                0 => player_inventory.health_potions.get(grid_slot.y as usize),
-                1 => player_inventory.speed_potions.get(grid_slot.y as usize),
-                2 => player_inventory.guns.get(grid_slot.y as usize),
-                3 => player_inventory.armors.get(grid_slot.y as usize),
-                _ => None, // Clear the slot for invalid categories
+        for (mut image_node, grid_slot, parent) in grid_query.iter_mut() {
+            let item_entity = match grid_slot.y {
+                0 => player_inventory.health_potions.get(grid_slot.x),
+                1 => player_inventory.speed_potions.get(grid_slot.x),
+                2 => player_inventory.guns.get(grid_slot.x),
+                3 => player_inventory.armors.get(grid_slot.x),
+                _ => None,
             };
 
             if let Some(item_entity) = item_entity {
-                // Attempt to get the sprite for the item entity
                 if let Ok(sprite) = sprite_query.get(*item_entity) {
                     image_node.image = sprite.image.clone();
                     image_node.texture_atlas = sprite.texture_atlas.clone();
-                    println!(
-                        "Updated grid slot ({}, {}) with item image.",
-                        grid_slot.x, grid_slot.y
-                    );
+                    if let Ok(mut grid_slot) = grid_slot_query.get_mut(**parent) {
+                        grid_slot.item = Some(*item_entity);
+                    }
                 } else {
-                    // Handle case where the sprite query fails
                     println!(
                         "Failed to fetch sprite for item at slot ({}, {}).",
                         grid_slot.x, grid_slot.y
                     );
                 }
             } else {
-                // Clear the grid slot if no item is present
-                image_node.image = Default::default(); // Replace with your "empty slot" texture
+                image_node.image = Default::default();
                 image_node.texture_atlas = None;
-                println!("Cleared grid slot at ({}, {}).", grid_slot.x, grid_slot.y);
             }
         }
     } else {

@@ -52,19 +52,19 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
 
 pub fn create_splitting_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(120, 7, 8, 15)  
-        .with_sprite(56, (16, 16))  
-        .with_splitting(3)  
+        .with_stats(120, 7, 8, 15)
+        .with_sprite(56, (16, 16))
+        .with_splitting(3)
         .with_loot_pool(strong_enemies_bundle())
 }
 
 pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(50000, 8, 20, 100) 
+        .with_stats(50000, 8, 20, 100)
         .with_sprite(56, (32, 32))
-        .with_trail(10, 0.2, 20.0) 
-        .with_shooting(5, 1.0, 500.0, 300, 15) 
-        .with_charge(600, 50, 0.6) 
-        .with_summoning(6, 12, 10.0) 
+        .with_trail(10, 0.2, 20.0)
+        .with_shooting(5, 1.0, 500.0, 300, 15)
+        .with_charge(600, 50, 0.6)
+        .with_summoning(6, 12, 10.0)
         .with_loot_pool(strong_enemies_bundle())
 }
