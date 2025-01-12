@@ -89,14 +89,12 @@ pub fn spawn_enemies(
     }
 
     wave.number += 1;
-
-    println!("wave number: {:?}", wave.number);
     let player_pos = player_transform.translation.truncate();
 
     let num_enemies = calculate_enemies_for_wave(wave.number);
 
     for _ in 0..num_enemies {
-        let (x, y) = get_random_position_around(player_pos, 300.0..800.0);
+        let (x, y) = get_random_position_around(player_pos, 200.0..500.0);
         let mut position = Vec3::new(x, y, LAYER1);
         clamp_position(&mut position);
 

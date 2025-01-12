@@ -1,7 +1,10 @@
 use bevy::prelude::*;
-use rand::Rng;
+use rand::{random, Rng};
 
-use crate::configs::{LAYER1, WH, WW};
+use crate::{
+    collision::EnemyKdTree,
+    configs::{LAYER1, WH, WW},
+};
 
 #[derive(Component, Default)]
 pub struct InGameEntity;
@@ -18,10 +21,10 @@ pub fn calculate_enemies_per_wave(_wave_number: u32) -> u32 {
 
 pub fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
     if wave_number % 10 == 0 {
-        1
+        10
     } else {
-        let base = 3 + (wave_number / 2);
-        base + (rand::random::<u32>() % 3)
+        let base = 10 + (wave_number / 2);
+        base + (random::<u32>() % 10)
     }
 }
 
@@ -85,4 +88,13 @@ pub fn apply_movement(position: &mut Vec3, movement: Vec2, layer: f32) {
     position.x = (position.x + movement.x).clamp(-WW, WW);
     position.y = (position.y + movement.y).clamp(-WH, WH);
     position.z = layer;
+}
+
+pub fn get_nearest_enemy_position(player_pos: Vec2, enemy_kd_tree: &EnemyKdTree) -> Option<Vec2> {
+    enemy_kd_tree
+        .0
+        .nearest(&[player_pos.x, player_pos.y])
+        .into_iter()
+        .next()
+        .map(|nearest_enemy| Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]))
 }

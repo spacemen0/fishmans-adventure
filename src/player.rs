@@ -265,7 +265,6 @@ fn handle_acceleration_effect(
 pub fn handle_player_input(
     mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed), With<Player>>,
     action_state: Res<ActionState<Action>>,
-    events: EventReader<PlayerDamagedEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -278,7 +277,6 @@ pub fn handle_player_input(
         let movement = axis_pair * speed.0 as f32;
         apply_movement(&mut transform.translation, movement, LAYER1);
         *player_state = PlayerState::Run;
-        println!("Events: {:?}", events.len());
     } else {
         *player_state = PlayerState::Idle;
     }
@@ -322,13 +320,10 @@ fn move_loot_to_player(
         let direction = (player_pos - current_pos).normalize_or_zero();
         let distance = player_pos.distance(current_pos);
 
-        // Move loot closer to the player
         let movement = direction * 800.0 * time.delta_secs();
         transform.translation += movement.extend(LAYER2);
 
-        // Check if loot has reached the player
         if distance <= 20.0 {
-            // Mark loot as ready for pickup
             commands.entity(loot_entity).insert(ReadyForPickup);
         }
     }

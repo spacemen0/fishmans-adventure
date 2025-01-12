@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, ops::RangeInclusive};
 
 use bevy::{
     math::vec3,
@@ -17,7 +17,7 @@ use crate::{
     player::{handle_player_input, Player, PlayerInventory},
     resources::GlobalTextureAtlas,
     state::GameState,
-    utils::InGameEntity,
+    utils::{get_nearest_enemy_position, InGameEntity},
 };
 
 use crate::enemy::{spawn_explosion, ExplodingBullet};
@@ -39,11 +39,12 @@ pub struct Gun;
 #[derive(Component, Default)]
 pub struct GunTimer(pub Stopwatch);
 
-#[derive(Component, Clone, Default)]
+#[derive(Component, Clone, Default, Copy)]
 pub enum GunType {
     #[default]
-    Default,
-    Gun1,
+    SingleDirectionSpread,
+    OmniSpread,
+    FocusedAim,
 }
 
 #[derive(Component)]
@@ -89,7 +90,7 @@ impl Plugin for GunPlugin {
             Update,
             (
                 update_gun_transform.after(handle_player_input),
-                update_bullets,
+                move_bullets,
                 handle_gun_firing,
                 despawn_entities_reach_lifespan,
                 switch_gun,
@@ -117,16 +118,8 @@ fn update_gun_transform(
     };
 
     let player_pos = player_transform.translation.truncate();
-    let nearest_enemy = enemy_kd_tree
-        .0
-        .nearest(&[player_pos.x, player_pos.y])
-        .into_iter()
-        .next();
-
-    if let Some(nearest_enemy) = nearest_enemy {
-        let nearest_enemy_pos = Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]);
+    if let Some(nearest_enemy_pos) = get_nearest_enemy_position(player_pos, &enemy_kd_tree) {
         const MAX_RANGE: f32 = 500.0;
-
         if player_pos.distance(nearest_enemy_pos) <= MAX_RANGE {
             let angle =
                 (player_pos.y - nearest_enemy_pos.y).atan2(player_pos.x - nearest_enemy_pos.x) + PI;
@@ -169,97 +162,150 @@ fn handle_gun_firing(
     >,
     handle: Res<GlobalTextureAtlas>,
 ) {
-    if player_query.get_single().is_ok() {
-        if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
-            gun_query.get_single_mut()
-        {
-            gun_timer.0.tick(time.delta());
+    if player_query.get_single().is_err() {
+        return;
+    }
 
-            if gun_timer.0.elapsed_secs() >= gun_stats.firing_interval {
-                gun_timer.0.reset();
-                let gun_pos = gun_transform.translation.truncate();
-                let mut rng = rand::thread_rng();
-                let bullet_direction = gun_transform.local_x();
-                match gun_type {
-                    GunType::Default => {
-                        for _ in 0..gun_stats.bullets_per_shot {
-                            let dir = vec3(
-                                bullet_direction.x
-                                    + rng.gen_range(
-                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
-                                    ),
-                                bullet_direction.y
-                                    + rng.gen_range(
-                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
-                                    ),
-                                bullet_direction.z,
-                            );
-                            commands.spawn((
-                                Name::new("Bullet"),
-                                Sprite {
-                                    image: handle.image.clone().unwrap(),
-                                    texture_atlas: Some(TextureAtlas {
-                                        layout: handle.layout_16x16.clone().unwrap(),
-                                        index: rng.gen_range(80..=83),
-                                    }),
-                                    ..default()
-                                },
-                                Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
-                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                                Bullet,
-                                BulletDirection(dir),
-                                BulletStats {
-                                    speed: bullet_stats.speed,
-                                    damage: bullet_stats.damage,
-                                    lifespan: bullet_stats.lifespan,
-                                },
-                                gun_type.clone(),
-                                InGameEntity,
-                                HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
-                            ));
-                        }
-                    }
-                    GunType::Gun1 => {
-                        for _ in 0..gun_stats.bullets_per_shot {
-                            let dir = vec3(
-                                bullet_direction.x
-                                    + rng.gen_range(
-                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
-                                    ),
-                                bullet_direction.y
-                                    + rng.gen_range(
-                                        -gun_stats.bullet_spread..gun_stats.bullet_spread,
-                                    ),
-                                bullet_direction.z,
-                            );
-                            commands.spawn((
-                                Name::new("Bullet"),
-                                Sprite {
-                                    image: handle.image.clone().unwrap(),
-                                    texture_atlas: Some(TextureAtlas {
-                                        layout: handle.layout_16x16.clone().unwrap(),
-                                        index: rng.gen_range(84..=87),
-                                    }),
-                                    ..default()
-                                },
-                                Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
-                                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                                Bullet,
-                                BulletDirection(dir),
-                                BulletStats {
-                                    speed: bullet_stats.speed,
-                                    damage: bullet_stats.damage,
-                                    lifespan: bullet_stats.lifespan,
-                                },
-                                gun_type.clone(),
-                                InGameEntity,
-                                HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
-                            ));
-                        }
-                    }
-                }
+    if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
+        gun_query.get_single_mut()
+    {
+        gun_timer.0.tick(time.delta());
+
+        if gun_timer.0.elapsed_secs() < gun_stats.firing_interval {
+            return;
+        }
+
+        gun_timer.0.reset();
+        let gun_pos = gun_transform.translation.truncate();
+        let bullet_direction = gun_transform.local_x();
+
+        match gun_type {
+            GunType::SingleDirectionSpread => fire_bullets(
+                &mut commands,
+                gun_pos,
+                *bullet_direction,
+                gun_stats.bullets_per_shot,
+                gun_stats.bullet_spread,
+                bullet_stats,
+                &handle,
+                80..=83,
+                *gun_type, // Texture index range for SingleDirectionSpread
+            ),
+            GunType::OmniSpread => fire_omni_bullets(
+                &mut commands,
+                gun_pos,
+                gun_stats.bullets_per_shot,
+                bullet_stats,
+                &handle,
+                84..=87,
+                *gun_type, // Texture index range for OmniSpread
+            ),
+            GunType::FocusedAim => {
+                // Specific logic for SingleDirection guns
+                fire_bullets(
+                    &mut commands,
+                    gun_pos,
+                    *bullet_direction,
+                    1,   // Single bullet per shot
+                    0.0, // No spread for SingleDirection
+                    bullet_stats,
+                    &handle,
+                    84..=87,
+                    *gun_type, // Texture index range for SingleDirection
+                );
             }
         }
+    }
+}
+
+/// A reusable function to fire bullets with the given parameters.
+fn fire_bullets(
+    commands: &mut Commands,
+    gun_pos: Vec2,
+    bullet_direction: Vec3,
+    bullets_per_shot: usize,
+    bullet_spread: f32,
+    bullet_stats: &BulletStats,
+    handle: &GlobalTextureAtlas,
+    texture_index_range: RangeInclusive<usize>,
+    gun_type: GunType,
+) {
+    let mut rng = rand::thread_rng();
+
+    for _ in 0..bullets_per_shot {
+        let dir = vec3(
+            bullet_direction.x + rng.gen_range(-bullet_spread..=bullet_spread),
+            bullet_direction.y + rng.gen_range(-bullet_spread..=bullet_spread),
+            bullet_direction.z,
+        );
+
+        commands.spawn((
+            Name::new("Bullet"),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout_16x16.clone().unwrap(),
+                    index: rng.gen_range(texture_index_range.clone()),
+                }),
+                ..default()
+            },
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Bullet,
+            BulletDirection(dir),
+            BulletStats {
+                speed: bullet_stats.speed,
+                damage: bullet_stats.damage,
+                lifespan: bullet_stats.lifespan,
+            },
+            gun_type,
+            InGameEntity,
+            HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
+        ));
+    }
+}
+
+/// Fires bullets in all directions (360-degree spread).
+fn fire_omni_bullets(
+    commands: &mut Commands,
+    gun_pos: Vec2,
+    bullets_per_shot: usize,
+    bullet_stats: &BulletStats,
+    handle: &GlobalTextureAtlas,
+    texture_index_range: std::ops::RangeInclusive<usize>,
+    gun_type: GunType,
+) {
+    let angle_step = 360.0 / bullets_per_shot as f32; // Divide the circle into equal parts
+    let mut rng = rand::thread_rng();
+
+    for i in 0..bullets_per_shot {
+        let angle = i as f32 * angle_step; // Calculate the angle for this bullet
+        let radians = angle.to_radians();
+        let dir = vec3(radians.cos(), radians.sin(), 0.0); // Direction vector for the bullet
+
+        commands.spawn((
+            Name::new("Bullet"),
+            Sprite {
+                image: handle.image.clone().unwrap(),
+                texture_atlas: Some(TextureAtlas {
+                    layout: handle.layout_16x16.clone().unwrap(),
+                    index: rng.gen_range(texture_index_range.clone()),
+                }),
+                ..default()
+            },
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+            Bullet,
+            BulletDirection(dir),
+            BulletStats {
+                speed: bullet_stats.speed,
+                damage: bullet_stats.damage,
+                lifespan: bullet_stats.lifespan,
+            },
+            gun_type,
+            InGameEntity,
+            HasLifespan::new(Duration::from_secs_f32(bullet_stats.lifespan)),
+        ));
     }
 }
 
@@ -298,25 +344,56 @@ fn switch_gun(
     }
 }
 
-fn update_bullets(
+fn move_bullets(
     mut bullet_query: Query<
-        (&mut Transform, &BulletDirection, &BulletStats, &GunType),
+        (&mut Transform, &mut BulletDirection, &BulletStats, &GunType),
         With<Bullet>,
     >,
+    enemy_kd_tree: Res<EnemyKdTree>,
+    player_query: Query<&Transform, (With<Player>, Without<Bullet>)>,
 ) {
     if bullet_query.is_empty() {
         return;
     }
 
-    for (mut t, dir, stats, gun_type) in bullet_query.iter_mut() {
+    for (mut bullet_transform, mut bullet_direction, bullet_stats, gun_type) in
+        bullet_query.iter_mut()
+    {
         match gun_type {
-            GunType::Default => {
-                t.translation += dir.0.normalize() * Vec3::splat(stats.speed as f32);
-                t.translation.z = 10.0;
+            GunType::SingleDirectionSpread => {
+                bullet_transform.translation +=
+                    bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
+                bullet_transform.translation.z = LAYER4;
             }
-            GunType::Gun1 => {
-                t.translation += dir.0.normalize() * Vec3::splat(stats.speed as f32);
-                t.translation.z = 10.0;
+            GunType::OmniSpread => {
+                bullet_transform.translation +=
+                    bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
+                bullet_transform.translation.z = LAYER4;
+            }
+            GunType::FocusedAim => {
+                let player_transform = if let Ok(transform) = player_query.get_single() {
+                    transform
+                } else {
+                    return;
+                };
+                let player_pos = player_transform.translation.truncate();
+                if let Some(nearest_enemy_pos) =
+                    get_nearest_enemy_position(player_pos, &enemy_kd_tree)
+                {
+                    const MAX_RANGE: f32 = 800.0;
+                    let bullet_pos = bullet_transform.translation.truncate();
+                    if bullet_pos.distance(nearest_enemy_pos) <= MAX_RANGE {
+                        let new_direction = (nearest_enemy_pos - bullet_pos).normalize();
+                        bullet_direction.0 = vec3(new_direction.x, new_direction.y, 0.0);
+                    }
+                    bullet_transform.translation +=
+                        bullet_direction.0 * Vec3::splat(bullet_stats.speed as f32);
+                    bullet_transform.translation.z = LAYER4;
+                } else {
+                    bullet_transform.translation +=
+                        bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
+                    bullet_transform.translation.z = LAYER4;
+                }
             }
         }
     }

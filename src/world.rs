@@ -38,7 +38,7 @@ pub fn init_world(
         Name::new("Debug Ui"),
         InGameEntity,
     ));
-    // Spawn player
+
     let player_entity = commands
         .spawn((
             Name::new("Player"),
@@ -62,10 +62,10 @@ pub fn init_world(
             InGameEntity,
         ))
         .id();
-    // Spawn first gun
-    let gun1 = commands
+
+    let default_gun = commands
         .spawn((
-            Name::new("Gun1"),
+            Name::new("DefaultGun"),
             Gun,
             ActiveGun,
             Sprite {
@@ -81,10 +81,9 @@ pub fn init_world(
         ))
         .id();
 
-    // Spawn second gun
-    let gun2 = commands
+    let omni_spread_gun = commands
         .spawn((
-            Name::new("Gun2"),
+            Name::new("OmniSpreadGun"),
             Gun,
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -97,22 +96,22 @@ pub fn init_world(
             Visibility::Hidden,
             Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            GunType::Gun1,
+            GunType::OmniSpread,
             GunStats {
-                bullets_per_shot: 20,
-                firing_interval: 0.1,
+                bullets_per_shot: 40,
+                firing_interval: 0.5,
                 bullet_spread: 0.3,
             },
             BulletStats {
-                speed: 30,
-                damage: 100,
-                lifespan: 0.5,
+                speed: 20,
+                damage: 20,
+                lifespan: 0.6,
             },
         ))
         .id();
-    let gun3 = commands
+    let focused_aim_gun = commands
         .spawn((
-            Name::new("Debug Gun"),
+            Name::new("FocusedAimGun"),
             Gun,
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -125,22 +124,22 @@ pub fn init_world(
             Visibility::Hidden,
             Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            GunType::Gun1,
+            GunType::FocusedAim,
             GunStats {
                 bullets_per_shot: 1,
-                firing_interval: 100.0,
-                bullet_spread: 0.5,
+                firing_interval: 1.0,
+                bullet_spread: 0.0,
             },
             BulletStats {
-                speed: 20,
-                damage: 0,
-                lifespan: 1.0,
+                speed: 40,
+                damage: 200,
+                lifespan: 0.7,
             },
         ))
         .id();
-    let potion1 = commands
+    let health_potion = commands
         .spawn((
-            Name::new("Potion1"),
+            Name::new("HealthPotion"),
             Potion,
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -154,13 +153,13 @@ pub fn init_world(
             Visibility::Hidden,
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             PotionStats {
-                effect_duration: 2.0,
+                effect_duration: 0.0,
                 effect_amount: 10,
             },
             PotionType::Health,
         ))
         .id();
-    let potion2 = commands
+    let speed_potion = commands
         .spawn((
             Potion,
             Sprite {
@@ -175,17 +174,16 @@ pub fn init_world(
             Visibility::Hidden,
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             PotionStats {
-                effect_duration: 5.0,
+                effect_duration: 1.0,
                 effect_amount: 10,
             },
-            PotionType::Health,
+            PotionType::Speed,
         ))
         .id();
 
-    // Add both guns to the player's inventory
-    let armor1 = commands
+    let basic_armor = commands
         .spawn((
-            Name::new("Armor1"),
+            Name::new("BasicArmor"),
             Armor,
             ArmorStats {
                 defense: 2,
@@ -204,9 +202,9 @@ pub fn init_world(
         ))
         .id();
 
-    let armor2 = commands
+    let advanced_armor = commands
         .spawn((
-            Name::new("Armor1"),
+            Name::new("AdvancedArmor"),
             Armor,
             ArmorStats {
                 defense: 3,
@@ -227,11 +225,11 @@ pub fn init_world(
 
     // Add guns, potions, and armors to the player's inventory
     commands.entity(player_entity).insert(PlayerInventory {
-        guns: vec![gun1, gun2, gun3],
+        guns: vec![default_gun, omni_spread_gun, focused_aim_gun],
         active_gun_index: 0,
-        health_potions: vec![potion1],
-        speed_potions: vec![potion2],
-        armors: vec![armor1, armor2],
+        health_potions: vec![health_potion],
+        speed_potions: vec![speed_potion],
+        armors: vec![basic_armor, advanced_armor],
         active_armor_index: 0,
     });
 

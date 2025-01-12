@@ -1,6 +1,9 @@
 use bevy::utils::Duration;
 
-use crate::{configs::KD_TREE_REFRESH_RATE, player::InvincibilityEffect, utils::safe_subtract};
+use crate::{
+    configs::KD_TREE_REFRESH_RATE, gun::BulletStats, player::InvincibilityEffect,
+    utils::safe_subtract,
+};
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 
@@ -123,20 +126,20 @@ fn update_enemy_kd_tree(
 
 fn handle_enemy_bullet_collision(
     mut commands: Commands,
-    bullet_query: Query<(&Transform, Entity), With<Bullet>>,
+    bullet_query: Query<(&Transform, Entity, &BulletStats), With<Bullet>>,
     tree: Res<EnemyKdTree>,
     mut enemy_query: Query<(&Transform, &mut Enemy), With<Enemy>>,
 ) {
     if bullet_query.is_empty() || enemy_query.is_empty() {
         return;
     }
-    for (bullet_transform, bullet_entity) in bullet_query.iter() {
+    for (bullet_transform, bullet_entity, stats) in bullet_query.iter() {
         let pos = bullet_transform.translation;
         let enemies_in_radius = tree.0.within_radius(&[pos.x, pos.y], 30.0);
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health = safe_subtract(enemy.health, 55);
+                enemy.health = safe_subtract(enemy.health, stats.damage);
                 commands.entity(bullet_entity).despawn();
             }
         }
