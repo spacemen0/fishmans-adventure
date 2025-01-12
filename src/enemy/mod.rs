@@ -8,7 +8,7 @@ pub use components::*;
 pub use presets::*;
 pub use systems::*;
 
-use crate::state::GameState;
+use crate::game_state::GameState;
 use bevy::prelude::*;
 
 #[derive(Event)]

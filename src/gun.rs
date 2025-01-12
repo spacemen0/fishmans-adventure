@@ -12,11 +12,11 @@ use rand::Rng;
 use crate::{
     collision::EnemyKdTree,
     configs::*,
+    game_state::GameState,
     input::Action,
     loot::Description,
     player::{handle_player_input, Player, PlayerInventory},
     resources::GlobalTextureAtlas,
-    state::GameState,
     utils::{get_nearest_enemy_position, InGameEntity},
 };
 

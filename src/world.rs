@@ -5,11 +5,11 @@ use crate::{
     animation::AnimationTimer,
     armor::{Armor, ArmorStats},
     configs::*,
+    game_state::GameState,
     gun::{ActiveGun, BulletStats, Gun, GunStats, GunType},
     player::{Defense, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
     potion::{Potion, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
-    state::GameState,
     utils::InGameEntity,
 };
 use bevy::{math::vec3, prelude::*};

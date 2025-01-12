@@ -9,12 +9,12 @@ use fishmans_adventure::{
     collision::CollisionPlugin,
     configs::{BG_COLOR, WH, WW},
     enemy::EnemyPlugin,
+    game_state::GameState,
     gun::GunPlugin,
     input::InputPlugin,
     player::{PlayerInventory, PlayerPlugin},
     potion::PotionPlugin,
     resources::ResourcesPlugin,
-    state::GameState,
     ui::UiPlugin,
     world::WorldPlugin,
 };

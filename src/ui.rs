@@ -3,11 +3,11 @@ use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
+    game_state::GameState,
     input::Action,
     loot::Description,
     player::{Defense, Health, Player, PlayerInventory},
     resources::{Level, UiFont, Wave},
-    state::GameState,
     utils::{cleanup_entities, InGameEntity},
     world::init_world,
 };

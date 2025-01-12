@@ -1,8 +1,8 @@
 use crate::{
+    game_state::GameState,
     input::Action,
     loot::Description,
     player::{Player, PlayerInventory},
-    state::GameState,
     utils::InGameEntity,
 };
 use bevy::prelude::*;

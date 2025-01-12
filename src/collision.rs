@@ -9,9 +9,9 @@ use kd_tree::{KdPoint, KdTree};
 
 use crate::{
     enemy::{spawn_explosion, Enemy, ExplosionAbility, Trail},
+    game_state::GameState,
     gun::Bullet,
     player::{Player, PlayerDamagedEvent},
-    state::GameState,
 };
 
 pub struct CollisionPlugin;

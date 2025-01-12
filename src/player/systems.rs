@@ -5,88 +5,19 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER1, LAYER2, PLAYER_INVINCIBLE_TIME},
+    configs::*,
     enemy::Collider,
     gun::{Gun, HasLifespan},
     input::Action,
     loot::{MovingToPlayer, ReadyForPickup},
     potion::PotionType,
     resources::UiFont,
-    state::GameState,
-    utils::{
-        apply_movement, calculate_defense_increase, calculate_health_increase, cleanup_entities,
-        safe_subtract, InGameEntity, Pickable,
-    },
+    utils::*,
 };
 
-pub struct PlayerPlugin;
+use super::*;
 
-#[derive(Component)]
-pub struct Player;
-#[derive(Component)]
-pub struct OriginalColor(pub Color);
-#[derive(Component, Reflect)]
-pub struct Health(pub u32, pub u32); //(current, max)
-#[derive(Component, Reflect)]
-pub struct Speed(pub u32);
-#[derive(Component, Reflect)]
-pub struct Defense(pub u32);
-#[derive(Component, Reflect, Debug)]
-pub struct PlayerInventory {
-    pub guns: Vec<Entity>,
-    pub health_potions: Vec<Entity>,
-    pub speed_potions: Vec<Entity>,
-    pub armors: Vec<Entity>,
-    pub active_gun_index: usize,
-    pub active_armor_index: usize,
-}
-
-#[derive(Component, Reflect)]
-pub struct InvincibilityEffect(pub Stopwatch, pub f32);
-#[derive(Component, Reflect)]
-pub struct AccelerationEffect(pub Stopwatch, pub f32, pub u32);
-
-#[derive(Component, Default, Debug, Reflect)]
-pub enum PlayerState {
-    #[default]
-    Idle,
-    Run,
-}
-
-#[derive(Event)]
-pub struct PlayerDamagedEvent {
-    pub damage: u32,
-}
-#[derive(Event)]
-pub struct PlayerLevelingUpEvent {
-    pub new_level: u32,
-}
-
-impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_event::<PlayerDamagedEvent>()
-            .add_event::<PlayerLevelingUpEvent>()
-            .add_systems(
-                Update,
-                (
-                    handle_player_death,
-                    handle_player_input,
-                    handle_player_damaged_events,
-                    handle_invincibility_effect,
-                    handle_acceleration_effect,
-                    handle_leveling_up,
-                    handle_sprite_reset.run_if(any_component_removed::<InvincibilityEffect>),
-                    handle_loot_pickup,
-                    move_loot_to_player,
-                    mark_loot_for_pickup,
-                    update_player_invincibility_visual,
-                )
-                    .run_if(in_state(GameState::Combat)),
-            );
-    }
-}
-
-fn handle_player_damaged_events(
+pub fn handle_player_damaged_events(
     mut commands: Commands,
     mut player_query: Query<
         (
@@ -169,7 +100,7 @@ fn handle_player_damaged_events(
     }
 }
 
-fn handle_leveling_up(
+pub fn handle_leveling_up(
     mut event_reader: EventReader<PlayerLevelingUpEvent>,
     mut player_query: Query<(&mut Health, &mut Defense), With<Player>>,
 ) {
@@ -186,7 +117,12 @@ fn handle_leveling_up(
     }
 }
 
-fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec3, damage: u32) {
+pub fn spawn_damage_text(
+    commands: &mut Commands,
+    font: &Handle<Font>,
+    position: Vec3,
+    damage: u32,
+) {
     commands.spawn((
         Name::new("Damage Text"),
         Text2d::new(format!("-{}", damage)),
@@ -206,7 +142,7 @@ fn spawn_damage_text(commands: &mut Commands, font: &Handle<Font>, position: Vec
     ));
 }
 
-fn handle_player_death(
+pub fn handle_player_death(
     commands: Commands,
     all_entities: Query<Entity, With<InGameEntity>>,
     player_query: Query<(Entity, &Health), With<Player>>,
@@ -223,7 +159,7 @@ fn handle_player_death(
     }
 }
 
-fn handle_invincibility_effect(
+pub fn handle_invincibility_effect(
     time: Res<Time>,
     mut commands: Commands,
     mut player_query: Query<(&mut InvincibilityEffect, Entity), With<Player>>,
@@ -238,14 +174,16 @@ fn handle_invincibility_effect(
     }
     invincibility_effect.0.tick(time.delta());
 }
-fn handle_sprite_reset(mut player_query: Query<(&OriginalColor, &mut Sprite), With<Player>>) {
+
+pub fn handle_sprite_reset(mut player_query: Query<(&OriginalColor, &mut Sprite), With<Player>>) {
     if player_query.is_empty() {
         return;
     }
     let (color, mut sprite) = player_query.single_mut();
     sprite.color = color.0;
 }
-fn handle_acceleration_effect(
+
+pub fn handle_acceleration_effect(
     time: Res<Time>,
     mut commands: Commands,
     mut player_query: Query<(&mut AccelerationEffect, &mut Speed, Entity), With<Player>>,
@@ -282,7 +220,7 @@ pub fn handle_player_input(
     }
 }
 
-fn mark_loot_for_pickup(
+pub fn mark_loot_for_pickup(
     mut commands: Commands,
     loot_query: Query<(Entity, &Transform), (With<Pickable>, Without<MovingToPlayer>)>,
     player_query: Query<&Transform, With<Player>>,
@@ -302,7 +240,7 @@ fn mark_loot_for_pickup(
     }
 }
 
-fn move_loot_to_player(
+pub fn move_loot_to_player(
     mut commands: Commands,
     time: Res<Time>,
     mut loot_query: Query<(Entity, &mut Transform), (With<MovingToPlayer>, Without<Player>)>,
@@ -329,7 +267,7 @@ fn move_loot_to_player(
     }
 }
 
-fn handle_loot_pickup(
+pub fn handle_loot_pickup(
     mut commands: Commands,
     mut player_query: Query<&mut PlayerInventory, With<Player>>,
     loot_query: Query<
@@ -381,7 +319,7 @@ fn handle_loot_pickup(
     }
 }
 
-fn update_player_invincibility_visual(
+pub fn update_player_invincibility_visual(
     mut player_query: Query<&mut Sprite, (With<Player>, With<InvincibilityEffect>)>,
     time: Res<Time>,
 ) {
