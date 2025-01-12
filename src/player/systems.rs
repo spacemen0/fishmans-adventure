@@ -1,21 +1,19 @@
-use std::time::Duration;
-
 use bevy::{prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::*;
 
+use super::*;
+use crate::ui::systems::in_game_ui;
+use crate::ui::systems::in_game_ui::spawn_damage_text;
 use crate::{
     armor::{Armor, ArmorStats},
     configs::*,
-    enemy::Collider,
-    gun::{Gun, HasLifespan},
+    gun::Gun,
     input::Action,
     loot::{MovingToPlayer, ReadyForPickup},
     potion::PotionType,
     resources::UiFont,
     utils::*,
 };
-
-use super::*;
 
 pub fn handle_player_damaged_events(
     mut commands: Commands,
@@ -37,7 +35,6 @@ pub fn handle_player_damaged_events(
     if player_query.is_empty() || events.is_empty() {
         return;
     }
-    println!("Handle Player Damaged Events");
     let (mut health, _player_state, player_defense, mut inventory, player_transform, entity) =
         player_query.single_mut();
 
@@ -50,10 +47,8 @@ pub fn handle_player_damaged_events(
                     armor_query.get_mut(*active_armor_entity)
                 {
                     total_defense += armor_stats.defense;
-                    println!("total defense: {total_defense:?}");
-                    println!("damage: {:?}", event.damage);
-                    let damage_after_defense = safe_subtract(event.damage, total_defense);
-                    println!("damage after defense: {:?}", damage_after_defense);
+                    let damage_after_defense =
+                        (event.damage as f32 * calculate_defense_percentage(total_defense)) as u32;
                     health.0 = safe_subtract(health.0, damage_after_defense);
 
                     armor_stats.durability =
@@ -73,7 +68,7 @@ pub fn handle_player_damaged_events(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
                         ));
-                        spawn_damage_text(
+                        in_game_ui::spawn_damage_text(
                             &mut commands,
                             &font.0,
                             player_transform.translation,
@@ -117,31 +112,6 @@ pub fn handle_leveling_up(
     }
 }
 
-pub fn spawn_damage_text(
-    commands: &mut Commands,
-    font: &Handle<Font>,
-    position: Vec3,
-    damage: u32,
-) {
-    commands.spawn((
-        Name::new("Damage Text"),
-        Text2d::new(format!("-{}", damage)),
-        TextFont {
-            font: font.clone(),
-            font_size: 50.0,
-            ..default()
-        },
-        TextColor(Srgba::new(1.0, 0.0, 0.0, 1.0).into()),
-        Transform {
-            translation: position + Vec3::new(0.0, 50.0, 0.0),
-            ..default()
-        },
-        Collider { radius: 5 },
-        HasLifespan::new(Duration::from_secs(1)),
-        InGameEntity,
-    ));
-}
-
 pub fn handle_player_death(
     commands: Commands,
     all_entities: Query<Entity, With<InGameEntity>>,
@@ -155,7 +125,7 @@ pub fn handle_player_death(
     if player.1 .0 == 0 {
         // Despawn all game entities
         cleanup_entities(commands, all_entities);
-        next_state.set(GameState::MainMenu);
+        next_state.set(GameState::End);
     }
 }
 

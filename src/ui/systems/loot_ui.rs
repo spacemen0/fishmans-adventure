@@ -17,12 +17,7 @@ use bevy::{
     core::Name,
     hierarchy::{BuildChildren, ChildBuild, ChildBuilder, Children, Parent},
     image::Image,
-    prelude::{
-        default, Added, AlignItems, BackgroundColor, BorderColor, Commands, Component, Entity,
-        FlexDirection, FlexWrap, Font, GlobalZIndex, ImageNode, JustifyContent, JustifyText,
-        NextState, Node, ParamSet, Query, Res, ResMut, Sprite, Text, TextColor, TextFont,
-        TextLayout, UiRect, Val, Visibility, With, Without,
-    },
+    prelude::*,
 };
 use leafwing_input_manager::action_state::ActionState;
 

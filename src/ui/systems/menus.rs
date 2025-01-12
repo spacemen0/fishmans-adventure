@@ -2,7 +2,7 @@ use crate::{
     game_state::GameState,
     input::Action,
     resources::UiFont,
-    ui::components::{MainMenuItem, MainMenuText, MenuButton, PauseMenuRoot},
+    ui::components::{BlinkingText, DeathScreenRoot, MainMenuRoot, MenuButton, PauseMenuRoot},
     utils::{cleanup_entities, InGameEntity},
 };
 use bevy::{
@@ -10,24 +10,23 @@ use bevy::{
     asset::AssetServer,
     color::{Alpha, Color},
     hierarchy::{BuildChildren, ChildBuild, DespawnRecursiveExt},
-    prelude::{
-        default, AlignItems, BackgroundColor, BorderColor, Button, Commands, Entity, EventWriter,
-        FlexDirection, JustifyContent, JustifyText, Local, NextState, Node, Query, Res, ResMut,
-        State, Text, TextColor, TextFont, TextLayout, Time, UiRect, Val, Visibility, With,
-    },
+    prelude::*,
 };
 use leafwing_input_manager::action_state::ActionState;
 
 pub fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
     commands
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            flex_direction: FlexDirection::Column,
-            ..default()
-        })
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            MainMenuRoot,
+        ))
         .with_children(|parent| {
             parent
                 .spawn((
@@ -67,11 +66,10 @@ pub fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
                     top: Val::Px(50.0),
                     ..default()
                 },
-                MainMenuText,
+                BlinkingText,
                 TextColor(Color::BLACK),
             ));
-        })
-        .insert(MainMenuItem);
+        });
 }
 
 pub fn handle_main_menu_buttons(
@@ -83,10 +81,7 @@ pub fn handle_main_menu_buttons(
     }
 }
 
-pub fn blink_main_menu_text(
-    mut text_query: Query<&mut TextColor, With<MainMenuText>>,
-    time: Res<Time>,
-) {
+pub fn blink_text(mut text_query: Query<&mut TextColor, With<BlinkingText>>, time: Res<Time>) {
     if let Ok(mut text_color) = text_query.get_single_mut() {
         let flash_rate = 2.0;
         let alpha = (time.elapsed_secs() * flash_rate).sin().abs();
@@ -96,7 +91,7 @@ pub fn blink_main_menu_text(
 
 pub fn despawn_main_menu(
     mut commands: Commands,
-    menu_items_query: Query<Entity, With<MainMenuItem>>,
+    menu_items_query: Query<Entity, With<MainMenuRoot>>,
 ) {
     for e in menu_items_query.iter() {
         commands.entity(e).despawn_recursive();
@@ -148,88 +143,45 @@ pub fn setup_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>, 
                     BackgroundColor(Color::linear_rgb(0.2, 0.2, 0.2)),
                 ))
                 .with_children(|parent| {
-                    // Resume button
-                    parent
-                        .spawn((
-                            Button,
-                            Node {
-                                width: Val::Px(200.0),
-                                height: Val::Px(50.0),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..default()
-                            },
-                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
-                            MenuButton::Resume,
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new("Resume"),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::BLACK),
-                            ));
-                        });
-
-                    // Restart button
-                    parent
-                        .spawn((
-                            Button,
-                            Node {
-                                width: Val::Px(200.0),
-                                height: Val::Px(50.0),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..default()
-                            },
-                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
-                            MenuButton::Restart,
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new("Restart"),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::BLACK),
-                            ));
-                        });
-
-                    // Quit button
-                    parent
-                        .spawn((
-                            Button,
-                            Node {
-                                width: Val::Px(200.0),
-                                height: Val::Px(50.0),
-                                justify_content: JustifyContent::Center,
-                                align_items: AlignItems::Center,
-                                ..default()
-                            },
-                            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
-                            MenuButton::Quit,
-                        ))
-                        .with_children(|parent| {
-                            parent.spawn((
-                                Text::new("Quit"),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextColor(Color::BLACK),
-                            ));
-                        });
+                    spawn_pause_menu_button(parent, "Resume", MenuButton::Resume, &font.0);
+                    spawn_pause_menu_button(parent, "Restart", MenuButton::Restart, &font.0);
+                    spawn_pause_menu_button(parent, "Quit", MenuButton::Quit, &font.0);
                 });
         });
 }
 
-pub fn menu_navigation(
+fn spawn_pause_menu_button(
+    parent: &mut ChildBuilder,
+    button_text: &str,
+    menu_button_type: MenuButton,
+    font: &Handle<Font>,
+) {
+    parent
+        .spawn((
+            Button,
+            Node {
+                width: Val::Px(200.0),
+                height: Val::Px(50.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::linear_rgb(0.8, 0.8, 0.8)),
+            menu_button_type,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                Text::new(button_text),
+                TextFont {
+                    font: font.clone(),
+                    font_size: 30.0,
+                    ..default()
+                },
+                TextColor(Color::BLACK),
+            ));
+        });
+}
+pub fn pause_menu_navigation(
     mut next_state: ResMut<NextState<GameState>>,
     action_state: Res<ActionState<Action>>,
     all_entities: Query<Entity, With<InGameEntity>>,
@@ -276,5 +228,65 @@ pub fn menu_navigation(
             }
             *selected_button = 0;
         }
+    }
+}
+
+pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
+    commands
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(400.0),
+                        height: Val::Px(200.0),
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BackgroundColor(Color::linear_rgb(0.1, 0.1, 0.1)),
+                    DeathScreenRoot,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text::new("Game Over"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 50.0,
+                            ..default()
+                        },
+                        TextColor(Color::linear_rgb(1.0, 0.1, 0.0)),
+                    ));
+                    parent.spawn((
+                        Text::new("Press Enter to Restart"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
+                        BlinkingText,
+                    ));
+                });
+        });
+}
+
+pub fn handle_death_screen_input(
+    action_state: Res<ActionState<Action>>,
+    mut next_state: ResMut<NextState<GameState>>,
+    mut query: Query<Entity, With<DeathScreenRoot>>,
+    mut commands: Commands,
+) {
+    if action_state.just_pressed(&Action::Confirm) {
+        let entity = query.single_mut();
+        commands.entity(entity).despawn_recursive();
+        next_state.set(GameState::MainMenu);
     }
 }

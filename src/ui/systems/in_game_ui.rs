@@ -9,11 +9,11 @@ use bevy::{
     core::Name,
     hierarchy::{BuildChildren, ChildBuild},
     math::{Vec2, Vec3},
-    prelude::{
-        default, AlignItems, Commands, DetectChanges, Entity, JustifyContent, Node, PositionType,
-        Query, Res, Sprite, Text, TextColor, TextFont, Transform, Val, With,
-    },
+    prelude::*,
 };
+use std::time::Duration;
+use crate::enemy::Collider;
+use crate::gun::HasLifespan;
 
 pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
     if let Ok(player_entity) = player_query.get_single() {
@@ -90,10 +90,10 @@ pub fn setup_wave_display(
                 Text::new("Wave 1"),
                 TextFont {
                     font: font.0.clone(),
-                    font_size: 40.0,
+                    font_size: 50.0,
                     ..default()
                 },
-                TextColor::WHITE,
+                TextColor::from(Color::WHITE),
                 WaveDisplay,
             ));
         });
@@ -105,4 +105,29 @@ pub fn update_wave_display(mut wave_query: Query<&mut Text, With<WaveDisplay>>, 
             *text = Text::from(format!("Wave {}", wave.number));
         }
     }
+}
+
+pub fn spawn_damage_text(
+    commands: &mut Commands,
+    font: &Handle<Font>,
+    position: Vec3,
+    damage: u32,
+) {
+    commands.spawn((
+        Name::new("Damage Text"),
+        Text2d::new(format!("-{}", damage)),
+        TextFont {
+            font: font.clone(),
+            font_size: 50.0,
+            ..default()
+        },
+        TextColor(Srgba::new(1.0, 0.0, 0.0, 1.0).into()),
+        Transform {
+            translation: position + Vec3::new(0.0, 50.0, 0.0),
+            ..default()
+        },
+        Collider { radius: 5 },
+        HasLifespan::new(Duration::from_secs(1)),
+        InGameEntity,
+    ));
 }

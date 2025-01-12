@@ -128,3 +128,10 @@ impl Default for EnemyState {
         }
     }
 }
+
+#[derive(Event)]
+pub struct BomberExplosionEvent {
+    pub translation: Vec3,
+    pub explosion_radius: f32,
+    pub explosion_damage: u32,
+}

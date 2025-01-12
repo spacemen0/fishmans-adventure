@@ -8,14 +8,14 @@ use fishmans_adventure::{
     camera::FollowCameraPlugin,
     collision::CollisionPlugin,
     configs::{BG_COLOR, WH, WW},
-    enemy::EnemyPlugin,
+    enemy::plugin::EnemyPlugin,
     game_state::GameState,
     gun::GunPlugin,
     input::InputPlugin,
-    player::{PlayerInventory, PlayerPlugin},
+    player::{plugin::PlayerPlugin, PlayerInventory},
     potion::PotionPlugin,
     resources::ResourcesPlugin,
-    ui::UiPlugin,
+    ui::plugin::UiPlugin,
     world::WorldPlugin,
 };
 use iyes_perf_ui::PerfUiPlugin;

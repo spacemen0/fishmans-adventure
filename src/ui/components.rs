@@ -1,4 +1,4 @@
-use bevy::prelude::{Component, Entity};
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct PauseMenuRoot;
@@ -14,10 +14,13 @@ pub enum MenuButton {
 }
 
 #[derive(Component)]
-pub struct MainMenuItem;
+pub struct MainMenuRoot;
 
 #[derive(Component)]
-pub struct MainMenuText;
+pub struct BlinkingText;
+
+#[derive(Component)]
+pub struct DeathScreenRoot;
 
 #[derive(Component)]
 pub struct PlayerHealthText;

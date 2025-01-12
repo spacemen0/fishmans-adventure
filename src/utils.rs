@@ -98,3 +98,11 @@ pub fn get_nearest_enemy_position(player_pos: Vec2, enemy_kd_tree: &EnemyKdTree)
         .next()
         .map(|nearest_enemy| Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]))
 }
+
+pub fn calculate_defense_percentage(defense: u32) -> f32 {
+    let max_defense = 30;
+    let defense = defense.min(max_defense);
+    let max_percentage = 0.8;
+    let scaled_defense = (defense as f32).sqrt() / (max_defense as f32).sqrt();
+    scaled_defense * max_percentage
+}
