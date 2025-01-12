@@ -52,12 +52,14 @@ impl EnemyBuilder {
         self
     }
 
-    pub fn with_trail(mut self, damage: u32, interval: f32, radius: f32) -> Self {
+    pub fn with_trail(mut self, damage: u32, interval: f32, radius: f32, duration: f32) -> Self {
         self.abilities.push(Box::new(move |commands, entity| {
             commands.entity(entity).insert(TrailAbility {
                 timer: Timer::from_seconds(interval, TimerMode::Repeating),
                 damage,
                 trail_radius: radius,
+                trail_duration: duration,
+                last_position: None,
             });
         }));
         self

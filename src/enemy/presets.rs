@@ -12,7 +12,7 @@ pub fn create_trail_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
         .with_stats(50, 10, 6, 5)
         .with_sprite(20, (16, 16))
-        .with_trail(4, 0.1, 10.0)
+        .with_trail(4, 0.05, 10.0, 3.0)
         .with_loot_pool(medium_enemies_bundle())
 }
 
@@ -62,7 +62,7 @@ pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
         .with_stats(50000, 8, 20, 100)
         .with_sprite(56, (32, 32))
-        .with_trail(10, 0.2, 20.0)
+        .with_trail(10, 0.05, 20.0, 3.0)
         .with_shooting(5, 1.0, 500.0, 300, 15)
         .with_charge(600, 50, 0.6)
         .with_summoning(6, 12, 10.0)

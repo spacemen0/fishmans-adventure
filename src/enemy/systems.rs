@@ -2,16 +2,18 @@ use super::{components::*, presets::*};
 use crate::{
     configs::*,
     enemy::EnemyBuilder,
-    gun::{BulletDirection, BulletStats},
+    gun::{BulletDirection, BulletStats, HasLifespan},
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
     resources::{GlobalTextureAtlas, Level, Wave},
     utils::{
         apply_movement, calculate_enemies_for_wave, clamp_position, get_random_position_around,
+        InGameEntity,
     },
 };
 use bevy::prelude::*;
 use rand::Rng;
+use std::time::Duration;
 
 pub fn update_enemy_movement(
     time: Res<Time>,
@@ -142,12 +144,18 @@ pub fn handle_trail_abilities(
     for (transform, mut trail_ability) in query.iter_mut() {
         trail_ability.timer.tick(time.delta());
         if trail_ability.timer.just_finished() {
-            spawn_trail(
-                &mut commands,
-                transform.translation,
-                trail_ability.damage,
-                trail_ability.trail_radius,
-            );
+            let current_position = transform.translation;
+            if let Some(last_position) = trail_ability.last_position {
+                spawn_trail_segment(
+                    &mut commands,
+                    last_position,
+                    current_position,
+                    trail_ability.damage,
+                    trail_ability.trail_radius,
+                    trail_ability.trail_duration,
+                );
+            }
+            trail_ability.last_position = Some(current_position);
         }
     }
 }
@@ -352,17 +360,81 @@ pub fn handle_enemy_death(
     }
 }
 
-fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32) {
+// fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32) {
+//     commands.spawn((
+//         Name::new("Trail"),
+//         Sprite {
+//             color: Color::srgba(0.0, 0.8, 0.0, 0.5),
+//             custom_size: Some(Vec2::new(20.0, 20.0)),
+//             ..default()
+//         },
+//         Transform::from_translation(position),
+//         Trail { damage, radius },
+//     ));
+// }
+
+fn spawn_trail_segment(
+    commands: &mut Commands,
+    start: Vec3,
+    end: Vec3,
+    damage: u32,
+    radius: f32,
+    duration: f32,
+) {
+    let direction = (end - start).normalize();
+    let length = (end - start).length();
+    let angle = direction.y.atan2(direction.x);
+    let center_pos = start + (end - start) / 2.0;
+
     commands.spawn((
-        Name::new("Trail"),
+        Name::new("TrailSegment"),
+        TrailSegment {
+            start,
+            end,
+            timer: Timer::from_seconds(duration, TimerMode::Once),
+            width: radius * 2.0,
+        },
+        Trail { damage, radius },
+        HasLifespan::new(Duration::from_secs_f32(duration)),
         Sprite {
-            color: Color::srgba(0.0, 0.8, 0.0, 0.5),
-            custom_size: Some(Vec2::new(20.0, 20.0)),
+            color: Color::srgba(0.0, 0.8, 0.0, 0.6),
+            custom_size: Some(Vec2::new(length, radius * 2.0)),
             ..default()
         },
-        Transform::from_translation(position),
-        Trail { damage, radius },
+        Transform::from_translation(center_pos).with_rotation(Quat::from_rotation_z(angle)),
+        InGameEntity,
     ));
+}
+
+pub fn update_trail_segments(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut TrailSegment, &mut Sprite)>,
+) {
+    for (entity, mut segment, mut sprite) in query.iter_mut() {
+        segment.timer.tick(time.delta());
+        
+        let progress = segment.timer.elapsed_secs() / segment.timer.duration().as_secs_f32();
+        
+        if progress >= 1.0 {
+            commands.entity(entity).despawn();
+        } else {
+            let alpha = (1.0 - progress) * 0.6; 
+            
+            let base_color = Color::srgba(
+                progress * 0.8,  
+                (1.0 - progress) * 0.8, 
+                0.0,           
+                alpha         
+            );
+            
+            sprite.color = base_color;
+            
+            if let Some(size) = &mut sprite.custom_size {
+                size.x = segment.width * (1.0 - progress * 0.3); 
+            }
+        }
+    }
 }
 
 pub fn spawn_explosion(commands: &mut Commands, position: Vec3, radius: f32, damage: u32) {

@@ -40,6 +40,16 @@ pub struct TrailAbility {
     pub timer: Timer,
     pub damage: u32,
     pub trail_radius: f32,
+    pub trail_duration: f32,
+    pub last_position: Option<Vec3>,
+}
+
+#[derive(Component)]
+pub struct TrailSegment {
+    pub start: Vec3,
+    pub end: Vec3,
+    pub timer: Timer,
+    pub width: f32,
 }
 
 #[derive(Component)]
