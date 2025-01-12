@@ -272,7 +272,7 @@ fn fire_omni_bullets(
     bullets_per_shot: usize,
     bullet_stats: &BulletStats,
     handle: &GlobalTextureAtlas,
-    texture_index_range: std::ops::RangeInclusive<usize>,
+    texture_index_range: RangeInclusive<usize>,
     gun_type: GunType,
 ) {
     let angle_step = 360.0 / bullets_per_shot as f32; // Divide the circle into equal parts
