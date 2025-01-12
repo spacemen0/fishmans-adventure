@@ -1,6 +1,6 @@
 // Window
 pub const WW: f32 = 1080.0;
-pub const WH: f32 = 672.0;
+pub const WH: f32 = 720.0;
 
 // Sprites
 pub const SPRITE_SHEET_PATH: &str = "embedded://fishmans_adventure/../assets/assets.png";

@@ -10,7 +10,7 @@ pub struct PauseMenuButtonIndex(pub u8);
 pub struct DescriptionTextBox;
 
 #[derive(Component)]
-pub enum MenuButton {
+pub enum PauseMenuButton {
     Resume,
     Restart,
     Quit,
@@ -18,6 +18,18 @@ pub enum MenuButton {
 
 #[derive(Component)]
 pub struct MainMenuRoot;
+
+#[derive(Component)]
+pub enum MainMenuButton {
+    Start,
+    Control,
+    Exit,
+}
+
+#[derive(Component)]
+pub struct MainMenuButtonIndex(pub u8);
+#[derive(Component)]
+pub struct ControlWidget;
 
 #[derive(Component)]
 pub struct BlinkingText;

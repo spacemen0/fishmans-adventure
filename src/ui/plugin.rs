@@ -10,6 +10,8 @@ use bevy::{
     prelude::{in_state, Condition, IntoSystemConfigs, OnEnter, OnExit},
 };
 
+use super::systems::menus::handle_control_widget;
+
 pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
@@ -35,7 +37,8 @@ impl Plugin for UiPlugin {
         .add_systems(
             Update,
             (
-                menus::handle_main_menu_buttons.run_if(in_state(GameState::MainMenu)),
+                (menus::handle_main_menu_buttons, handle_control_widget)
+                    .run_if(in_state(GameState::MainMenu)),
                 menus::blink_text,
             ),
         )

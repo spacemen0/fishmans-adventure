@@ -189,7 +189,7 @@ fn handle_gun_firing(
                 bullet_stats,
                 &handle,
                 80..=83,
-                *gun_type, // Texture index range for SingleDirectionSpread
+                *gun_type,
             ),
             GunType::OmniSpread => fire_omni_bullets(
                 &mut commands,
@@ -198,27 +198,25 @@ fn handle_gun_firing(
                 bullet_stats,
                 &handle,
                 84..=87,
-                *gun_type, // Texture index range for OmniSpread
+                *gun_type,
             ),
             GunType::FocusedAim => {
-                // Specific logic for SingleDirection guns
                 fire_bullets(
                     &mut commands,
                     gun_pos,
                     *bullet_direction,
-                    1,   // Single bullet per shot
-                    0.0, // No spread for SingleDirection
+                    1,
+                    0.0,
                     bullet_stats,
                     &handle,
                     84..=87,
-                    *gun_type, // Texture index range for SingleDirection
+                    *gun_type,
                 );
             }
         }
     }
 }
 
-/// A reusable function to fire bullets with the given parameters.
 fn fire_bullets(
     commands: &mut Commands,
     gun_pos: Vec2,
@@ -265,7 +263,6 @@ fn fire_bullets(
     }
 }
 
-/// Fires bullets in all directions (360-degree spread).
 fn fire_omni_bullets(
     commands: &mut Commands,
     gun_pos: Vec2,
@@ -275,13 +272,13 @@ fn fire_omni_bullets(
     texture_index_range: RangeInclusive<usize>,
     gun_type: GunType,
 ) {
-    let angle_step = 360.0 / bullets_per_shot as f32; // Divide the circle into equal parts
+    let angle_step = 360.0 / bullets_per_shot as f32;
     let mut rng = rand::thread_rng();
 
     for i in 0..bullets_per_shot {
-        let angle = i as f32 * angle_step; // Calculate the angle for this bullet
+        let angle = i as f32 * angle_step;
         let radians = angle.to_radians();
-        let dir = vec3(radians.cos(), radians.sin(), 0.0); // Direction vector for the bullet
+        let dir = vec3(radians.cos(), radians.sin(), 0.0);
 
         commands.spawn((
             Name::new("Bullet"),
@@ -386,14 +383,10 @@ fn move_bullets(
                         let new_direction = (nearest_enemy_pos - bullet_pos).normalize();
                         bullet_direction.0 = vec3(new_direction.x, new_direction.y, 0.0);
                     }
-                    bullet_transform.translation +=
-                        bullet_direction.0 * Vec3::splat(bullet_stats.speed as f32);
-                    bullet_transform.translation.z = LAYER4;
-                } else {
-                    bullet_transform.translation +=
-                        bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                    bullet_transform.translation.z = LAYER4;
                 }
+                bullet_transform.translation +=
+                    bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
+                bullet_transform.translation.z = LAYER4;
             }
         }
     }
