@@ -111,7 +111,11 @@ pub struct GurgleEnemy;
 
 #[derive(Component, Debug)]
 pub enum EnemyState {
-    Wandering { direction: Vec2, timer: Timer },
+    Wandering {
+        direction: Vec2,
+        timer: Timer,
+        has_been_aggroed: bool,
+    },
     Pursuing,
     Retreating,
     MaintainingDistance,
@@ -135,6 +139,7 @@ impl Default for EnemyState {
         Self::Wandering {
             direction: Vec2::new(1.0, 0.0),
             timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+            has_been_aggroed: false,
         }
     }
 }

@@ -32,11 +32,16 @@ pub fn update_enemy_movement(
 
         for (enemy, mut transform, mut state) in enemy_query.iter_mut() {
             match &mut *state {
-                EnemyState::Wandering { direction, timer } => {
+                EnemyState::Wandering {
+                    direction,
+                    timer,
+                    has_been_aggroed,
+                } => {
                     timer.tick(time.delta());
 
                     let distance_to_player = transform.translation.distance(player_pos);
                     if distance_to_player < 300.0 {
+                        *has_been_aggroed = true;
                         *state = EnemyState::Pursuing;
                     } else {
                         if timer.just_finished() {
@@ -55,10 +60,18 @@ pub fn update_enemy_movement(
 
                     let distance_to_player = transform.translation.distance(player_pos);
                     if distance_to_player > 400.0 {
-                        *state = EnemyState::Wandering {
-                            direction: Vec2::new(1.0, 0.0),
-                            timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-                        };
+                        match state.as_ref() {
+                            EnemyState::Wandering {
+                                has_been_aggroed, ..
+                            } if !has_been_aggroed => {
+                                *state = EnemyState::Wandering {
+                                    direction: Vec2::new(1.0, 0.0),
+                                    timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+                                    has_been_aggroed: false,
+                                };
+                            }
+                            _ => continue,
+                        }
                     }
                 }
                 EnemyState::Retreating | EnemyState::MaintainingDistance => {
