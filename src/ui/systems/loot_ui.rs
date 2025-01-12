@@ -38,7 +38,7 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<Ass
             },
             GlobalZIndex(3),
             Visibility::Hidden,
-            BackgroundColor(Color::linear_rgb(0.6, 0.2, 0.2)),
+            BackgroundColor(Color::srgba_u8(237, 217, 165, 240)),
             InGameEntity,
         ))
         .with_children(|parent| {
@@ -140,6 +140,7 @@ pub fn spawn_slots_grid(
                                     ..default()
                                 },
                                 BorderColor(Color::BLACK),
+                                BorderRadius::all(Val::Px(4.0)),
                                 FocusedItem,
                                 GridSlot {
                                     x: i,
@@ -172,6 +173,7 @@ pub fn spawn_slots_grid(
                                 },
                                 Name::new("GridItem"),
                                 BorderColor(Color::BLACK),
+                                BorderRadius::all(Val::Px(4.0)),
                                 GridSlot {
                                     x: i,
                                     y: index,
@@ -270,7 +272,7 @@ pub fn navigate_loot_items(
                         .entity(focused_item.1)
                         .remove_children(&[*text_box_child]);
 
-                    commands.entity(*text_box_child).despawn();
+                    commands.entity(*text_box_child).despawn_recursive();
                 }
                 focused_item.2.border = UiRect::all(Val::Px(2.0));
                 focused_item.3 .0 = Color::BLACK;
@@ -296,31 +298,39 @@ pub fn highlight_focused_item(
             if let Ok(description) = description_query.get(*item_entity) {
                 commands
                     .entity(entity)
-                    .with_child((
-                        Node {
-                            min_width: Val::Px(240.0),
-                            height: Val::Px(120.0),
-                            bottom: Val::Px(4.0),
-                            left: Val::Px(6.0),
-                            ..default()
-                        },
-                        Text::new(format!(
-                            "{}\n {}",
-                            description.name, description.description
-                        )),
-                        TextFont {
-                            font: font.0.clone(),
-                            font_size: 25.0,
-                            ..default()
-                        },
-                        TextLayout {
-                            justify: JustifyText::Center,
-                            ..default()
-                        },
-                        GlobalZIndex(4),
-                        TextColor(Color::BLACK),
-                        BackgroundColor(Color::linear_rgba(1.0, 1.0, 1.0, 0.8)),
-                    ))
+                    .with_children(|parent| {
+                        parent
+                            .spawn((
+                                Node {
+                                    min_width: Val::Px(220.0),
+                                    height: Val::Px(120.0),
+                                    bottom: Val::Px(5.0),
+                                    border: UiRect::all(Val::Px(1.0)),
+                                    left: Val::Px(10.0),
+                                    ..default()
+                                },
+                                BorderRadius::all(Val::Px(6.0)),
+                                BorderColor(Color::BLACK),
+                                GlobalZIndex(4),
+                                BackgroundColor(Color::srgba_u8(251, 255, 148, 238)),
+                            ))
+                            .with_child((
+                                Text::new(format!(
+                                    "{}\n {}",
+                                    description.name, description.description
+                                )),
+                                TextFont {
+                                    font: font.0.clone(),
+                                    font_size: 30.0,
+                                    ..default()
+                                },
+                                TextLayout {
+                                    justify: JustifyText::Center,
+                                    ..default()
+                                },
+                                TextColor(Color::BLACK),
+                            ));
+                    })
                     .insert(DescriptionTextBox);
             }
         }

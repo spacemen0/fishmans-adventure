@@ -255,25 +255,25 @@ pub fn handle_loot_pickup(
         match (potion_type, gun, armor) {
             (Some(PotionType::Speed), _, _) => {
                 if !inventory.speed_potions.contains(&loot_entity)
-                    && inventory.speed_potions.len() <= 4
+                    && inventory.speed_potions.len() < 4
                 {
                     inventory.speed_potions.push(loot_entity);
                 }
             }
             (Some(PotionType::Health), _, _) => {
                 if !inventory.health_potions.contains(&loot_entity)
-                    && inventory.health_potions.len() <= 4
+                    && inventory.health_potions.len() < 4
                 {
                     inventory.health_potions.push(loot_entity);
                 }
             }
             (_, Some(_), _) => {
-                if !inventory.guns.contains(&loot_entity) && inventory.guns.len() <= 4 {
+                if !inventory.guns.contains(&loot_entity) && inventory.guns.len() < 4 {
                     inventory.guns.push(loot_entity);
                 }
             }
             (_, _, Some(_)) => {
-                if !inventory.armors.contains(&loot_entity) && inventory.armors.len() <= 4 {
+                if !inventory.armors.contains(&loot_entity) && inventory.armors.len() < 4 {
                     inventory.armors.push(loot_entity);
                 }
             }

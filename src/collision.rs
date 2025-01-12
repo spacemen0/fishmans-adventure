@@ -140,7 +140,7 @@ fn handle_enemy_bullet_collision(
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
                 enemy.health = safe_subtract(enemy.health, stats.damage);
-                commands.entity(bullet_entity).despawn();
+                commands.entity(bullet_entity).try_despawn();
             }
         }
     }

@@ -4,6 +4,9 @@ use bevy::prelude::*;
 pub struct PauseMenuRoot;
 
 #[derive(Component)]
+pub struct PauseMenuButtonIndex(pub u8);
+
+#[derive(Component)]
 pub struct DescriptionTextBox;
 
 #[derive(Component)]

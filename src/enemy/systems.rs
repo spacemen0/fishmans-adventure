@@ -176,7 +176,7 @@ pub fn handle_enemy_bullet_player_collision(
                 ev_player_damaged.send(PlayerDamagedEvent {
                     damage: bullet_stats.damage,
                 });
-                commands.entity(bullet_entity).despawn();
+                commands.entity(bullet_entity).try_despawn();
             }
         }
     }
@@ -234,7 +234,7 @@ pub fn handle_exploding_bullets(
                     exploding_bullet.radius,
                     exploding_bullet.damage,
                 );
-                commands.entity(bullet_entity).despawn();
+                commands.entity(bullet_entity).try_despawn();
             }
 
             if bullet_transform.translation.y <= -WH + 20.0 {
@@ -244,7 +244,7 @@ pub fn handle_exploding_bullets(
                     exploding_bullet.radius,
                     exploding_bullet.damage,
                 );
-                commands.entity(bullet_entity).despawn();
+                commands.entity(bullet_entity).try_despawn();
             }
         }
     }
@@ -413,25 +413,20 @@ pub fn update_trail_segments(
 ) {
     for (entity, mut segment, mut sprite) in query.iter_mut() {
         segment.timer.tick(time.delta());
-        
+
         let progress = segment.timer.elapsed_secs() / segment.timer.duration().as_secs_f32();
-        
+
         if progress >= 1.0 {
             commands.entity(entity).despawn();
         } else {
-            let alpha = (1.0 - progress) * 0.6; 
-            
-            let base_color = Color::srgba(
-                progress * 0.8,  
-                (1.0 - progress) * 0.8, 
-                0.0,           
-                alpha         
-            );
-            
+            let alpha = (1.0 - progress) * 0.6;
+
+            let base_color = Color::srgba(progress * 0.8, (1.0 - progress) * 0.8, 0.0, alpha);
+
             sprite.color = base_color;
-            
+
             if let Some(size) = &mut sprite.custom_size {
-                size.x = segment.width * (1.0 - progress * 0.3); 
+                size.x = segment.width * (1.0 - progress * 0.3);
             }
         }
     }
@@ -480,7 +475,7 @@ pub fn update_enemy_bullets(
                     exploding_bullet.damage,
                 );
             }
-            commands.entity(entity).despawn();
+            commands.entity(entity).try_despawn();
         }
     }
 }

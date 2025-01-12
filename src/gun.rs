@@ -147,7 +147,7 @@ fn despawn_entities_reach_lifespan(
                     exploding_bullet.damage,
                 );
             }
-            commands.entity(entity).despawn();
+            commands.entity(entity).try_despawn();
         }
     }
 }

@@ -126,12 +126,12 @@ pub fn init_world(
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             GunType::FocusedAim,
             GunStats {
-                bullets_per_shot: 1,
+                bullets_per_shot: 3,
                 firing_interval: 1.0,
                 bullet_spread: 0.0,
             },
             BulletStats {
-                speed: 40,
+                speed: 45,
                 damage: 200,
                 lifespan: 0.7,
             },
