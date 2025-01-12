@@ -2,8 +2,8 @@ use bevy::{math::vec3, prelude::*};
 
 use crate::{
     configs::{WH, WW},
+    game_state::GameState,
     player::Player,
-    state::GameState,
 };
 
 pub struct FollowCameraPlugin;

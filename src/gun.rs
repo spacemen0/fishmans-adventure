@@ -12,11 +12,11 @@ use rand::Rng;
 use crate::{
     collision::EnemyKdTree,
     configs::*,
+    game_state::GameState,
     input::Action,
     loot::Description,
     player::{handle_player_input, Player, PlayerInventory},
     resources::GlobalTextureAtlas,
-    state::GameState,
     utils::{get_nearest_enemy_position, InGameEntity},
 };
 
@@ -272,7 +272,7 @@ fn fire_omni_bullets(
     bullets_per_shot: usize,
     bullet_stats: &BulletStats,
     handle: &GlobalTextureAtlas,
-    texture_index_range: std::ops::RangeInclusive<usize>,
+    texture_index_range: RangeInclusive<usize>,
     gun_type: GunType,
 ) {
     let angle_step = 360.0 / bullets_per_shot as f32; // Divide the circle into equal parts

@@ -9,4 +9,5 @@ pub enum GameState {
     Combat,
     Paused,
     Ui,
+    End,
 }

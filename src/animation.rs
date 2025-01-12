@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use crate::{
     collision::EnemyKdTree,
     enemy::Enemy,
+    game_state::GameState,
     gun::ActiveGun,
     player::{Player, PlayerState},
     resources::CursorPosition,
-    state::GameState,
 };
 
 pub struct AnimationPlugin;
