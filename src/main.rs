@@ -70,7 +70,7 @@ fn main() {
         .add_plugins(InputPlugin)
         .init_state::<GameState>();
     #[cfg(target_arch = "wasm32")]
-    app.add_system(PostUpdate, handle_exit_event);
+    app.add_systems(PostUpdate, handle_exit_event);
     app.run();
 }
 
