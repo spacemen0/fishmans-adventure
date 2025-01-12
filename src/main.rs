@@ -19,9 +19,16 @@ use fishmans_adventure::{
     world::WorldPlugin,
 };
 use iyes_perf_ui::PerfUiPlugin;
+use wasm_bindgen::prelude::wasm_bindgen;
+
+#[wasm_bindgen]
+extern "C" {
+    fn notify_exit();
+}
 
 fn main() {
-    App::new()
+    let mut binding = App::new();
+    let app = binding
         .add_plugins(
             DefaultPlugins
                 .set(ImagePlugin::default_nearest())
@@ -61,8 +68,10 @@ fn main() {
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
         .add_plugins(InputPlugin)
-        .init_state::<GameState>()
-        .run();
+        .init_state::<GameState>();
+    #[cfg(target_arch = "wasm32")]
+    app.add_system(PostUpdate, handle_exit_event);
+    app.run();
 }
 
 struct EmbeddedAssetPlugin;
@@ -75,5 +84,12 @@ impl Plugin for EmbeddedAssetPlugin {
         embedded_asset!(app, "../assets/icons/level.png");
         embedded_asset!(app, "../assets/icons/xp.png");
         embedded_asset!(app, "../assets/icons/defense.png");
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn handle_exit_event(mut exit_events: EventReader<AppExit>) {
+    for _ in exit_events.read() {
+        notify_exit();
     }
 }

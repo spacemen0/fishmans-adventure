@@ -37,15 +37,21 @@
 </head>
 
 <body class="d-flex align-items-center justify-content-center text-center">
+    <div id="loading-indicator"
+        class="d-flex align-items-center justify-content-center position-fixed w-100 h-100 bg-dark">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
     <div id="small-screen-alert" class="position-absolute top-50 start-50 translate-middle d-none">
         <h3>Window Size Too Small</h3>
         <p id="size">Your window size is:</p>
-        <p>This website is best experienced on a larger screen. Please use a device with a larger display or try zooming
+        <p>This game is best experienced on a larger screen. Please use a device with a larger display or try zooming
             out</p>
     </div>
 
     <div id="game-container" class="container text-center pt-4">
-        <canvas id="fishmans_adventure" width="1080" height="672"
+        <canvas id="fishmans_adventure" width="1080" height="720"
             class="border border-light shadow-lg rounded"></canvas>
         <p class="game-title">
             Fishmans Adventure
@@ -60,20 +66,8 @@
         </p>
     </div>
 
-
-
-    <!-- Script to handle screen size check and initialization -->
-    <script type="module">
-        import init from './fishmans_adventure.js'
-
-        init().catch((error) => {
-            if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
-                throw error;
-            }
-        });
-
-        function isScreenTooSmall() {
-            return window.innerWidth < 1080 || window.innerHeight < 672;
+    <script>function isScreenTooSmall() {
+            return window.innerWidth < 1080 || window.innerHeight < 720;
         }
 
         window.onload = () => {
@@ -85,6 +79,8 @@
         };
 
         window.onresize = () => {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.classList.add('d-none');
             if (isScreenTooSmall()) {
                 document.getElementById('small-screen-alert').classList.remove('d-none');
                 document.getElementById('game-container').classList.add('d-none');
@@ -92,7 +88,37 @@
                 document.getElementById('small-screen-alert').classList.add('d-none');
                 document.getElementById('game-container').classList.remove('d-none');
             }
+        };</script>
+    <script type="module">
+        import init from './fishmans_adventure.js'
+        init();
+
+        window.notify_exit = function () {
+            console.log("The app has exited!");
+            alert("The game has exited!");
+            const canvas = document.getElementById("fishmans_adventure");
+            console.log(canvas);
+            if (canvas) {
+                canvas.classList.add('d-none');
+            }
+        }
+        console.log('Game loaded successfully!');
+        const loadingIndicator = document.getElementById("loading-indicator");
+        loadingIndicator.classList.add('d-none');
+        const ignoreCanvasContextMenu = () => {
+            const canvases = document.getElementsByTagName('canvas');
+            if (canvases[0]) {
+                canvases[0].oncontextmenu = (e) => {
+                    e.preventDefault()
+                };
+            } else {
+                setTimeout(ignoreCanvasContextMenu, 1000)
+            }
         };
+        setTimeout(ignoreCanvasContextMenu, 1000)
+
+
+
     </script>
 
     <!-- Bootstrap JS -->

@@ -2,8 +2,6 @@ use bevy::{prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::*;
 
 use super::*;
-use crate::ui::systems::in_game_ui;
-use crate::ui::systems::in_game_ui::spawn_damage_text;
 use crate::{
     armor::{Armor, ArmorStats},
     configs::*,
@@ -12,6 +10,7 @@ use crate::{
     loot::{MovingToPlayer, ReadyForPickup},
     potion::PotionType,
     resources::UiFont,
+    ui::systems::{in_game_ui, in_game_ui::spawn_damage_text},
     utils::*,
 };
 
@@ -63,7 +62,6 @@ pub fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
-                        println!("Enter Block");
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
@@ -77,7 +75,6 @@ pub fn handle_player_damaged_events(
                     }
                 }
             } else {
-                println!("No active armor");
                 let damage_after_defense = safe_subtract(event.damage, player_defense.0);
                 health.0 = safe_subtract(health.0, damage_after_defense);
                 if damage_after_defense > 0 {
@@ -123,7 +120,6 @@ pub fn handle_player_death(
     }
     let player = player_query.single();
     if player.1 .0 == 0 {
-        // Despawn all game entities
         cleanup_entities(commands, all_entities);
         next_state.set(GameState::End);
     }
@@ -228,7 +224,7 @@ pub fn move_loot_to_player(
         let direction = (player_pos - current_pos).normalize_or_zero();
         let distance = player_pos.distance(current_pos);
 
-        let movement = direction * 800.0 * time.delta_secs();
+        let movement = direction * 1000.0 * time.delta_secs();
         transform.translation += movement.extend(LAYER2);
 
         if distance <= 20.0 {

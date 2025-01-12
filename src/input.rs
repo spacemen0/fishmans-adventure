@@ -7,8 +7,6 @@ pub enum Action {
     Move,
     SwitchGun,
     TogglePause,
-    Restart,
-    Interact,
     SwitchArmor,
     Confirm,
     NavigateUp,
@@ -25,8 +23,6 @@ impl Action {
         InputMap::new([
             (Self::SwitchGun, KeyCode::KeyQ),
             (Self::TogglePause, KeyCode::KeyP),
-            (Self::Restart, KeyCode::KeyR),
-            (Self::Interact, KeyCode::KeyE),
             (Self::SwitchArmor, KeyCode::KeyZ),
             (Self::Confirm, KeyCode::Enter),
             (Self::NavigateUp, KeyCode::ArrowUp),

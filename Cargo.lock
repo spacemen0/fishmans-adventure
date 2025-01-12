@@ -2216,6 +2216,7 @@ dependencies = [
  "leafwing-input-manager",
  "rand",
  "typenum",
+ "wasm-bindgen",
 ]
 
 [[package]]

@@ -1,7 +1,9 @@
-use crate::ui::systems::menus::{handle_death_screen_input, set_up_death_screen};
 use crate::{
     game_state::GameState,
-    ui::systems::{in_game_ui, loot_ui, menus},
+    ui::systems::{
+        in_game_ui, loot_ui, menus,
+        menus::{handle_death_screen_input, set_up_death_screen},
+    },
     utils::cleanup_entities,
     world::init_world,
 };

@@ -1,3 +1,4 @@
+#[cfg(not(target_arch = "wasm32"))]
 use iyes_perf_ui::prelude::PerfUiDefaultEntries;
 use rand::Rng;
 

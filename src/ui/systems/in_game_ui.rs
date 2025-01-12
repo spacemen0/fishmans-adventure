@@ -1,4 +1,7 @@
 use crate::{
+    configs::{LAYER0, LAYER1},
+    enemy::Collider,
+    gun::HasLifespan,
     player::{Health, Player},
     resources::{UiFont, Wave},
     ui::components::{PlayerHealthBar, WaveDisplay, WaveDisplayRoot},
@@ -12,35 +15,31 @@ use bevy::{
     prelude::*,
 };
 use std::time::Duration;
-use crate::enemy::Collider;
-use crate::gun::HasLifespan;
 
 pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
     if let Ok(player_entity) = player_query.get_single() {
         commands.entity(player_entity).with_children(|parent| {
-            // Health bar background
             parent.spawn((
                 Sprite {
                     color: Color::linear_rgb(0.5, 0.5, 0.5),
-                    custom_size: Some(Vec2::new(18.0, 4.0)), // Background size
+                    custom_size: Some(Vec2::new(18.0, 4.0)),
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0.0, 16.0, 0.0), // Position above the player
+                    translation: Vec3::new(0.0, 16.0, LAYER0),
                     ..default()
                 },
             ));
 
-            // Health bar fill
             parent
                 .spawn((
                     Sprite {
                         color: Color::linear_rgb(0.0, 1.0, 0.0),
-                        custom_size: Some(Vec2::new(18.0, 4.0)), // Fill size, will be updated dynamically
+                        custom_size: Some(Vec2::new(18.0, 4.0)),
                         ..default()
                     },
                     Transform {
-                        translation: Vec3::new(0.0, 16.0, 1.0), // Position above the player, slightly in front
+                        translation: Vec3::new(0.0, 16.0, LAYER1),
                         ..default()
                     },
                 ))

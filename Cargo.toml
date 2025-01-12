@@ -7,6 +7,7 @@ edition = "2021"
 bevy = "0.15.1"
 kd-tree = "0.6.0"
 leafwing-input-manager = "0.16"
+wasm-bindgen = "0.2.99"
 rand = "0.8.5"
 typenum = "1.17.0"
 iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui" }
