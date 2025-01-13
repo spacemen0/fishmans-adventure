@@ -125,7 +125,9 @@ pub fn spawn_floating_text(
     font: &Handle<Font>,
     position: Vec3,
     text: String,
+    color: Option<Color>,
 ) {
+    let text_color = color.unwrap_or_else(|| Color::linear_rgba(0.85, 0.0, 0.0, 1.0));
     commands.spawn((
         Name::new("Damage Text"),
         Text2d::new(text),
@@ -140,7 +142,7 @@ pub fn spawn_floating_text(
         },
         FloatingText,
         TextBounds::from(Vec2::new(400.0, 200.0)),
-        TextColor(Srgba::new(0.85, 0.0, 0.0, 1.0).into()),
+        TextColor(text_color.into()),
         Transform {
             translation: position + Vec3::new(0.0, 30.0, 0.0),
             ..default()

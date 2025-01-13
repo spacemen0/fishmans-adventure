@@ -71,6 +71,7 @@ pub fn handle_player_damaged_events(
                             &font.0,
                             player_transform.translation,
                             format!("-{}", damage_after_defense.to_string()),
+                            None,
                         );
                     }
                 }
@@ -83,6 +84,7 @@ pub fn handle_player_damaged_events(
                         &font.0,
                         player_transform.translation,
                         format!("-{}", damage_after_defense.to_string()),
+                        None,
                     );
                 }
             }
@@ -94,18 +96,27 @@ pub fn handle_player_damaged_events(
 
 pub fn handle_leveling_up(
     mut event_reader: EventReader<PlayerLevelingUpEvent>,
-    mut player_query: Query<(&mut Health, &mut Defense), With<Player>>,
+    mut player_query: Query<(&mut Health, &mut Defense, &Transform), With<Player>>,
+    mut commands: Commands,
+    font: Res<UiFont>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
-    let (mut health, mut defense) = player_query.single_mut();
+    let (mut health, mut defense, transform) = player_query.single_mut();
 
     for event in event_reader.read() {
         let level = event.new_level;
         health.0 += calculate_health_increase(level);
         defense.0 += calculate_defense_increase(level);
+        spawn_floating_text(
+            &mut commands,
+            &font.0,
+            transform.translation,
+            format!("Level Up!"),
+            Some(Color::srgb_u8(0, 128, 0)),
+        );
     }
 }
 

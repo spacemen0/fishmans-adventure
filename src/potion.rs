@@ -76,6 +76,7 @@ fn apply_potion_effects(
                 &font.0,
                 transform.translation,
                 "Speed potion already active!".to_string(),
+                None,
             );
             return;
         }
