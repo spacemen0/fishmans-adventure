@@ -72,29 +72,42 @@ pub fn setup_wave_display(
 
     commands
         .spawn((
-            Name::new("Wave"),
+            Name::new("Wave Wrapper"),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(10.0),
-                left: Val::Percent(50.0),
+                width: Val::Percent(100.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+
                 ..default()
             },
             InGameEntity,
-            WaveDisplayRoot,
         ))
         .with_children(|parent| {
-            parent.spawn((
-                Text::new("Wave 1"),
-                TextFont {
-                    font: font.0.clone(),
-                    font_size: 50.0,
-                    ..default()
-                },
-                TextColor::from(Color::WHITE),
-                WaveDisplay,
-            ));
+            parent
+                .spawn((
+                    Name::new("Wave Display"),
+                    Node {
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+
+                        ..default()
+                    },
+                    WaveDisplayRoot,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text::new("Wave 1"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 50.0,
+                            ..default()
+                        },
+                        TextColor::from(Color::WHITE),
+                        WaveDisplay,
+                    ));
+                });
         });
 }
 
