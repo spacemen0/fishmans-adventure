@@ -6,7 +6,6 @@ use crate::{
     game_state::GameState,
     gun::ActiveGun,
     player::{Player, PlayerState},
-    resources::CursorPosition,
 };
 
 pub struct AnimationPlugin;
@@ -23,7 +22,6 @@ impl Plugin for AnimationPlugin {
                 animate_player,
                 animate_enemy,
                 flip_gun_sprite_y,
-                flip_player_sprite_x,
                 flip_enemy_sprite_x,
             )
                 .run_if(in_state(GameState::Combat).or(in_state(GameState::Paused))),
@@ -64,20 +62,6 @@ fn animate_enemy(mut enemy_query: Query<(&mut Sprite, &AnimationTimer), With<Ene
                 texture_atlas.index = base_index + ((texture_atlas.index + 1) % 4);
             }
         }
-    }
-}
-
-fn flip_player_sprite_x(
-    cursor_position: Res<CursorPosition>,
-    mut player_query: Query<(&mut Sprite, &Transform), With<Player>>,
-) {
-    if player_query.is_empty() {
-        return;
-    }
-
-    let (mut sprite, transform) = player_query.single_mut();
-    if let Some(cursor_position) = cursor_position.0 {
-        sprite.flip_x = cursor_position.x <= transform.translation.x;
     }
 }
 

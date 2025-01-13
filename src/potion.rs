@@ -75,7 +75,7 @@ fn apply_potion_effects(
                 &mut commands,
                 &font.0,
                 transform.translation,
-                "Speed potion already active!".to_string(),
+                "Speed potion already active!".to_owned(),
                 None,
             );
             return;

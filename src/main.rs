@@ -1,5 +1,6 @@
 use bevy::{
-    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active, prelude::*,
+    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active,
+    prelude::*, window::CursorOptions,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use fishmans_adventure::{
@@ -36,8 +37,13 @@ fn main() {
                     primary_window: Some(Window {
                         // mode: bevy::window::WindowMode::Fullscreen,
                         resizable: true,
-                        canvas: Some("#fishmans_adventure".into()),
+                        canvas: Some("#fishmans_adventure".to_owned()),
+                        title: "Fishman's Adventure".to_owned(),
                         focused: true,
+                        cursor_options: CursorOptions {
+                            visible: false,
+                            ..default()
+                        },
                         resolution: (WW, WH).into(),
                         ..default()
                     }),

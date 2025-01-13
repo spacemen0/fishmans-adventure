@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::PrimaryWindow};
+use bevy::prelude::*;
 
 use crate::{configs::*, game_state::GameState};
 
@@ -10,8 +10,6 @@ pub struct GlobalTextureAtlas {
     pub layout_32x32: Option<Handle<TextureAtlasLayout>>,
     pub image: Option<Handle<Image>>,
 }
-#[derive(Resource)]
-pub struct CursorPosition(pub Option<Vec2>);
 #[derive(Resource)]
 pub struct UiFont(pub Handle<Font>);
 
@@ -70,12 +68,7 @@ impl Level {
 impl Plugin for ResourcesPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(GlobalTextureAtlas::default())
-            .insert_resource(CursorPosition(None))
-            .add_systems(OnEnter(GameState::Loading), load_assets)
-            .add_systems(
-                Update,
-                update_cursor_position.run_if(in_state(GameState::Combat)),
-            );
+            .add_systems(OnEnter(GameState::Loading), load_assets);
     }
 }
 
@@ -108,22 +101,4 @@ fn load_assets(
     handle.layout_32x32 = Some(texture_atlas_layouts.add(layout_32x32));
 
     next_state.set(GameState::MainMenu);
-}
-
-fn update_cursor_position(
-    mut cursor_pos: ResMut<CursorPosition>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    camera_query: Query<(&Camera, &GlobalTransform), With<Camera>>,
-) {
-    if window_query.is_empty() || camera_query.is_empty() {
-        cursor_pos.0 = None;
-        return;
-    }
-
-    let (camera, camera_transform) = camera_query.single();
-    let window = window_query.single();
-    cursor_pos.0 = window
-        .cursor_position()
-        .map(|cursor| camera.viewport_to_world(camera_transform, cursor))
-        .map(|ray| ray.unwrap().origin.truncate());
 }

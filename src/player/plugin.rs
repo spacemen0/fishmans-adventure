@@ -2,8 +2,8 @@ use crate::{
     game_state::GameState,
     player::{
         handle_acceleration_effect, handle_invincibility_effect, handle_leveling_up,
-        handle_loot_pickup, handle_player_damaged_events, handle_player_death, handle_player_input,
-        handle_sprite_reset, mark_loot_for_pickup, move_loot_to_player,
+        handle_loot_pickup, handle_player_damaged_events, handle_player_death,
+        handle_player_movement, handle_sprite_reset, mark_loot_for_pickup, move_loot_to_player,
         update_player_invincibility_visual, InvincibilityEffect, PlayerDamagedEvent,
         PlayerLevelingUpEvent,
     },
@@ -23,7 +23,7 @@ impl Plugin for PlayerPlugin {
                 Update,
                 (
                     handle_player_death,
-                    handle_player_input,
+                    handle_player_movement,
                     handle_player_damaged_events,
                     handle_invincibility_effect,
                     handle_acceleration_effect,

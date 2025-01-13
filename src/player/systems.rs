@@ -70,7 +70,7 @@ pub fn handle_player_damaged_events(
                             &mut commands,
                             &font.0,
                             player_transform.translation,
-                            format!("-{}", damage_after_defense.to_string()),
+                            format!("-{}", damage_after_defense.to_owned()),
                             None,
                         );
                     }
@@ -83,7 +83,7 @@ pub fn handle_player_damaged_events(
                         &mut commands,
                         &font.0,
                         player_transform.translation,
-                        format!("-{}", damage_after_defense.to_string()),
+                        format!("-{}", damage_after_defense.to_owned()),
                         None,
                     );
                 }
@@ -177,20 +177,23 @@ pub fn handle_acceleration_effect(
     acceleration_effect.0.tick(time.delta());
 }
 
-pub fn handle_player_input(
-    mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed), With<Player>>,
+pub fn handle_player_movement(
+    mut player_query: Query<(&mut Transform, &mut PlayerState, &Speed, &mut Sprite), With<Player>>,
     action_state: Res<ActionState<Action>>,
 ) {
     if player_query.is_empty() {
         return;
     }
 
-    let (mut transform, mut player_state, speed) = player_query.single_mut();
+    let (mut transform, mut player_state, speed, mut sprite) = player_query.single_mut();
 
     let axis_pair = action_state.clamped_axis_pair(&Action::Move);
     if axis_pair != Vec2::ZERO {
         let movement = axis_pair * speed.0 as f32;
-        apply_movement(&mut transform.translation, movement, LAYER1);
+        sprite.flip_x = movement.x < 0.0;
+        transform.translation.x += movement.x;
+        transform.translation.y += movement.y;
+
         *player_state = PlayerState::Run;
     } else {
         *player_state = PlayerState::Idle;

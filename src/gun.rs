@@ -15,7 +15,7 @@ use crate::{
     game_state::GameState,
     input::Action,
     loot::Description,
-    player::{handle_player_input, Player, PlayerInventory},
+    player::{handle_player_movement, Player, PlayerInventory},
     resources::GlobalTextureAtlas,
     utils::{get_nearest_enemy_position, InGameEntity},
 };
@@ -89,7 +89,7 @@ impl Plugin for GunPlugin {
         app.add_systems(
             Update,
             (
-                update_gun_transform.after(handle_player_input),
+                update_gun_transform.after(handle_player_movement),
                 move_bullets,
                 handle_gun_firing,
                 despawn_entities_reach_lifespan,
