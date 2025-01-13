@@ -10,6 +10,9 @@ pub struct PauseMenuButtonIndex(pub u8);
 pub struct DescriptionTextBox;
 
 #[derive(Component)]
+pub struct FloatingText;
+
+#[derive(Component)]
 pub enum PauseMenuButton {
     Resume,
     Restart,

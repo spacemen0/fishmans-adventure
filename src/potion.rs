@@ -3,6 +3,8 @@ use crate::{
     input::Action,
     loot::Description,
     player::{AccelerationEffect, Health, Player, PlayerInventory, Speed},
+    resources::UiFont,
+    ui::systems::in_game_ui::spawn_floating_text,
     utils::InGameEntity,
 };
 use bevy::{prelude::*, time::Stopwatch};
@@ -38,11 +40,23 @@ impl Plugin for PotionPlugin {
 
 fn apply_potion_effects(
     mut commands: Commands,
-    mut player_query: Query<(&mut Health, &mut PlayerInventory, Entity, &mut Speed), With<Player>>,
+    mut player_query: Query<
+        (
+            &mut Health,
+            &mut PlayerInventory,
+            Entity,
+            &mut Speed,
+            &Transform,
+            Option<&AccelerationEffect>,
+        ),
+        With<Player>,
+    >,
     potion_query: Query<(Entity, &PotionStats), With<Potion>>,
     action_state: Res<ActionState<Action>>,
+    font: Res<UiFont>,
 ) {
-    let (mut health, mut player_inventory, entity, mut speed) = player_query.single_mut();
+    let (mut health, mut player_inventory, entity, mut speed, transform, acceleration_effect) =
+        player_query.single_mut();
     if action_state.just_pressed(&Action::UsePotion1) {
         println!("Use potion 1");
         println!("Player inventory: {:?}", player_inventory);
@@ -56,6 +70,15 @@ fn apply_potion_effects(
     }
 
     if action_state.just_pressed(&Action::UsePotion2) {
+        if acceleration_effect.is_some() {
+            spawn_floating_text(
+                &mut commands,
+                &font.0,
+                transform.translation,
+                "Speed potion already active!".to_string(),
+            );
+            return;
+        }
         if let Some(speed_potion_entity) = player_inventory.speed_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*speed_potion_entity) {
                 commands.entity(entity).insert(AccelerationEffect(

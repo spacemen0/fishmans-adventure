@@ -10,7 +10,7 @@ use crate::{
     loot::{MovingToPlayer, ReadyForPickup},
     potion::PotionType,
     resources::UiFont,
-    ui::systems::{in_game_ui, in_game_ui::spawn_damage_text},
+    ui::systems::in_game_ui::spawn_floating_text,
     utils::*,
 };
 
@@ -66,11 +66,11 @@ pub fn handle_player_damaged_events(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
                         ));
-                        in_game_ui::spawn_damage_text(
+                        spawn_floating_text(
                             &mut commands,
                             &font.0,
                             player_transform.translation,
-                            damage_after_defense,
+                            format!("-{}", damage_after_defense.to_string()),
                         );
                     }
                 }
@@ -78,11 +78,11 @@ pub fn handle_player_damaged_events(
                 let damage_after_defense = safe_subtract(event.damage, player_defense.0);
                 health.0 = safe_subtract(health.0, damage_after_defense);
                 if damage_after_defense > 0 {
-                    spawn_damage_text(
+                    spawn_floating_text(
                         &mut commands,
                         &font.0,
                         player_transform.translation,
-                        damage_after_defense,
+                        format!("-{}", damage_after_defense.to_string()),
                     );
                 }
             }

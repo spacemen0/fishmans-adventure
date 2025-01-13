@@ -4,7 +4,7 @@ use crate::{
     gun::HasLifespan,
     player::{Health, Player},
     resources::{UiFont, Wave},
-    ui::components::{PlayerHealthBar, WaveDisplay, WaveDisplayRoot},
+    ui::components::{FloatingText, PlayerHealthBar, WaveDisplay, WaveDisplayRoot},
     utils::InGameEntity,
 };
 use bevy::{
@@ -13,6 +13,7 @@ use bevy::{
     hierarchy::{BuildChildren, ChildBuild},
     math::{Vec2, Vec3},
     prelude::*,
+    text::TextBounds,
 };
 use std::time::Duration;
 
@@ -119,27 +120,39 @@ pub fn update_wave_display(mut wave_query: Query<&mut Text, With<WaveDisplay>>, 
     }
 }
 
-pub fn spawn_damage_text(
+pub fn spawn_floating_text(
     commands: &mut Commands,
     font: &Handle<Font>,
     position: Vec3,
-    damage: u32,
+    text: String,
 ) {
     commands.spawn((
         Name::new("Damage Text"),
-        Text2d::new(format!("-{}", damage)),
+        Text2d::new(text),
         TextFont {
             font: font.clone(),
             font_size: 50.0,
             ..default()
         },
-        TextColor(Srgba::new(1.0, 0.0, 0.0, 1.0).into()),
+        TextLayout {
+            linebreak: LineBreak::WordBoundary,
+            justify: JustifyText::Center,
+        },
+        FloatingText,
+        TextBounds::from(Vec2::new(400.0, 200.0)),
+        TextColor(Srgba::new(0.85, 0.0, 0.0, 1.0).into()),
         Transform {
-            translation: position + Vec3::new(0.0, 50.0, 0.0),
+            translation: position + Vec3::new(0.0, 30.0, 0.0),
             ..default()
         },
         Collider { radius: 5 },
         HasLifespan::new(Duration::from_secs(1)),
         InGameEntity,
     ));
+}
+
+pub fn update_floating_text(time: Res<Time>, mut query: Query<&mut Transform, With<FloatingText>>) {
+    for mut transform in query.iter_mut() {
+        transform.translation.y += 6.0 * ops::sin(time.elapsed_secs()).abs()
+    }
 }

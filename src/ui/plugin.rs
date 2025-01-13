@@ -12,7 +12,7 @@ use bevy::{
     prelude::{in_state, Condition, IntoSystemConfigs, OnEnter, OnExit},
 };
 
-use super::systems::menus::handle_control_widget;
+use super::systems::{in_game_ui::update_floating_text, menus::handle_control_widget};
 
 pub struct UiPlugin;
 
@@ -77,7 +77,10 @@ impl Plugin for UiPlugin {
         .add_systems(OnEnter(GameState::End), set_up_death_screen)
         .add_systems(
             Update,
-            handle_death_screen_input.run_if(in_state(GameState::End)),
+            (
+                handle_death_screen_input.run_if(in_state(GameState::End)),
+                update_floating_text,
+            ),
         );
     }
 }
