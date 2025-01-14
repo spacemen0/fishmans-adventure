@@ -9,7 +9,7 @@ use crate::{
     loot::Value,
     player::{Gold, PlayerInventory},
     potion::{Potion, PotionStats, PotionType},
-    resources::{GlobalTextureAtlas, UiFont},
+    resources::{GameMode, GlobalTextureAtlas, UiFont},
     ui::components::{
         BlinkingText, ControlWidget, DeathScreenRoot, FloatingTextBox, MainMenuButton,
         MainMenuButtonIndex, MainMenuRoot, PauseMenuButton, PauseMenuButtonIndex, PauseMenuRoot,
@@ -81,9 +81,22 @@ pub fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
                     BorderRadius::all(Val::Px(6.0)),
                 ))
                 .with_children(|parent| {
-                    spawn_main_menu_button(parent, "Start", MainMenuButton::Start, &font.0, 0);
-                    spawn_main_menu_button(parent, "Control", MainMenuButton::Control, &font.0, 1);
-                    spawn_main_menu_button(parent, "Exit", MainMenuButton::Exit, &font.0, 2);
+                    spawn_main_menu_button(
+                        parent,
+                        "Normal Mode",
+                        MainMenuButton::StartNormal,
+                        &font.0,
+                        0,
+                    );
+                    spawn_main_menu_button(
+                        parent,
+                        "Forever Mode",
+                        MainMenuButton::StartForever,
+                        &font.0,
+                        1,
+                    );
+                    spawn_main_menu_button(parent, "Control", MainMenuButton::Control, &font.0, 2);
+                    spawn_main_menu_button(parent, "Exit", MainMenuButton::Exit, &font.0, 3);
                 });
         });
 }
@@ -124,6 +137,7 @@ fn spawn_main_menu_button(
 
 pub fn handle_main_menu_buttons(
     mut next_state: ResMut<NextState<GameState>>,
+    mut game_mode: ResMut<GameMode>,
     action_state: Res<ActionState<Action>>,
     mut selected_button: Local<u8>,
     mut query: Query<(&MainMenuButton, &mut BackgroundColor, &MainMenuButtonIndex)>,
@@ -164,9 +178,13 @@ pub fn handle_main_menu_buttons(
                     MainMenuButton::Exit => {
                         exit.send(AppExit::Success);
                     }
-                    MainMenuButton::Start => {
+                    MainMenuButton::StartNormal => {
+                        *game_mode = GameMode::Normal;
                         next_state.set(GameState::Initializing);
-                        *selected_button = 0;
+                    }
+                    MainMenuButton::StartForever => {
+                        *game_mode = GameMode::Forever;
+                        next_state.set(GameState::Initializing);
                     }
                 }
             }
@@ -482,6 +500,54 @@ pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
                 .with_children(|parent| {
                     parent.spawn((
                         Text::new("Game Over"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 100.0,
+                            ..default()
+                        },
+                        TextColor(Color::linear_rgb(1.0, 0.0, 0.0)),
+                    ));
+                    parent.spawn((
+                        Text::new("Press Enter to Restart"),
+                        TextFont {
+                            font: font.0.clone(),
+                            font_size: 60.0,
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
+                        BlinkingText,
+                    ));
+                });
+        });
+}
+
+pub fn set_up_win_screen(mut commands: Commands, font: Res<UiFont>) {
+    commands
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        })
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(800.0),
+                        height: Val::Px(400.0),
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(5.0)),
+                        ..default()
+                    },
+                    BorderColor(Color::BLACK),
+                    DeathScreenRoot,
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text::new("Congrats you don't suck ass"),
                         TextFont {
                             font: font.0.clone(),
                             font_size: 100.0,

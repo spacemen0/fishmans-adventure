@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use rand::{random, seq::SliceRandom, Rng};
+use rand::{seq::SliceRandom, Rng};
 
 use crate::{
     collision::EnemyKdTree,
@@ -18,15 +18,6 @@ pub fn calculate_enemies_per_wave(_wave_number: u32) -> u32 {
     //let increase = (wave_number as f32 * 0.5).floor() as u32 * 3;
     let increase = 2;
     base_enemies + increase
-}
-
-pub fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
-    if wave_number % 10 == 0 {
-        10
-    } else {
-        let base = 10 + (wave_number / 2);
-        base + (random::<u32>() % 10)
-    }
 }
 
 pub fn calculate_health_increase(level: u32) -> u32 {

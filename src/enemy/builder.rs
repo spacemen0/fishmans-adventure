@@ -3,14 +3,14 @@ use crate::{loot::LootPool, resources::GlobalTextureAtlas};
 use bevy::prelude::*;
 
 pub struct EnemyBuilder {
-    health: u32,
-    speed: u32,
-    damage: u32,
-    xp: u32,
-    sprite_index: usize,
-    sprite_size: (u32, u32),
-    abilities: Vec<Box<dyn FnOnce(&mut Commands, Entity)>>,
-    loot_pool: Option<LootPool>,
+    pub health: u32,
+    pub speed: u32,
+    pub damage: u32,
+    pub xp: u32,
+    pub sprite_index: usize,
+    pub sprite_size: (u32, u32),
+    pub abilities: Vec<Box<dyn FnOnce(&mut Commands, Entity)>>,
+    pub loot_pool: Option<LootPool>,
 }
 
 impl Default for EnemyBuilder {

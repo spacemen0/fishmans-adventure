@@ -44,6 +44,7 @@ impl Plugin for PlayerPlugin {
                 Update,
                 handle_loot_sale_event.run_if(on_event::<LootSaleEvent>),
             )
-            .add_systems(OnEnter(GameState::End), cleanup_entities);
+            .add_systems(OnEnter(GameState::End), cleanup_entities)
+            .add_systems(OnEnter(GameState::Win), cleanup_entities);
     }
 }

@@ -18,6 +18,18 @@ pub struct Wave {
     pub number: u32,
 }
 
+#[derive(Resource, Clone, Copy, PartialEq)]
+pub enum GameMode {
+    Normal,
+    Forever,
+}
+
+impl Default for GameMode {
+    fn default() -> Self {
+        Self::Normal
+    }
+}
+
 #[derive(Resource)]
 pub struct Level {
     current_xp: u32,

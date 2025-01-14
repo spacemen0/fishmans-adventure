@@ -140,11 +140,16 @@ fn handle_enemy_bullet_collision(
 
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy_component, enemy_entity)) = enemy_query.get_mut(enemy.entity) {
-                commands.entity(enemy_entity).insert(HitFlash::default());
-                enemy_component.health =
-                    safe_subtract(enemy_component.health, stats.damage + player_damage_boost);
+                if enemy_component.health > 0 {
+                    enemy_component.health =
+                        safe_subtract(enemy_component.health, stats.damage + player_damage_boost);
+
+                    if enemy_component.health > 0 {
+                        commands.entity(enemy_entity).insert(HitFlash::default());
+                    }
+                }
+
                 commands.entity(bullet_entity).try_despawn();
-                
             }
         }
     }

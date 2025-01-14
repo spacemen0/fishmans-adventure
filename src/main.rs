@@ -14,7 +14,7 @@ use fishmans_adventure::{
     input::InputPlugin,
     player::{plugin::PlayerPlugin, PlayerInventory},
     potion::PotionPlugin,
-    resources::ResourcesPlugin,
+    resources::{GameMode, ResourcesPlugin},
     ui::{components::GridSlot, plugin::UiPlugin},
     world::WorldPlugin,
 };
@@ -74,7 +74,8 @@ fn main() {
         .add_plugins(PotionPlugin)
         .add_plugins(ArmorPlugin)
         .add_plugins(InputPlugin)
-        .init_state::<GameState>();
+        .init_state::<GameState>()
+        .init_resource::<GameMode>();
     #[cfg(target_arch = "wasm32")]
     app.add_systems(PostUpdate, handle_exit_event);
     app.run();

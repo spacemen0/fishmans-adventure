@@ -11,4 +11,5 @@ pub enum GameState {
     Ui,
     Shopping,
     End,
+    Win,
 }

@@ -2,17 +2,15 @@ use super::{components::*, presets::*};
 use crate::{
     configs::*,
     enemy::EnemyBuilder,
+    game_state::GameState,
     gun::{BulletDirection, BulletStats, HasLifespan},
     loot::LootPool,
     player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
-    resources::{GlobalTextureAtlas, Level, Wave},
-    utils::{
-        apply_movement, calculate_enemies_for_wave, clamp_position, get_random_position_around,
-        InGameEntity,
-    },
+    resources::{GameMode, GlobalTextureAtlas, Level, Wave},
+    utils::{apply_movement, clamp_position, get_random_position_around, InGameEntity},
 };
 use bevy::prelude::*;
-use rand::Rng;
+use rand::{random, Rng};
 use std::time::Duration;
 
 pub fn update_enemy_movement(
@@ -210,6 +208,8 @@ pub fn spawn_enemies(
     enemy_query: Query<(), With<Enemy>>,
     mut indicator_query: Query<(Entity, &mut SpawnIndicator, &mut Sprite)>,
     mut wave: ResMut<Wave>,
+    game_mode: Res<GameMode>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if !enemy_query.is_empty() {
         return;
@@ -233,37 +233,48 @@ pub fn spawn_enemies(
         if indicator.timer.finished() {
             commands.entity(entity).despawn();
 
-            let enemy = match wave.number {
-                1..=2 => create_basic_enemy(),
-                3..=4 => {
-                    if rand::random::<f32>() < 0.5 {
-                        create_trail_enemy()
-                    } else {
-                        create_charging_enemy()
-                    }
-                }
-                5..=7 => match rand::random::<f32>() {
-                    x if x < 0.3 => create_shooter_enemy(),
-                    x if x < 0.6 => create_bomber_enemy(),
-                    x if x < 0.8 => create_splitting_enemy(),
-                    _ => create_trail_enemy(),
-                },
-                8..=9 => create_gurgle_enemy(),
-                _ => {
-                    if wave.number % 10 == 0 {
-                        create_midgame_boss_enemy()
-                    } else {
-                        match rand::random::<f32>() {
-                            x if x < 0.3 => create_charging_enemy(),
-                            x if x < 0.4 => create_trail_enemy(),
-                            x if x < 0.5 => create_splitting_enemy(),
-                            x if x < 0.7 => create_shooter_enemy(),
-                            x if x < 0.9 => create_bomber_enemy(),
-                            _ => create_gurgle_enemy(),
+            let mut difficulty_multiplier = calculate_difficulty_multiplier(wave.number);
+
+            if *game_mode == GameMode::Forever && is_boss_wave(wave.number) {
+                difficulty_multiplier *= 1.5;
+            }
+
+            let enemy_base = if is_boss_wave(wave.number) {
+                create_midgame_boss_enemy()
+            } else {
+                match wave.number {
+                    1..=2 => create_basic_enemy(),
+                    3..=4 => {
+                        if rand::random::<f32>() < 0.5 {
+                            create_trail_enemy()
+                        } else {
+                            create_charging_enemy()
                         }
                     }
+                    5..=7 => match rand::random::<f32>() {
+                        x if x < 0.3 => create_shooter_enemy(),
+                        x if x < 0.6 => create_bomber_enemy(),
+                        x if x < 0.8 => create_splitting_enemy(),
+                        _ => create_trail_enemy(),
+                    },
+                    8..=9 => create_gurgle_enemy(),
+                    _ => match rand::random::<f32>() {
+                        x if x < 0.3 => create_charging_enemy(),
+                        x if x < 0.4 => create_trail_enemy(),
+                        x if x < 0.5 => create_splitting_enemy(),
+                        x if x < 0.7 => create_shooter_enemy(),
+                        x if x < 0.9 => create_bomber_enemy(),
+                        _ => create_gurgle_enemy(),
+                    },
                 }
             };
+
+            let health = (enemy_base.health as f32 * difficulty_multiplier) as u32;
+            let speed = (enemy_base.speed as f32 * difficulty_multiplier) as u32;
+            let damage = (enemy_base.damage as f32 * difficulty_multiplier) as u32;
+            let xp = (enemy_base.xp as f32 * difficulty_multiplier) as u32;
+
+            let enemy = enemy_base.with_stats(health, speed, damage, xp);
 
             enemy.spawn(&mut commands, indicator.spawn_position, &handle);
         }
@@ -271,6 +282,12 @@ pub fn spawn_enemies(
 
     if indicator_query.is_empty() {
         wave.number += 1;
+
+        if *game_mode == GameMode::Normal && wave.number > 10 {
+            next_state.set(GameState::Win);
+            return;
+        }
+
         let player_pos = player_transform.translation.truncate();
         let num_enemies = calculate_enemies_for_wave(wave.number);
 
@@ -298,6 +315,29 @@ pub fn spawn_enemies(
                 InGameEntity,
             ));
         }
+    }
+}
+
+pub fn calculate_difficulty_multiplier(wave_number: u32) -> f32 {
+    if wave_number <= 30 {
+        1.0 + (wave_number as f32 / 10.0) * 0.1
+    } else {
+        let base_multiplier = 1.0 + (30.0 / 10.0 * 0.1);
+        let additional_multiplier = ((wave_number - 30) as f32 / 5.0) * 0.1;
+        base_multiplier + additional_multiplier
+    }
+}
+
+fn is_boss_wave(wave_number: u32) -> bool {
+    wave_number % 10 == 0 && wave_number >= 10
+}
+
+fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
+    if is_boss_wave(wave_number) {
+        1
+    } else {
+        let base = 10 + (wave_number / 2);
+        base + (random::<u32>() % 10)
     }
 }
 
@@ -586,10 +626,8 @@ pub fn handle_death_effect(
 
         let progress = effect.timer.fraction();
 
-        // Fade out
         sprite.color.set_alpha(1.0 - progress);
 
-        // Scale up slightly while fading
         let scale = effect.initial_scale * (1.0 + progress * 0.5);
         transform.scale = scale;
 

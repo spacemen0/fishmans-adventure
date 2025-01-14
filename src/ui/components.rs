@@ -31,7 +31,8 @@ pub struct MainMenuRoot;
 
 #[derive(Component)]
 pub enum MainMenuButton {
-    Start,
+    StartNormal,
+    StartForever,
     Control,
     Exit,
 }
@@ -75,6 +76,9 @@ impl FloatingTextBox {
 
 #[derive(Component)]
 pub struct DeathScreenRoot;
+
+#[derive(Component)]
+pub struct WinScreenRoot;
 
 #[derive(Component)]
 pub struct PlayerHealthText;

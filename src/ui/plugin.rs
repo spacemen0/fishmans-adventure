@@ -13,7 +13,7 @@ use crate::{
     game_state::GameState,
     ui::systems::{
         in_game_ui, loot_grid, menus,
-        menus::{handle_death_screen_input, set_up_death_screen},
+        menus::{handle_death_screen_input, set_up_death_screen, set_up_win_screen},
     },
     utils::cleanup_entities,
     world::init_world,
@@ -88,10 +88,12 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_death_screen_input.run_if(in_state(GameState::End)),
+                    handle_death_screen_input
+                        .run_if(in_state(GameState::End).or(in_state(GameState::Win))),
                     update_floating_text,
                 ),
             )
+            .add_systems(OnEnter(GameState::Win), set_up_win_screen)
             .add_systems(
                 Update,
                 handle_shop_input
