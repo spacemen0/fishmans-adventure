@@ -247,14 +247,17 @@ pub fn spawn_player_info_item(
             ));
         });
 
-    // Add description text below the label
     parent.spawn((
         Text::new(description.to_string()),
         TextFont {
             font: font.clone(),
-            font_size: 20.0,
+            font_size: 25.0,
             ..default()
         },
-        TextColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+        Node {
+            left: Val::Px(8.0),
+            ..default()
+        },
+        TextColor(Color::linear_rgb(0.0, 0.0, 0.0)),
     ));
 }

@@ -87,7 +87,7 @@ pub fn init_world(
             Description {
                 name: "Apprentice Gun".to_string(),
                 description: format!(
-                    "Damage: {}. Speed: {}. Firing Interval: {}. Bullet Per Shot: {}",
+                    "Damage: {}; Speed: {}; Firing Interval: {}; Bullet Per Shot: {}",
                     BULLET_DAMAGE, BULLET_SPEED, FIRING_INTERVAL, NUM_BULLETS_PER_SHOT,
                 ),
             },
