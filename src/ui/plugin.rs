@@ -63,10 +63,7 @@ impl Plugin for UiPlugin {
                         .or(in_state(GameState::Paused)),
                 ),),
             )
-            .add_systems(
-                OnEnter(GameState::Ui),
-                (player_info::update_ui, loot_grid::set_up_loot_image),
-            )
+            .add_systems(OnEnter(GameState::Ui), loot_grid::set_up_loot_image)
             .add_systems(
                 Update,
                 in_game_ui::update_wave_display
@@ -83,6 +80,7 @@ impl Plugin for UiPlugin {
                     loot_grid::navigate_loot_items,
                     loot_grid::highlight_focused_item,
                     loot_grid::handle_sell_focused_item,
+                    player_info::update_ui,
                 )
                     .run_if(in_state(GameState::Ui)),
             )
