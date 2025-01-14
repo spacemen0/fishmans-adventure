@@ -8,6 +8,7 @@ use crate::{
     configs::*,
     game_state::GameState,
     gun::{ActiveGun, BulletStats, Gun, GunStats, GunType},
+    loot::Value,
     player::{Defense, Gold, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
     potion::{Potion, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
@@ -69,6 +70,7 @@ pub fn init_world(
         .spawn((
             Name::new("DefaultGun"),
             Gun,
+            Value(10),
             ActiveGun,
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -87,6 +89,7 @@ pub fn init_world(
         .spawn((
             Name::new("OmniSpreadGun"),
             Gun,
+            Value(10),
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -115,6 +118,7 @@ pub fn init_world(
         .spawn((
             Name::new("FocusedAimGun"),
             Gun,
+            Value(10),
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -143,6 +147,7 @@ pub fn init_world(
         .spawn((
             Name::new("HealthPotion"),
             Potion,
+            Value(5),
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -163,7 +168,9 @@ pub fn init_world(
         .id();
     let speed_potion = commands
         .spawn((
+            Name::new("SpeedPotion"),
             Potion,
+            Value(5),
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -187,6 +194,7 @@ pub fn init_world(
         .spawn((
             Name::new("BasicArmor"),
             Armor,
+            Value(10),
             ArmorStats {
                 defense: 2,
                 durability: 20,
@@ -208,6 +216,7 @@ pub fn init_world(
         .spawn((
             Name::new("AdvancedArmor"),
             Armor,
+            Value(10),
             ArmorStats {
                 defense: 3,
                 durability: 30,
@@ -225,7 +234,6 @@ pub fn init_world(
         ))
         .id();
 
-    // Add guns, potions, and armors to the player's inventory
     commands.entity(player_entity).insert(PlayerInventory {
         guns: vec![default_gun, omni_spread_gun, focused_aim_gun],
         active_gun_index: 0,

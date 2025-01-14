@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::loot::LootType;
+
 #[derive(Component)]
 pub struct PauseMenuRoot;
 
@@ -8,6 +10,9 @@ pub struct PauseMenuButtonIndex(pub u8);
 
 #[derive(Component)]
 pub struct DescriptionTextBox;
+
+#[derive(Event)]
+pub struct LootSaleEvent(pub Entity, pub LootType);
 
 #[derive(Component)]
 pub struct FloatingText;
@@ -67,7 +72,7 @@ pub struct UiRoot;
 #[derive(Component)]
 pub struct WaveDisplayRoot;
 
-#[derive(Component, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Reflect)]
 pub struct GridSlot {
     pub x: usize,
     pub y: usize,

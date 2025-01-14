@@ -1,11 +1,11 @@
 use crate::{
     game_state::GameState,
     input::Action,
-    loot::Description,
+    loot::{Description, LootType},
     player::{Defense, Gold, Health, Player, PlayerInventory},
     resources::{GlobalTextureAtlas, Level, UiFont},
     ui::components::{
-        DescriptionTextBox, FocusedItem, GridSlot, PauseMenuRoot, PlayerDefenseText,
+        DescriptionTextBox, FocusedItem, GridSlot, LootSaleEvent, PauseMenuRoot, PlayerDefenseText,
         PlayerGoldText, PlayerHealthText, PlayerLevelText, PlayerXpText, UiRoot,
     },
     utils::InGameEntity,
@@ -134,12 +134,15 @@ pub fn spawn_slots_grid(
     index: usize,
 ) {
     parent
-        .spawn((Node {
-            width: Val::Percent(100.0),
-            height: Val::Px(80.0),
-            flex_direction: FlexDirection::Column,
-            ..default()
-        },))
+        .spawn((
+            Name::new("GridRow"),
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Px(80.0),
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+        ))
         .with_children(|container| {
             container.spawn((
                 Text::new(label),
@@ -162,73 +165,41 @@ pub fn spawn_slots_grid(
                 },))
                 .with_children(|grid| {
                     for i in 0..count {
-                        if i == 0 && index == 0 {
-                            grid.spawn((
-                                Node {
-                                    width: Val::Px(50.0),
-                                    height: Val::Px(50.0),
-                                    border: UiRect::all(Val::Px(2.0)),
-                                    ..default()
-                                },
-                                BorderColor(Color::BLACK),
-                                BorderRadius::all(Val::Px(4.0)),
-                                FocusedItem,
-                                GridSlot {
-                                    x: i,
-                                    y: index,
-                                    item: None,
-                                },
-                                Name::new("GridItem"),
-                                BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
-                            ))
-                            .with_children(|slot| {
-                                slot.spawn((
-                                    ImageNode {
-                                        image: Handle::default(),
-                                        ..default()
-                                    },
-                                    GridSlot {
-                                        x: i,
-                                        y: index,
-                                        item: None,
-                                    },
-                                ));
-                            });
-                        } else {
-                            grid.spawn((
-                                Node {
-                                    width: Val::Px(50.0),
-                                    height: Val::Px(50.0),
-                                    border: UiRect::all(Val::Px(2.0)),
-                                    ..default()
-                                },
-                                Name::new("GridItem"),
-                                BorderColor(Color::BLACK),
-                                BorderRadius::all(Val::Px(4.0)),
-                                GridSlot {
-                                    x: i,
-                                    y: index,
-                                    item: None,
-                                },
-                                BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
-                            ))
-                            .with_children(|slot| {
-                                slot.spawn((
-                                    ImageNode {
-                                        image: Handle::default(),
-                                        ..default()
-                                    },
-                                    GridSlot {
-                                        x: i,
-                                        y: index,
-                                        item: None,
-                                    },
-                                ));
-                            });
-                        }
+                        let is_focused = i == 0 && index == 0;
+                        spawn_single_grid_item(grid, i, index, is_focused);
                     }
                 });
         });
+}
+
+pub fn spawn_single_grid_item(parent: &mut ChildBuilder, x: usize, y: usize, is_focused: bool) {
+    let mut grid_item = parent.spawn((
+        Node {
+            width: Val::Px(50.0),
+            height: Val::Px(50.0),
+            border: UiRect::all(Val::Px(2.0)),
+            ..default()
+        },
+        Name::new("GridItem"),
+        BorderColor(Color::BLACK),
+        BorderRadius::all(Val::Px(4.0)),
+        GridSlot { x, y, item: None },
+        BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+    ));
+
+    if is_focused {
+        grid_item.insert(FocusedItem);
+    }
+
+    grid_item.with_children(|slot| {
+        slot.spawn((
+            ImageNode {
+                image: Handle::default(),
+                ..default()
+            },
+            GridSlot { x, y, item: None },
+        ));
+    });
 }
 
 pub fn update_ui(
@@ -265,6 +236,64 @@ pub fn update_ui(
     if let Ok(mut visibility) = pause_menu_query.get_single_mut() {
         if *visibility == Visibility::Visible {
             *visibility = Visibility::Hidden;
+        }
+    }
+}
+
+pub fn handle_sell_focused_item(
+    mut commands: Commands,
+    action_state: Res<ActionState<Action>>,
+    focused_item_query: Query<(&GridSlot, Entity, &Parent), With<FocusedItem>>,
+    mut loot_sale_event_writer: EventWriter<LootSaleEvent>,
+) {
+    if action_state.just_pressed(&Action::SellLoot) {
+        if let Ok((focused_slot, focused_entity, parent)) = focused_item_query.get_single() {
+            if let Some(item_entity) = focused_slot.item {
+                let loot_type = match focused_slot.y {
+                    0 => LootType::Potion,
+                    1 => LootType::Potion,
+                    2 => LootType::Gun,
+                    3 => LootType::Armor,
+                    _ => return,
+                };
+                loot_sale_event_writer.send(LootSaleEvent(item_entity, loot_type));
+
+                commands.entity(focused_entity).despawn_recursive();
+                let grid_item = commands
+                    .spawn((
+                        Node {
+                            width: Val::Px(50.0),
+                            height: Val::Px(50.0),
+                            border: UiRect::all(Val::Px(2.0)),
+                            ..default()
+                        },
+                        Name::new("GridItem"),
+                        BorderColor(Color::BLACK),
+                        FocusedItem,
+                        BorderRadius::all(Val::Px(4.0)),
+                        GridSlot {
+                            x: focused_slot.x,
+                            y: focused_slot.y,
+                            item: None,
+                        },
+                        BackgroundColor(Color::linear_rgba(0.0, 0.0, 0.0, 0.5)),
+                    ))
+                    .with_child((
+                        ImageNode {
+                            image: Handle::default(),
+                            ..default()
+                        },
+                        GridSlot {
+                            x: focused_slot.x,
+                            y: focused_slot.y,
+                            item: None,
+                        },
+                    ))
+                    .id();
+                commands
+                    .entity(parent.get())
+                    .insert_children(focused_slot.x, &[grid_item]);
+            }
         }
     }
 }

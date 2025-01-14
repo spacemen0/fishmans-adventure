@@ -15,7 +15,7 @@ use fishmans_adventure::{
     player::{plugin::PlayerPlugin, PlayerInventory},
     potion::PotionPlugin,
     resources::ResourcesPlugin,
-    ui::plugin::UiPlugin,
+    ui::{components::GridSlot, plugin::UiPlugin},
     world::WorldPlugin,
 };
 use iyes_perf_ui::PerfUiPlugin;
@@ -53,6 +53,7 @@ fn main() {
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
         .register_type::<PlayerInventory>()
+        .register_type::<GridSlot>()
         .add_plugins(EmbeddedAssetPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EntityCountDiagnosticsPlugin)

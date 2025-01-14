@@ -61,14 +61,12 @@ fn handle_enemy_player_collision(
             enemy_query.get_mut(enemy.entity)
         {
             if enemy_component.damage > 0 {
-                println!("send enemy collision event");
                 ev.send(PlayerDamagedEvent {
                     damage: enemy_component.damage,
                 });
             }
 
             if let Some(explosion) = explosion_ability {
-                println!("send explosion event");
                 spawn_explosion(
                     &mut commands,
                     transform.translation,
@@ -100,7 +98,6 @@ fn handle_player_trail_collision(
     for (trail_transform, trail) in trail_query.iter() {
         let trail_pos = trail_transform.translation.xy();
         if player_pos.distance(trail_pos) <= trail.radius {
-            println!("send trail event");
             ev.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });

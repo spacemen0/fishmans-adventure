@@ -7,11 +7,14 @@ use crate::{
         update_player_invincibility_visual, InvincibilityEffect, PlayerDamagedEvent,
         PlayerLevelingUpEvent,
     },
+    ui::components::LootSaleEvent,
 };
 use bevy::{
     app::{App, Plugin, Update},
-    prelude::{any_component_removed, in_state, IntoSystemConfigs},
+    prelude::{any_component_removed, in_state, on_event, IntoSystemConfigs},
 };
+
+use super::handle_loot_sale_event;
 
 pub struct PlayerPlugin;
 
@@ -24,10 +27,10 @@ impl Plugin for PlayerPlugin {
                 (
                     handle_player_death,
                     handle_player_movement,
-                    handle_player_damaged_events,
+                    handle_player_damaged_events.run_if(on_event::<PlayerDamagedEvent>),
                     handle_invincibility_effect,
                     handle_acceleration_effect,
-                    handle_leveling_up,
+                    handle_leveling_up.run_if(on_event::<PlayerLevelingUpEvent>),
                     handle_sprite_reset.run_if(any_component_removed::<InvincibilityEffect>),
                     handle_loot_pickup,
                     move_loot_to_player,
@@ -35,6 +38,10 @@ impl Plugin for PlayerPlugin {
                     update_player_invincibility_visual,
                 )
                     .run_if(in_state(GameState::Combat)),
+            )
+            .add_systems(
+                Update,
+                handle_loot_sale_event.run_if(on_event::<LootSaleEvent>),
             );
     }
 }

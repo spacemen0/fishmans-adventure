@@ -216,78 +216,15 @@ pub fn setup_control_widget(commands: &mut Commands, font: Handle<Font>) {
                                 TextColor(Color::BLACK),
                             ));
                         });
-                    parent.spawn((
-                        Text::new("Move: W/A/S/D"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Switch Gun: Q"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Pause Menu: P"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Confirm: Enter"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Navigate: Arrow Keys/WASD"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Use Health Potion: 1"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Use Speed Potion: 2"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
-                    parent.spawn((
-                        Text::new("Toggle Loot Board: Tab"),
-                        TextFont {
-                            font: font.clone(),
-                            font_size: 30.0,
-                            ..default()
-                        },
-                        TextColor(Color::BLACK),
-                    ));
+                    spawn_control_binding_text(parent, "Move: W/A/S/D", &font);
+                    spawn_control_binding_text(parent, "Switch Gun: Q", &font);
+                    spawn_control_binding_text(parent, "Pause MenuL P", &font);
+                    spawn_control_binding_text(parent, "Confirm: Enter", &font);
+                    spawn_control_binding_text(parent, "Navigate: Arrow Keys/WASD", &font);
+                    spawn_control_binding_text(parent, "Use Health Potion: 1", &font);
+                    spawn_control_binding_text(parent, "Use Speed Potion: 2", &font);
+                    spawn_control_binding_text(parent, "Toggle Loot Board: Tab", &font);
+                    spawn_control_binding_text(parent, "Sell Loot: Del", &font);
                     parent
                         .spawn((
                             Node {
@@ -313,6 +250,18 @@ pub fn setup_control_widget(commands: &mut Commands, font: Handle<Font>) {
                         });
                 });
         });
+}
+
+fn spawn_control_binding_text(parent: &mut ChildBuilder, text: &str, font: &Handle<Font>) {
+    parent.spawn((
+        Text::new(text),
+        TextFont {
+            font: font.clone(),
+            font_size: 30.0,
+            ..default()
+        },
+        TextColor(Color::BLACK),
+    ));
 }
 
 pub fn handle_control_widget(

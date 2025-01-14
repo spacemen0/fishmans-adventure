@@ -5,12 +5,12 @@ use super::*;
 use crate::{
     armor::{Armor, ArmorStats},
     configs::*,
-    gun::Gun,
+    gun::{ActiveGun, Gun},
     input::Action,
-    loot::{MovingToPlayer, ReadyForPickup, Value},
+    loot::{LootType, MovingToPlayer, ReadyForPickup, Value},
     potion::PotionType,
     resources::UiFont,
-    ui::systems::in_game_ui::spawn_floating_text,
+    ui::{components::LootSaleEvent, systems::in_game_ui::spawn_floating_text},
     utils::*,
 };
 
@@ -326,5 +326,44 @@ pub fn update_player_invincibility_visual(
         sprite.color = sprite
             .color
             .with_alpha((time.elapsed_secs() * flash_rate).sin().abs());
+    }
+}
+
+pub fn handle_loot_sale_event(
+    mut commands: Commands,
+    mut player_query: Query<(&mut PlayerInventory, &mut Gold)>,
+    mut loot_sale_event_reader: EventReader<LootSaleEvent>,
+    loot_query: Query<&Value>,
+) {
+    if let Ok((mut inventory, mut gold)) = player_query.get_single_mut() {
+        for event in loot_sale_event_reader.read() {
+            if let Ok(value) = loot_query.get(event.0) {
+                gold.0 += value.0;
+
+                match event.1 {
+                    LootType::Potion => {
+                        inventory.health_potions.retain(|&e| e != event.0);
+                        inventory.speed_potions.retain(|&e| e != event.0);
+                    }
+                    LootType::Gun => {
+                        inventory.guns.retain(|&e| e != event.0);
+                        if inventory.active_gun_index >= inventory.guns.len() {
+                            inventory.active_gun_index = 0;
+                        }
+                        commands
+                            .entity(inventory.guns[inventory.active_gun_index])
+                            .insert(ActiveGun)
+                            .insert(Visibility::Visible);
+                    }
+                    LootType::Armor => {
+                        inventory.armors.retain(|&e| e != event.0);
+                        if inventory.active_armor_index >= inventory.armors.len() {
+                            inventory.active_armor_index = 0;
+                        }
+                    }
+                }
+                commands.entity(event.0).despawn();
+            }
+        }
     }
 }

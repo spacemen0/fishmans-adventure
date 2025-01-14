@@ -197,8 +197,8 @@ fn spawn_potion(
             effect_amount: rng.gen_range(range.effect_amount.0..=range.effect_amount.1),
         };
         let potion_type = match rng.gen_range(0..2) {
-            0 => (PotionType::Speed, 96),
-            1 => (PotionType::Health, 97),
+            0 => (PotionType::Speed, 97),
+            1 => (PotionType::Health, 96),
             _ => unreachable!(),
         };
         let name_string = format!("{:?} Potion ", potion_type.clone());
