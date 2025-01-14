@@ -1,4 +1,5 @@
 use crate::{
+    configs::MAX_DEFENSE,
     game_state::GameState,
     input::Action,
     loot::{Description, LootType},
@@ -125,7 +126,7 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, handle: Res<GlobalTex
                             layout: handle.layout_16x16.clone().unwrap(),
                             index: 163,
                         },
-                        "Defense reduces the amount of damage taken from enemies by percentage. You get 80% damage reduction at maximum defense which is 30.",
+                        format!("Defense reduces the amount of damage taken from enemies by percentage. You get 80% damage reduction at maximum defense which is {}.",MAX_DEFENSE).as_str(),
                     );
                     spawn_player_info_item(
                         parent,
