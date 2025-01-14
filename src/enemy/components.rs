@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     animation::AnimationTimer,
+    configs::SPRITE_SCALE_FACTOR,
     gun::{BulletStats, HasLifespan},
     loot::LootPool,
     utils::InGameEntity,
@@ -106,6 +107,21 @@ pub struct HitFlash(pub Timer);
 impl Default for HitFlash {
     fn default() -> Self {
         Self(Timer::from_seconds(0.1, TimerMode::Once))
+    }
+}
+
+#[derive(Component)]
+pub struct DeathEffect {
+    pub timer: Timer,
+    pub initial_scale: Vec3,
+}
+
+impl Default for DeathEffect {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(0.3, TimerMode::Once),
+            initial_scale: Vec3::splat(SPRITE_SCALE_FACTOR),
+        }
     }
 }
 

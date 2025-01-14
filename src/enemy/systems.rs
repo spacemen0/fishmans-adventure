@@ -567,8 +567,34 @@ pub fn handle_enemy_death(
                     });
                 }
 
-                commands.entity(entity).despawn();
+                commands
+                    .entity(entity)
+                    .insert(DeathEffect::default())
+                    .remove::<Enemy>();
             }
+        }
+    }
+}
+
+pub fn handle_death_effect(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Transform, &mut Sprite, &mut DeathEffect)>,
+) {
+    for (entity, mut transform, mut sprite, mut effect) in query.iter_mut() {
+        effect.timer.tick(time.delta());
+
+        let progress = effect.timer.fraction();
+
+        // Fade out
+        sprite.color.set_alpha(1.0 - progress);
+
+        // Scale up slightly while fading
+        let scale = effect.initial_scale * (1.0 + progress * 0.5);
+        transform.scale = scale;
+
+        if effect.timer.just_finished() {
+            commands.entity(entity).despawn();
         }
     }
 }
