@@ -359,6 +359,22 @@ pub fn handle_enemy_bullet_player_collision(
     }
 }
 
+pub fn handle_hit_flash(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut Sprite, &mut HitFlash)>,
+) {
+    for (entity, mut sprite, mut flash) in query.iter_mut() {
+        flash.0.tick(time.delta());
+        sprite.color = Color::srgba(1.0, 0.0, 0.0, 1.0);
+
+        if flash.0.just_finished() {
+            sprite.color = Color::WHITE;
+            commands.entity(entity).remove::<HitFlash>();
+        }
+    }
+}
+
 pub fn handle_shooting_abilities(
     mut commands: Commands,
     time: Res<Time>,

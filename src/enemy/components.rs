@@ -101,6 +101,15 @@ pub struct SeparationBehavior {
 }
 
 #[derive(Component)]
+pub struct HitFlash(pub Timer);
+
+impl Default for HitFlash {
+    fn default() -> Self {
+        Self(Timer::from_seconds(0.1, TimerMode::Once))
+    }
+}
+
+#[derive(Component)]
 #[require(InGameEntity, HasLifespan(||HasLifespan::new(std::time::Duration::from_secs_f32(5.0))))]
 pub struct Trail {
     pub damage: u32,

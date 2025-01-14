@@ -10,7 +10,7 @@ use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
 
 use crate::{
-    enemy::{spawn_explosion, Enemy, ExplosionAbility, Trail},
+    enemy::{spawn_explosion, Enemy, ExplosionAbility, HitFlash, Trail},
     game_state::GameState,
     gun::Bullet,
     player::{Player, PlayerDamagedEvent},
@@ -127,7 +127,7 @@ fn handle_enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(&Transform, Entity, &BulletStats), With<Bullet>>,
     tree: Res<EnemyKdTree>,
-    mut enemy_query: Query<(&Transform, &mut Enemy), With<Enemy>>,
+    mut enemy_query: Query<(&Transform, &mut Enemy, Entity), With<Enemy>>,
     player_query: Query<&DamageBoost, With<Player>>,
 ) {
     if bullet_query.is_empty() || enemy_query.is_empty() || player_query.is_empty() {
@@ -139,9 +139,12 @@ fn handle_enemy_bullet_collision(
         let enemies_in_radius = tree.0.within_radius(&[pos.x, pos.y], 30.0);
 
         if let Some(enemy) = enemies_in_radius.first() {
-            if let Ok((_, mut enemy)) = enemy_query.get_mut(enemy.entity) {
-                enemy.health = safe_subtract(enemy.health, stats.damage + player_damage_boost);
+            if let Ok((_, mut enemy_component, enemy_entity)) = enemy_query.get_mut(enemy.entity) {
+                commands.entity(enemy_entity).insert(HitFlash::default());
+                enemy_component.health =
+                    safe_subtract(enemy_component.health, stats.damage + player_damage_boost);
                 commands.entity(bullet_entity).try_despawn();
+                
             }
         }
     }
