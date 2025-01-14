@@ -86,6 +86,9 @@ pub struct ChargeAbility {
 }
 
 #[derive(Component)]
+pub struct OriginalEnemyColor(pub Color);
+
+#[derive(Component)]
 #[require(InGameEntity, HasLifespan(||HasLifespan::new(std::time::Duration::from_secs_f32(5.0))))]
 pub struct Trail {
     pub damage: u32,

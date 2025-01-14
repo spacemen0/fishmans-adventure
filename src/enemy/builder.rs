@@ -161,6 +161,7 @@ impl EnemyBuilder {
                 },
                 EnemyState::default(),
                 Collider { radius: 15 },
+                OriginalEnemyColor(Color::WHITE),
             ))
             .id();
 

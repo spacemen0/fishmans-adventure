@@ -314,6 +314,25 @@ pub fn handle_charge_abilities(
     }
 }
 
+pub fn handle_charge_enemy_flash(
+    mut enemy_query: Query<(&ChargeAbility, &mut Sprite, &OriginalEnemyColor)>,
+    time: Res<Time>,
+) {
+    for (charge, mut sprite, original_color) in enemy_query.iter_mut() {
+        match charge.state {
+            ChargeState::Preparing => {
+                let flash_rate = 18.0;
+                let flash_amount = (time.elapsed_secs() * flash_rate).sin() * 0.5 + 0.5;
+
+                sprite.color = Color::srgba(1.0, 0.0, 0.0, flash_amount);
+            }
+            _ => {
+                sprite.color = original_color.0;
+            }
+        }
+    }
+}
+
 pub fn handle_enemy_death(
     mut commands: Commands,
     mut enemy_query: Query<(
