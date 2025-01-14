@@ -7,9 +7,12 @@ use crate::{
     armor::{Armor, ArmorStats},
     configs::*,
     game_state::GameState,
-    gun::{ActiveGun, BulletStats, Gun, GunStats, GunType},
+    gun::{ActiveGun, Gun},
     loot::Value,
-    player::{Defense, Gold, Health, OriginalColor, Player, PlayerInventory, PlayerState, Speed},
+    player::{
+        DamageBoost, Defense, Gold, Health, OriginalColor, Player, PlayerInventory, PlayerState,
+        Speed,
+    },
     potion::{Potion, PotionStats, PotionType},
     resources::{GlobalTextureAtlas, Level, Wave},
     utils::InGameEntity,
@@ -59,6 +62,7 @@ pub fn init_world(
             Speed(PLAYER_SPEED),
             Defense(1),
             Gold(0),
+            DamageBoost(0),
             OriginalColor(Color::WHITE),
             PlayerState::default(),
             AnimationTimer(Timer::from_seconds(0.15, TimerMode::Repeating)),
@@ -85,64 +89,64 @@ pub fn init_world(
         ))
         .id();
 
-    let omni_spread_gun = commands
-        .spawn((
-            Name::new("OmniSpreadGun"),
-            Gun,
-            Value(10),
-            Sprite {
-                image: handle.image.clone().unwrap(),
-                texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout_16x16.clone().unwrap(),
-                    index: 66,
-                }),
-                ..default()
-            },
-            Visibility::Hidden,
-            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
-                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            GunType::OmniSpread,
-            GunStats {
-                bullets_per_shot: 40,
-                firing_interval: 0.5,
-                bullet_spread: 0.3,
-            },
-            BulletStats {
-                speed: 20,
-                damage: 20,
-                lifespan: 0.6,
-            },
-        ))
-        .id();
-    let focused_aim_gun = commands
-        .spawn((
-            Name::new("FocusedAimGun"),
-            Gun,
-            Value(10),
-            Sprite {
-                image: handle.image.clone().unwrap(),
-                texture_atlas: Some(TextureAtlas {
-                    layout: handle.layout_16x16.clone().unwrap(),
-                    index: 67,
-                }),
-                ..default()
-            },
-            Visibility::Hidden,
-            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
-                .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-            GunType::FocusedAim,
-            GunStats {
-                bullets_per_shot: 1,
-                firing_interval: 1.0,
-                bullet_spread: 0.0,
-            },
-            BulletStats {
-                speed: 45,
-                damage: 200,
-                lifespan: 0.7,
-            },
-        ))
-        .id();
+    // let omni_spread_gun = commands
+    //     .spawn((
+    //         Name::new("OmniSpreadGun"),
+    //         Gun,
+    //         Value(10),
+    //         Sprite {
+    //             image: handle.image.clone().unwrap(),
+    //             texture_atlas: Some(TextureAtlas {
+    //                 layout: handle.layout_16x16.clone().unwrap(),
+    //                 index: 66,
+    //             }),
+    //             ..default()
+    //         },
+    //         Visibility::Hidden,
+    //         Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+    //             .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+    //         GunType::OmniSpread,
+    //         GunStats {
+    //             bullets_per_shot: 40,
+    //             firing_interval: 0.5,
+    //             bullet_spread: 0.3,
+    //         },
+    //         BulletStats {
+    //             speed: 20,
+    //             damage: 20,
+    //             lifespan: 0.6,
+    //         },
+    //     ))
+    //     .id();
+    // let focused_aim_gun = commands
+    //     .spawn((
+    //         Name::new("FocusedAimGun"),
+    //         Gun,
+    //         Value(10),
+    //         Sprite {
+    //             image: handle.image.clone().unwrap(),
+    //             texture_atlas: Some(TextureAtlas {
+    //                 layout: handle.layout_16x16.clone().unwrap(),
+    //                 index: 67,
+    //             }),
+    //             ..default()
+    //         },
+    //         Visibility::Hidden,
+    //         Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+    //             .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+    //         GunType::FocusedAim,
+    //         GunStats {
+    //             bullets_per_shot: 1,
+    //             firing_interval: 1.0,
+    //             bullet_spread: 0.0,
+    //         },
+    //         BulletStats {
+    //             speed: 45,
+    //             damage: 200,
+    //             lifespan: 0.7,
+    //         },
+    //     ))
+    //     .id();
     let health_potion = commands
         .spawn((
             Name::new("HealthPotion"),
@@ -235,7 +239,7 @@ pub fn init_world(
         .id();
 
     commands.entity(player_entity).insert(PlayerInventory {
-        guns: vec![default_gun, omni_spread_gun, focused_aim_gun],
+        guns: vec![default_gun],
         active_gun_index: 0,
         health_potions: vec![health_potion],
         speed_potions: vec![speed_potion],

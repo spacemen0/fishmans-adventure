@@ -4,7 +4,7 @@ use rand::Rng;
 use crate::{
     armor::{Armor, ArmorStats},
     configs::{LAYER2, SPRITE_SCALE_FACTOR},
-    gun::{Gun, GunStats, GunType},
+    gun::{BulletStats, Gun, GunStats, GunType},
     potion::{Potion, PotionStats, PotionType},
     utils::{get_random_position_around, Pickable},
 };
@@ -23,6 +23,9 @@ pub struct GunStatRange {
     pub bullets_per_shot: (usize, usize),
     pub firing_interval: (f32, f32),
     pub bullet_spread: (f32, f32),
+    pub bullet_speed: (u32, u32),
+    pub bullet_lifespan: (f32, f32),
+    pub bullet_damage: (u32, u32),
 }
 
 #[derive(Clone)]
@@ -139,6 +142,11 @@ fn spawn_gun(
                 ..default()
             },
             gun_type,
+            BulletStats {
+                speed: rng.gen_range(range.bullet_speed.0..=range.bullet_speed.1),
+                lifespan: rng.gen_range(range.bullet_lifespan.0..=range.bullet_lifespan.1),
+                damage: rng.gen_range(range.bullet_damage.0..=range.bullet_damage.1),
+            },
             Transform::from_translation(Vec3::new(x, y, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             gun_stats,
@@ -246,6 +254,9 @@ pub fn weak_enemies_bundle() -> LootPool {
                     bullets_per_shot: (3, 5),
                     firing_interval: (0.3, 0.5),
                     bullet_spread: (0.15, 0.2),
+                    bullet_speed: (10, 20),
+                    bullet_lifespan: (1.0, 2.0),
+                    bullet_damage: (40, 60),
                 }),
             },
         ],
@@ -284,6 +295,9 @@ pub fn medium_enemies_bundle() -> LootPool {
                     bullets_per_shot: (5, 8),
                     firing_interval: (0.2, 0.4),
                     bullet_spread: (0.1, 0.15),
+                    bullet_damage: (50, 100),
+                    bullet_lifespan: (1.5, 3.0),
+                    bullet_speed: (20, 30),
                 }),
             },
         ],
@@ -312,6 +326,9 @@ pub fn strong_enemies_bundle() -> LootPool {
                     bullets_per_shot: (8, 12),
                     firing_interval: (0.1, 0.3),
                     bullet_spread: (0.05, 0.15),
+                    bullet_damage: (80, 160),
+                    bullet_lifespan: (2.0, 4.0),
+                    bullet_speed: (30, 50),
                 }),
             },
             LootDefinition {

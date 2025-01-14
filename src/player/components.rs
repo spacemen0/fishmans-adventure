@@ -14,6 +14,9 @@ pub struct Health(pub u32, pub u32);
 pub struct Speed(pub u32);
 
 #[derive(Component)]
+pub struct DamageBoost(pub u32);
+
+#[derive(Component)]
 pub struct Gold(pub u32);
 
 #[derive(Component)]
