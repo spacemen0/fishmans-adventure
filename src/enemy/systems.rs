@@ -42,21 +42,47 @@ pub fn update_enemy_movement(
             enemy_query.iter_mut()
         {
             match &mut *state {
-                EnemyState::Wandering {
-                    direction,
-                    timer,
-                    has_been_aggroed,
-                } => {
+                EnemyState::Wandering { direction, timer } => {
                     timer.tick(time.delta());
 
                     let distance_to_player = transform.translation.distance(player_pos);
-                    if distance_to_player < 300.0 {
-                        *has_been_aggroed = true;
+                    if distance_to_player < 500.0 {
                         *state = EnemyState::Pursuing;
                     } else {
                         if timer.just_finished() {
-                            let angle = rand::thread_rng().gen_range(0.0..std::f32::consts::TAU);
-                            *direction = Vec2::new(angle.cos(), angle.sin());
+                            let near_left = transform.translation.x < -WW + REPEL_MARGIN;
+                            let near_right = transform.translation.x > WW - REPEL_MARGIN;
+                            let near_top = transform.translation.y > WH - REPEL_MARGIN;
+                            let near_bottom = transform.translation.y < -WH + REPEL_MARGIN;
+
+                            if near_left || near_right || near_top || near_bottom {
+                                let mut new_direction = Vec2::ZERO;
+                                if near_left {
+                                    new_direction.x += 1.0;
+                                }
+                                if near_right {
+                                    new_direction.x -= 1.0;
+                                }
+                                if near_top {
+                                    new_direction.y -= 1.0;
+                                }
+                                if near_bottom {
+                                    new_direction.y += 1.0;
+                                }
+
+                                let random_angle = rand::thread_rng().gen_range(-0.5..0.5);
+                                let rotation = Mat2::from_angle(random_angle);
+                                *direction = (rotation * new_direction.normalize()).normalize();
+                            } else {
+                                let angle_change = rand::thread_rng().gen_range(-0.8..0.8);
+                                let rotation = Mat2::from_angle(angle_change);
+                                *direction = (rotation * *direction).normalize();
+                            }
+
+                            timer.set_duration(Duration::from_secs_f32(
+                                rand::thread_rng().gen_range(1.8..2.5),
+                            ));
+                            timer.reset();
                         }
 
                         let mut movement = *direction * enemy.speed as f32 * 0.5;
@@ -90,22 +116,6 @@ pub fn update_enemy_movement(
 
                     let movement = direction.truncate() * enemy.speed as f32;
                     apply_movement(&mut transform.translation, movement, LAYER1);
-
-                    let distance_to_player = transform.translation.distance(player_pos);
-                    if distance_to_player > 400.0 {
-                        match state.as_ref() {
-                            EnemyState::Wandering {
-                                has_been_aggroed, ..
-                            } if !has_been_aggroed => {
-                                *state = EnemyState::Wandering {
-                                    direction: Vec2::new(1.0, 0.0),
-                                    timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-                                    has_been_aggroed: false,
-                                };
-                            }
-                            _ => continue,
-                        }
-                    }
                 }
                 EnemyState::MaintainingDistance => {
                     if let Some(ranged_behavior) = ranged_behavior {

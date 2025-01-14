@@ -84,9 +84,34 @@ pub fn cleanup_entities(mut commands: Commands, all_entities: Query<Entity, With
     }
 }
 
-pub fn apply_movement(position: &mut Vec3, movement: Vec2, layer: f32) {
-    position.x = (position.x + movement.x).clamp(-WW, WW);
-    position.y = (position.y + movement.y).clamp(-WH, WH);
+pub fn apply_movement(position: &mut Vec3, mut movement: Vec2, layer: f32) {
+    const MARGIN: f32 = 50.0; 
+    const REPEL_MARGIN: f32 = 120.0; 
+    const REPEL_STRENGTH: f32 = 2.0; 
+
+    let mut repulsion = Vec2::ZERO;
+
+    if position.x < -WW + REPEL_MARGIN {
+        let force = (-WW + REPEL_MARGIN - position.x) / (REPEL_MARGIN - MARGIN);
+        repulsion.x += force * REPEL_STRENGTH;
+    }
+    if position.x > WW - REPEL_MARGIN {
+        let force = (WW - REPEL_MARGIN - position.x) / (REPEL_MARGIN - MARGIN);
+        repulsion.x += force * REPEL_STRENGTH;
+    }
+    if position.y < -WH + REPEL_MARGIN {
+        let force = (-WH + REPEL_MARGIN - position.y) / (REPEL_MARGIN - MARGIN);
+        repulsion.y += force * REPEL_STRENGTH;
+    }
+    if position.y > WH - REPEL_MARGIN {
+        let force = (WH - REPEL_MARGIN - position.y) / (REPEL_MARGIN - MARGIN);
+        repulsion.y += force * REPEL_STRENGTH;
+    }
+
+    movement += repulsion;
+
+    position.x = (position.x + movement.x).clamp(-WW + MARGIN, WW - MARGIN);
+    position.y = (position.y + movement.y).clamp(-WH + MARGIN, WH - MARGIN);
     position.z = layer;
 }
 

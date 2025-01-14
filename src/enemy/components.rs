@@ -129,11 +129,19 @@ pub enum EnemyState {
     Wandering {
         direction: Vec2,
         timer: Timer,
-        has_been_aggroed: bool,
     },
     Pursuing,
-    Retreating,
     MaintainingDistance,
+    Retreating,
+}
+
+impl Default for EnemyState {
+    fn default() -> Self {
+        Self::Wandering {
+            direction: Vec2::new(1.0, 0.0),
+            timer: Timer::from_seconds(2.0, TimerMode::Repeating),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -147,16 +155,6 @@ pub struct SummoningAbility {
     pub timer: Timer,
     pub min_minions: u32,
     pub max_minions: u32,
-}
-
-impl Default for EnemyState {
-    fn default() -> Self {
-        Self::Wandering {
-            direction: Vec2::new(1.0, 0.0),
-            timer: Timer::from_seconds(2.0, TimerMode::Repeating),
-            has_been_aggroed: false,
-        }
-    }
 }
 
 #[derive(Event)]
