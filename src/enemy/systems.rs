@@ -242,31 +242,7 @@ pub fn spawn_enemies(
             let enemy_base = if is_boss_wave(wave.number) {
                 create_midgame_boss_enemy()
             } else {
-                match wave.number {
-                    1..=2 => create_basic_enemy(),
-                    3..=4 => {
-                        if rand::random::<f32>() < 0.5 {
-                            create_trail_enemy()
-                        } else {
-                            create_charging_enemy()
-                        }
-                    }
-                    5..=7 => match rand::random::<f32>() {
-                        x if x < 0.3 => create_shooter_enemy(),
-                        x if x < 0.6 => create_bomber_enemy(),
-                        x if x < 0.8 => create_splitting_enemy(),
-                        _ => create_trail_enemy(),
-                    },
-                    8..=9 => create_gurgle_enemy(),
-                    _ => match rand::random::<f32>() {
-                        x if x < 0.3 => create_charging_enemy(),
-                        x if x < 0.4 => create_trail_enemy(),
-                        x if x < 0.5 => create_splitting_enemy(),
-                        x if x < 0.7 => create_shooter_enemy(),
-                        x if x < 0.9 => create_bomber_enemy(),
-                        _ => create_gurgle_enemy(),
-                    },
-                }
+                select_enemy_type(wave.number)()
             };
 
             let health = (enemy_base.health as f32 * difficulty_multiplier) as u32;
@@ -318,6 +294,90 @@ pub fn spawn_enemies(
     }
 }
 
+fn calculate_enemy_distribution(wave: u32) -> Vec<(fn() -> EnemyBuilder, f32)> {
+    let mut distributions = Vec::new();
+
+    let basic_weight = 1.0 / (1.0 + (wave as f32 * 0.1));
+    distributions.push((create_basic_enemy as fn() -> EnemyBuilder, basic_weight));
+
+    if wave >= 2 {
+        let charging_weight = (wave as f32 * 0.15).min(0.8);
+        distributions.push((
+            create_charging_enemy as fn() -> EnemyBuilder,
+            charging_weight,
+        ));
+    }
+
+    if wave >= 3 {
+        let splitter_weight = (wave as f32 * 0.06).min(0.35);
+        distributions.push((
+            create_splitting_enemy as fn() -> EnemyBuilder,
+            splitter_weight,
+        ));
+    }
+
+    if wave >= 4 {
+        let trail_weight = (wave as f32 * 0.1).min(0.6);
+        distributions.push((create_trail_enemy as fn() -> EnemyBuilder, trail_weight));
+    }
+
+    if wave >= 5 {
+        let shooter_weight = (wave as f32 * 0.08).min(0.5);
+        distributions.push((create_shooter_enemy as fn() -> EnemyBuilder, shooter_weight));
+    }
+
+    if wave >= 6 {
+        let bomber_weight = (wave as f32 * 0.07).min(0.4);
+        distributions.push((create_bomber_enemy as fn() -> EnemyBuilder, bomber_weight));
+    }
+
+    if wave >= 7 {
+        let gurgle_weight = (wave as f32 * 0.06).min(0.3);
+        distributions.push((create_gurgle_enemy as fn() -> EnemyBuilder, gurgle_weight));
+    }
+
+    distributions
+}
+
+fn select_enemy_type(wave: u32) -> fn() -> EnemyBuilder {
+    let distributions = calculate_enemy_distribution(wave);
+    let total_weight: f32 = distributions.iter().map(|(_, weight)| weight).sum();
+    let mut rng = rand::thread_rng();
+    let random_value = rng.gen::<f32>() * total_weight;
+
+    let mut cumulative_weight = 0.0;
+    for (enemy_type, weight) in distributions {
+        cumulative_weight += weight;
+        if random_value <= cumulative_weight {
+            return enemy_type;
+        }
+    }
+
+    create_basic_enemy
+}
+
+fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
+    if is_boss_wave(wave_number) {
+        1
+    } else {
+        let base = match wave_number {
+            1..=3 => 15 + wave_number * 3, 
+            4..=6 => 25 + wave_number * 4, 
+            7..=9 => 45 + wave_number * 5, 
+            _ => {
+                let scaling = if wave_number <= 15 {
+                    90 + (wave_number - 9) * 8 
+                } else {
+                    140 + (wave_number - 15) * 12 
+                };
+                scaling
+            }
+        };
+
+        base + (random::<u32>() % 15) 
+    }
+}
+
 pub fn calculate_difficulty_multiplier(wave_number: u32) -> f32 {
     if wave_number <= 30 {
         1.0 + (wave_number as f32 / 10.0) * 0.1
@@ -330,15 +390,6 @@ pub fn calculate_difficulty_multiplier(wave_number: u32) -> f32 {
 
 fn is_boss_wave(wave_number: u32) -> bool {
     wave_number % 10 == 0 && wave_number >= 10
-}
-
-fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
-    if is_boss_wave(wave_number) {
-        1
-    } else {
-        let base = 10 + (wave_number / 2);
-        base + (random::<u32>() % 10)
-    }
 }
 
 pub fn update_spawn_indicators(
