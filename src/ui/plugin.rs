@@ -1,7 +1,7 @@
 use crate::{
     game_state::GameState,
     ui::systems::{
-        in_game_ui, loot_ui, menus,
+        in_game_ui, loot_grid, menus,
         menus::{handle_death_screen_input, set_up_death_screen},
     },
     utils::cleanup_entities,
@@ -11,7 +11,7 @@ use bevy::{
     app::{App, Plugin, Update},
     prelude::{in_state, Condition, IntoSystemConfigs, OnEnter, OnExit},
 };
-
+use crate::ui::systems::player_info;
 use super::{
     components::LootSaleEvent,
     systems::{in_game_ui::update_floating_text, menus::handle_control_widget},
@@ -25,7 +25,7 @@ impl Plugin for UiPlugin {
             .add_systems(
                 OnEnter(GameState::Initializing),
                 (
-                    loot_ui::setup_ui,
+                    player_info::setup_ui,
                     menus::setup_pause_menu,
                     in_game_ui::setup_health_bar.after(init_world),
                 ),
@@ -50,7 +50,7 @@ impl Plugin for UiPlugin {
             )
             .add_systems(
                 Update,
-                (loot_ui::toggle_loot_ui_visibility.run_if(
+                (player_info::toggle_loot_ui_visibility.run_if(
                     in_state(GameState::Combat)
                         .or(in_state(GameState::Ui))
                         .or(in_state(GameState::Paused)),
@@ -58,7 +58,7 @@ impl Plugin for UiPlugin {
             )
             .add_systems(
                 OnEnter(GameState::Ui),
-                (loot_ui::update_ui, loot_ui::set_up_loot_image),
+                (player_info::update_ui, loot_grid::set_up_loot_image),
             )
             .add_systems(
                 Update,
@@ -73,9 +73,9 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
-                    loot_ui::navigate_loot_items,
-                    loot_ui::highlight_focused_item,
-                    loot_ui::handle_sell_focused_item,
+                    loot_grid::navigate_loot_items,
+                    loot_grid::highlight_focused_item,
+                    loot_grid::handle_sell_focused_item,
                 )
                     .run_if(in_state(GameState::Ui)),
             )

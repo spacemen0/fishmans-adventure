@@ -96,7 +96,10 @@ pub fn handle_player_damaged_events(
 
 pub fn handle_leveling_up(
     mut event_reader: EventReader<PlayerLevelingUpEvent>,
-    mut player_query: Query<(&mut Health, &mut Defense, &Transform), With<Player>>,
+    mut player_query: Query<
+        (&mut DamageBoost, &mut Health, &mut Defense, &Transform),
+        With<Player>,
+    >,
     mut commands: Commands,
     font: Res<UiFont>,
 ) {
@@ -104,12 +107,13 @@ pub fn handle_leveling_up(
         return;
     }
 
-    let (mut health, mut defense, transform) = player_query.single_mut();
+    let (mut damage_boost, mut health, mut defense, transform) = player_query.single_mut();
 
     for event in event_reader.read() {
         let level = event.new_level;
         health.0 += calculate_health_increase(level);
         defense.0 += calculate_defense_increase(level);
+        damage_boost.0 += calculate_damage_boost_increase(level);
         spawn_floating_text(
             &mut commands,
             &font.0,
