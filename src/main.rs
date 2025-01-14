@@ -1,6 +1,5 @@
 use bevy::{
-    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active,
-    prelude::*, window::CursorOptions,
+    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active, prelude::*,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use fishmans_adventure::{
@@ -40,10 +39,10 @@ fn main() {
                         canvas: Some("#fishmans_adventure".to_owned()),
                         title: "Fishman's Adventure".to_owned(),
                         focused: true,
-                        cursor_options: CursorOptions {
-                            visible: false,
-                            ..default()
-                        },
+                        // cursor_options: CursorOptions {
+                        //     visible: false,
+                        //     ..default()
+                        // },
                         resolution: (WW, WH).into(),
                         ..default()
                     }),
@@ -86,10 +85,6 @@ impl Plugin for EmbeddedAssetPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "../assets/assets.png");
         embedded_asset!(app, "../assets/monogram.ttf");
-        embedded_asset!(app, "../assets/icons/health.png");
-        embedded_asset!(app, "../assets/icons/level.png");
-        embedded_asset!(app, "../assets/icons/xp.png");
-        embedded_asset!(app, "../assets/icons/defense.png");
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::{
     game_state::GameState,
     input::Action,
-    loot::Description,
+    loot::{Description, Value},
     player::{AccelerationEffect, Health, Player, PlayerInventory, Speed},
     resources::UiFont,
     ui::systems::in_game_ui::spawn_floating_text,
@@ -11,7 +11,7 @@ use bevy::{prelude::*, time::Stopwatch};
 use leafwing_input_manager::prelude::ActionState;
 
 #[derive(Component)]
-#[require(PotionStats, PotionType, InGameEntity, Sprite, Description)]
+#[require(PotionStats, PotionType, InGameEntity, Sprite, Description, Value)]
 pub struct Potion;
 
 #[derive(Component, Clone, Debug, Default)]

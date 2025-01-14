@@ -56,6 +56,9 @@ pub struct PlayerXpText;
 pub struct PlayerDefenseText;
 
 #[derive(Component)]
+pub struct PlayerGoldText;
+
+#[derive(Component)]
 pub struct PlayerHealthBar;
 
 #[derive(Component)]

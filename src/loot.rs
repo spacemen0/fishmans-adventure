@@ -9,6 +9,9 @@ use crate::{
     utils::{get_random_position_around, Pickable},
 };
 
+#[derive(Component, Default)]
+pub struct Value(pub u32);
+
 #[derive(Clone)]
 pub enum LootType {
     Gun,
@@ -53,6 +56,7 @@ pub struct LootDefinition {
         Option<Handle<Image>>,
         Option<Handle<TextureAtlasLayout>>,
         LootStatRange,
+        u32,
     ),
     pub stat_range: LootStatRange,
 }
@@ -105,6 +109,7 @@ fn spawn_gun(
     image: Option<Handle<Image>>,
     layout: Option<Handle<TextureAtlasLayout>>,
     stat_range: LootStatRange,
+    value: u32,
 ) {
     if let LootStatRange::Gun(range) = stat_range {
         let mut rng = rand::thread_rng();
@@ -123,6 +128,7 @@ fn spawn_gun(
         commands.spawn((
             Name::new("Gun"),
             Gun,
+            Value(value),
             Sprite {
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -147,6 +153,7 @@ fn spawn_armor(
     image: Option<Handle<Image>>,
     layout: Option<Handle<TextureAtlasLayout>>,
     stat_range: LootStatRange,
+    value: u32,
 ) {
     if let LootStatRange::Armor(range) = stat_range {
         let mut rng = rand::thread_rng();
@@ -158,6 +165,7 @@ fn spawn_armor(
         commands.spawn((
             Name::new("Armor"),
             Armor,
+            Value(value),
             armor_stats,
             Sprite {
                 image: image.unwrap(),
@@ -180,6 +188,7 @@ fn spawn_potion(
     image: Option<Handle<Image>>,
     layout: Option<Handle<TextureAtlasLayout>>,
     stat_range: LootStatRange,
+    value: u32,
 ) {
     if let LootStatRange::Potion(range) = stat_range {
         let mut rng = rand::thread_rng();
@@ -197,6 +206,7 @@ fn spawn_potion(
         commands.spawn((
             Name::new(name_string),
             Potion,
+            Value(value),
             Sprite {
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {

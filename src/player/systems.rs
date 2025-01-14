@@ -7,7 +7,7 @@ use crate::{
     configs::*,
     gun::Gun,
     input::Action,
-    loot::{MovingToPlayer, ReadyForPickup},
+    loot::{MovingToPlayer, ReadyForPickup, Value},
     potion::PotionType,
     resources::UiFont,
     ui::systems::in_game_ui::spawn_floating_text,
@@ -249,9 +249,15 @@ pub fn move_loot_to_player(
 
 pub fn handle_loot_pickup(
     mut commands: Commands,
-    mut player_query: Query<&mut PlayerInventory, With<Player>>,
+    mut player_query: Query<(&mut PlayerInventory, &mut Gold), With<Player>>,
     loot_query: Query<
-        (Entity, Option<&PotionType>, Option<&Gun>, Option<&Armor>),
+        (
+            Entity,
+            &Value,
+            Option<&PotionType>,
+            Option<&Gun>,
+            Option<&Armor>,
+        ),
         With<ReadyForPickup>,
     >,
 ) {
@@ -259,35 +265,47 @@ pub fn handle_loot_pickup(
         return;
     }
 
-    let mut inventory = player_query.single_mut();
+    let (mut inventory, mut gold) = player_query.single_mut();
 
-    for (loot_entity, potion_type, gun, armor) in loot_query.iter() {
+    for (loot_entity, value, potion_type, gun, armor) in loot_query.iter() {
         match (potion_type, gun, armor) {
             (Some(PotionType::Speed), _, _) => {
-                if !inventory.speed_potions.contains(&loot_entity)
-                    && inventory.speed_potions.len() < 4
-                {
-                    inventory.speed_potions.push(loot_entity);
+                if !inventory.speed_potions.contains(&loot_entity) {
+                    if inventory.speed_potions.len() < 4 {
+                        inventory.speed_potions.push(loot_entity);
+                    } else {
+                        gold.0 += value.0;
+                    }
                 }
             }
             (Some(PotionType::Health), _, _) => {
-                if !inventory.health_potions.contains(&loot_entity)
-                    && inventory.health_potions.len() < 4
-                {
-                    inventory.health_potions.push(loot_entity);
+                if !inventory.health_potions.contains(&loot_entity) {
+                    if inventory.health_potions.len() < 4 {
+                        inventory.health_potions.push(loot_entity);
+                    } else {
+                        gold.0 += value.0;
+                    }
                 }
             }
             (_, Some(_), _) => {
-                if !inventory.guns.contains(&loot_entity) && inventory.guns.len() < 4 {
-                    inventory.guns.push(loot_entity);
+                if !inventory.guns.contains(&loot_entity) {
+                    if inventory.guns.len() < 4 {
+                        inventory.guns.push(loot_entity);
+                    } else {
+                        gold.0 += value.0;
+                    }
                 }
             }
             (_, _, Some(_)) => {
-                if !inventory.armors.contains(&loot_entity) && inventory.armors.len() < 4 {
-                    inventory.armors.push(loot_entity);
+                if !inventory.armors.contains(&loot_entity) {
+                    if inventory.armors.len() < 4 {
+                        inventory.armors.push(loot_entity);
+                    } else {
+                        gold.0 += value.0;
+                    }
                 }
             }
-            _ => (),
+            _ => {}
         }
 
         commands

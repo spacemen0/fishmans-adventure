@@ -1,18 +1,17 @@
 use crate::{
-    configs::{DEFENSE_ICON_PATH, HEALTH_ICON_PATH, LEVEL_ICON_PATH, XP_ICON_PATH},
     game_state::GameState,
     input::Action,
     loot::Description,
-    player::{Defense, Health, Player, PlayerInventory},
-    resources::{Level, UiFont},
+    player::{Defense, Gold, Health, Player, PlayerInventory},
+    resources::{GlobalTextureAtlas, Level, UiFont},
     ui::components::{
-        DescriptionTextBox, FocusedItem, GridSlot, PlayerDefenseText, PlayerHealthText,
-        PlayerLevelText, PlayerXpText, UiRoot,
+        DescriptionTextBox, FocusedItem, GridSlot, PauseMenuRoot, PlayerDefenseText,
+        PlayerGoldText, PlayerHealthText, PlayerLevelText, PlayerXpText, UiRoot,
     },
     utils::InGameEntity,
 };
 use bevy::{
-    asset::{AssetServer, Handle},
+    asset::Handle,
     color::Color,
     core::Name,
     hierarchy::{BuildChildren, ChildBuild, ChildBuilder, Children, Parent},
@@ -21,12 +20,7 @@ use bevy::{
 };
 use leafwing_input_manager::action_state::ActionState;
 
-pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<AssetServer>) {
-    let health_icon = asset_server.load(HEALTH_ICON_PATH);
-    let level_icon = asset_server.load(LEVEL_ICON_PATH);
-    let xp_icon = asset_server.load(XP_ICON_PATH);
-    let defense_icon = asset_server.load(DEFENSE_ICON_PATH);
-
+pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, handle: Res<GlobalTextureAtlas>) {
     commands
         .spawn((
             Name::new("Ui"),
@@ -42,7 +36,6 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<Ass
             InGameEntity,
         ))
         .with_children(|parent| {
-            // Left side: Loot information
             parent
                 .spawn(Node {
                     width: Val::Percent(30.0),
@@ -59,7 +52,6 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<Ass
                     spawn_slots_grid(parent, &font.0, "Armors", 4, 3);
                 });
 
-            // Right side: Player information
             parent
                 .spawn((
                     Node {
@@ -77,18 +69,57 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, asset_server: Res<Ass
                     spawn_player_info_item(
                         parent,
                         &font.0,
-                        health_icon,
-                        "Health",
-                        PlayerHealthText,
+                        handle.image.clone().unwrap(),
+                        "Gold",
+                        PlayerGoldText,
+                        TextureAtlas {
+                            layout: handle.layout_16x16.clone().unwrap(),
+                            index: 161,
+                        },
                     );
-                    spawn_player_info_item(parent, &font.0, level_icon, "Level", PlayerLevelText);
-                    spawn_player_info_item(parent, &font.0, xp_icon, "XP", PlayerXpText);
                     spawn_player_info_item(
                         parent,
                         &font.0,
-                        defense_icon,
+                        handle.image.clone().unwrap(),
+                        "Health",
+                        PlayerHealthText,
+                        TextureAtlas {
+                            layout: handle.layout_16x16.clone().unwrap(),
+                            index: 162,
+                        },
+                    );
+                    spawn_player_info_item(
+                        parent,
+                        &font.0,
+                        handle.image.clone().unwrap(),
+                        "Level",
+                        PlayerLevelText,
+                        TextureAtlas {
+                            layout: handle.layout_16x16.clone().unwrap(),
+                            index: 165,
+                        },
+                    );
+                    spawn_player_info_item(
+                        parent,
+                        &font.0,
+                        handle.image.clone().unwrap(),
+                        "XP",
+                        PlayerXpText,
+                        TextureAtlas {
+                            layout: handle.layout_16x16.clone().unwrap(),
+                            index: 164,
+                        },
+                    );
+                    spawn_player_info_item(
+                        parent,
+                        &font.0,
+                        handle.image.clone().unwrap(),
                         "Defense",
                         PlayerDefenseText,
+                        TextureAtlas {
+                            layout: handle.layout_16x16.clone().unwrap(),
+                            index: 163,
+                        },
                     );
                 });
         })
@@ -202,20 +233,25 @@ pub fn spawn_slots_grid(
 
 pub fn update_ui(
     level: Res<Level>,
-    player_query: Query<(&Health, &Defense), With<Player>>,
+    player_query: Query<(&Health, &Defense, &Gold), With<Player>>,
     mut param_set: ParamSet<(
         Query<&mut Text, With<PlayerHealthText>>,
         Query<&mut Text, With<PlayerLevelText>>,
         Query<&mut Text, With<PlayerXpText>>,
         Query<&mut Text, With<PlayerDefenseText>>,
+        Query<&mut Text, With<PlayerGoldText>>,
     )>,
+    mut pause_menu_query: Query<&mut Visibility, With<PauseMenuRoot>>,
 ) {
-    if let Ok((health, defense)) = player_query.get_single() {
+    if let Ok((health, defense, gold)) = player_query.get_single() {
         if let Ok(mut health_text) = param_set.p0().get_single_mut() {
             *health_text = format!("Health: {}", health.0).into();
         }
         if let Ok(mut defense_text) = param_set.p3().get_single_mut() {
             *defense_text = format!("Defense: {}", defense.0).into();
+        }
+        if let Ok(mut gold_text) = param_set.p4().get_single_mut() {
+            *gold_text = format!("Gold: {}", gold.0).into();
         }
     }
 
@@ -225,6 +261,11 @@ pub fn update_ui(
 
     if let Ok(mut xp_text) = param_set.p2().get_single_mut() {
         *xp_text = format!("XP: {}/{}", level.current_xp(), level.xp_threshold()).into();
+    }
+    if let Ok(mut visibility) = pause_menu_query.get_single_mut() {
+        if *visibility == Visibility::Visible {
+            *visibility = Visibility::Hidden;
+        }
     }
 }
 
@@ -397,9 +438,10 @@ pub fn toggle_loot_ui_visibility(
 pub fn spawn_player_info_item(
     parent: &mut ChildBuilder,
     font: &Handle<Font>,
-    icon: Handle<Image>,
+    image: Handle<Image>,
     label: &str,
     component: impl Component,
+    texture_atlas: TextureAtlas,
 ) {
     parent
         .spawn(Node {
@@ -411,13 +453,14 @@ pub fn spawn_player_info_item(
         .with_children(|parent| {
             parent.spawn((
                 ImageNode {
-                    image: icon.clone(),
+                    image: image.clone(),
+                    texture_atlas: Some(texture_atlas.clone()),
                     ..default()
                 },
                 Node {
-                    width: Val::Px(30.0),
-                    height: Val::Px(30.0),
-                    margin: UiRect::right(Val::Px(10.0)),
+                    width: Val::Px(32.0),
+                    height: Val::Px(32.0),
+                    top: Val::Px(4.0),
                     ..default()
                 },
             ));

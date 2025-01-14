@@ -106,7 +106,7 @@ pub fn spawn_enemies(
 
     for (entity, mut indicator, mut sprite) in indicator_query.iter_mut() {
         indicator.timer.tick(time.delta());
-        
+
         let alpha = (indicator.timer.elapsed_secs() * 5.0).sin().abs();
         sprite.color.set_alpha(alpha);
 
@@ -165,13 +165,12 @@ pub fn spawn_enemies(
                     image: handle.image.clone().unwrap(),
                     texture_atlas: Some(TextureAtlas {
                         layout: handle.layout_16x16.clone().unwrap(),
-                        index: 160, 
+                        index: 160,
                     }),
                     color: Color::srgba(1.0, 1.0, 1.0, 1.0),
                     ..default()
                 },
-                Transform::from_translation(position)
-                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                Transform::from_translation(position).with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 SpawnIndicator {
                     timer: Timer::from_seconds(2.0, TimerMode::Once),
                     spawn_position: position,
@@ -188,7 +187,7 @@ pub fn update_spawn_indicators(
 ) {
     for (mut indicator, mut sprite) in indicator_query.iter_mut() {
         indicator.timer.tick(time.delta());
-        
+
         let alpha = (indicator.timer.elapsed_secs() * 5.0).sin().abs();
         sprite.color.set_alpha(alpha);
     }
@@ -421,6 +420,7 @@ pub fn handle_enemy_death(
                             handle.image.clone(),
                             handle.layout_16x16.clone(),
                             loot_def.stat_range,
+                            loot_def.value,
                         );
                     }
                 }

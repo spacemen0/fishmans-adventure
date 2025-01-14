@@ -5,10 +5,6 @@ pub const WH: f32 = 720.0;
 // Sprites
 pub const SPRITE_SHEET_PATH: &str = "embedded://fishmans_adventure/../assets/assets.png";
 pub const UI_FONT_PATH: &str = "embedded://fishmans_adventure/../assets/monogram.ttf";
-pub const HEALTH_ICON_PATH: &str = "embedded://fishmans_adventure/../assets/icons/health.png";
-pub const LEVEL_ICON_PATH: &str = "embedded://fishmans_adventure/../assets/icons/level.png";
-pub const XP_ICON_PATH: &str = "embedded://fishmans_adventure/../assets/icons/xp.png";
-pub const DEFENSE_ICON_PATH: &str = "embedded://fishmans_adventure/../assets/icons/defense.png";
 pub const SPRITE_SCALE_FACTOR: f32 = 3.0;
 pub const TILE_W: u32 = 16;
 pub const TILE_H: u32 = 16;
@@ -22,7 +18,7 @@ pub const NUM_WORLD_DECORATIONS: usize = 100;
 
 // Player
 pub const PLAYER_SPEED: u32 = 15;
-pub const PLAYER_HEALTH: u32 = 100;
+pub const PLAYER_HEALTH: u32 = 200;
 pub const PLAYER_INVINCIBLE_TIME: f32 = 0.5;
 
 // Enemy
