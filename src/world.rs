@@ -85,7 +85,7 @@ pub fn init_world(
                 ..default()
             },
             Description {
-                name: "Default Gun".to_string(),
+                name: "Apprentice Gun".to_string(),
                 description: format!(
                     "Damage: {}. Speed: {}. Firing Interval: {}. Bullet Per Shot: {}",
                     BULLET_DAMAGE, BULLET_SPEED, FIRING_INTERVAL, NUM_BULLETS_PER_SHOT,
@@ -96,64 +96,6 @@ pub fn init_world(
         ))
         .id();
 
-    // let omni_spread_gun = commands
-    //     .spawn((
-    //         Name::new("OmniSpreadGun"),
-    //         Gun,
-    //         Value(10),
-    //         Sprite {
-    //             image: handle.image.clone().unwrap(),
-    //             texture_atlas: Some(TextureAtlas {
-    //                 layout: handle.layout_16x16.clone().unwrap(),
-    //                 index: 66,
-    //             }),
-    //             ..default()
-    //         },
-    //         Visibility::Hidden,
-    //         Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
-    //             .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-    //         GunType::OmniSpread,
-    //         GunStats {
-    //             bullets_per_shot: 40,
-    //             firing_interval: 0.5,
-    //             bullet_spread: 0.3,
-    //         },
-    //         BulletStats {
-    //             speed: 20,
-    //             damage: 20,
-    //             lifespan: 0.6,
-    //         },
-    //     ))
-    //     .id();
-    // let focused_aim_gun = commands
-    //     .spawn((
-    //         Name::new("FocusedAimGun"),
-    //         Gun,
-    //         Value(10),
-    //         Sprite {
-    //             image: handle.image.clone().unwrap(),
-    //             texture_atlas: Some(TextureAtlas {
-    //                 layout: handle.layout_16x16.clone().unwrap(),
-    //                 index: 67,
-    //             }),
-    //             ..default()
-    //         },
-    //         Visibility::Hidden,
-    //         Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
-    //             .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-    //         GunType::FocusedAim,
-    //         GunStats {
-    //             bullets_per_shot: 1,
-    //             firing_interval: 1.0,
-    //             bullet_spread: 0.0,
-    //         },
-    //         BulletStats {
-    //             speed: 45,
-    //             damage: 200,
-    //             lifespan: 0.7,
-    //         },
-    //     ))
-    //     .id();
     let health_potion = commands
         .spawn((
             Name::new("HealthPotion"),
@@ -176,7 +118,7 @@ pub fn init_world(
             },
             Description {
                 name: "Health Potion".to_string(),
-                description: "Restores 10 health".to_string(),
+                description: "Amount: 10".to_string(),
             },
             PotionType::Health,
         ))
@@ -203,7 +145,7 @@ pub fn init_world(
             },
             Description {
                 name: "Speed Potion".to_string(),
-                description: "Increases speed by 10 for 1 second".to_string(),
+                description: "Duration: 1.0s; Amount: 10".to_string(),
             },
             PotionType::Speed,
         ))
@@ -227,7 +169,7 @@ pub fn init_world(
                 ..default()
             },
             Description {
-                name: "Basic Armor".to_string(),
+                name: "Apprentice Armor".to_string(),
                 description: "Defense: 2, Durability: 15".to_string(),
             },
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),

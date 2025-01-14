@@ -244,7 +244,7 @@ pub fn highlight_focused_item(
                             ))
                             .with_child((
                                 Text::new(format!(
-                                    "{}\n {}",
+                                    "{} {}",
                                     description.name, description.description
                                 )),
                                 TextFont {
