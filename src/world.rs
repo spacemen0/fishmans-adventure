@@ -8,7 +8,7 @@ use crate::{
     configs::*,
     game_state::GameState,
     gun::{ActiveGun, Gun},
-    loot::Value,
+    loot::{Description, Value},
     player::{
         DamageBoost, Defense, Gold, Health, OriginalColor, Player, PlayerInventory, PlayerState,
         Speed,
@@ -83,6 +83,13 @@ pub fn init_world(
                     index: 65,
                 }),
                 ..default()
+            },
+            Description {
+                name: "Default Gun".to_string(),
+                description: format!(
+                    "Damage: {}. Speed: {}. Firing Interval: {}. Bullet Per Shot: {}",
+                    BULLET_DAMAGE, BULLET_SPEED, FIRING_INTERVAL, NUM_BULLETS_PER_SHOT,
+                ),
             },
             Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
@@ -167,6 +174,10 @@ pub fn init_world(
                 effect_duration: 0.0,
                 effect_amount: 10,
             },
+            Description {
+                name: "Health Potion".to_string(),
+                description: "Restores 10 health".to_string(),
+            },
             PotionType::Health,
         ))
         .id();
@@ -190,6 +201,10 @@ pub fn init_world(
                 effect_duration: 1.0,
                 effect_amount: 10,
             },
+            Description {
+                name: "Speed Potion".to_string(),
+                description: "Increases speed by 10 for 1 second".to_string(),
+            },
             PotionType::Speed,
         ))
         .id();
@@ -201,7 +216,7 @@ pub fn init_world(
             Value(10),
             ArmorStats {
                 defense: 2,
-                durability: 20,
+                durability: 15,
             },
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -210,6 +225,10 @@ pub fn init_world(
                     index: 98,
                 }),
                 ..default()
+            },
+            Description {
+                name: "Basic Armor".to_string(),
+                description: "Defense: 2, Durability: 15".to_string(),
             },
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Visibility::Hidden,
@@ -223,7 +242,7 @@ pub fn init_world(
             Value(10),
             ArmorStats {
                 defense: 3,
-                durability: 30,
+                durability: 20,
             },
             Sprite {
                 image: handle.image.clone().unwrap(),
@@ -232,6 +251,10 @@ pub fn init_world(
                     index: 99,
                 }),
                 ..default()
+            },
+            Description {
+                name: "Advanced Armor".to_string(),
+                description: "Defense: 3, Durability: 20".to_string(),
             },
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Visibility::Hidden,

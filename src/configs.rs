@@ -35,7 +35,7 @@ pub const REPEL_MARGIN: f32 = 100.0;
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
 
 // Gun
-pub const BULLET_SPAWN_INTERVAL: f32 = 0.2;
+pub const FIRING_INTERVAL: f32 = 0.2;
 pub const BULLET_TIME_SECS: f32 = 0.5;
 pub const BULLET_SPEED: u32 = 15;
 pub const BULLET_DAMAGE: u32 = 55;

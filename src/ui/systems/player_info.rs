@@ -1,18 +1,25 @@
-use bevy::prelude::{default, AlignItems, BackgroundColor, BorderColor, Commands, Component, FlexDirection, Font, GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res, ResMut, Text, TextColor, TextFont, TextureAtlas, UiRect, Val, Visibility, With};
-use leafwing_input_manager::action_state::ActionState;
-use bevy::core::Name;
-use bevy::color::Color;
-use bevy::hierarchy::{BuildChildren, ChildBuild, ChildBuilder};
-use bevy::asset::Handle;
-use bevy::image::Image;
 use crate::configs::MAX_DEFENSE;
 use crate::game_state::GameState;
 use crate::input::Action;
 use crate::player::{DamageBoost, Defense, Gold, Health, Player};
 use crate::resources::{GlobalTextureAtlas, Level, UiFont};
-use crate::ui::components::{PauseMenuRoot, PlayerDamageBoostText, PlayerDefenseText, PlayerGoldText, PlayerHealthText, PlayerLevelText, PlayerXpText, UiRoot};
+use crate::ui::components::{
+    PauseMenuRoot, PlayerDamageBoostText, PlayerDefenseText, PlayerGoldText, PlayerHealthText,
+    PlayerLevelText, PlayerXpText, UiRoot,
+};
 use crate::ui::systems::loot_grid;
 use crate::utils::InGameEntity;
+use bevy::asset::Handle;
+use bevy::color::Color;
+use bevy::core::Name;
+use bevy::hierarchy::{BuildChildren, ChildBuild, ChildBuilder};
+use bevy::image::Image;
+use bevy::prelude::{
+    default, AlignItems, BackgroundColor, BorderColor, Commands, Component, FlexDirection, Font,
+    GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res, ResMut, Text, TextColor,
+    TextFont, TextureAtlas, UiRect, Val, Visibility, With,
+};
+use leafwing_input_manager::action_state::ActionState;
 
 pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, handle: Res<GlobalTextureAtlas>) {
     commands
@@ -53,7 +60,7 @@ pub fn setup_ui(mut commands: Commands, font: Res<UiFont>, handle: Res<GlobalTex
                         height: Val::Percent(100.0),
                         flex_direction: FlexDirection::Column,
                         align_items: AlignItems::FlexStart,
-                        padding: UiRect::all(Val::Px(10.0)),
+                        padding: UiRect::all(Val::Px(4.0)),
                         border: UiRect::left(Val::Px(6.0)),
                         ..default()
                     },

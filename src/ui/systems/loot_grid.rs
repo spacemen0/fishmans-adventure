@@ -3,19 +3,13 @@ use crate::{
     loot::{Description, LootType},
     player::{Player, PlayerInventory},
     resources::UiFont,
-    ui::components::{
-        DescriptionTextBox, FocusedItem, GridSlot, LootSaleEvent
-
-        ,
-    }
-    ,
+    ui::components::{DescriptionTextBox, FocusedItem, GridSlot, LootSaleEvent},
 };
 use bevy::{
     asset::Handle,
     color::Color,
     core::Name,
-    hierarchy::{BuildChildren, ChildBuild, ChildBuilder, Children, Parent}
-    ,
+    hierarchy::{BuildChildren, ChildBuild, ChildBuilder, Children, Parent},
     prelude::*,
 };
 use leafwing_input_manager::action_state::ActionState;
@@ -222,6 +216,14 @@ pub fn highlight_focused_item(
         *border_color = BorderColor(Color::linear_rgb(1.0, 1.0, 0.0));
         if let Some(item_entity) = &grid_slot.item {
             if let Ok(description) = description_query.get(*item_entity) {
+                let height = match grid_slot.y {
+                    0 => Val::Px(90.0),
+                    1 => Val::Px(120.0),
+                    2 => Val::Px(200.0),
+                    3 => Val::Px(120.0),
+                    _ => Val::Px(100.0),
+                };
+
                 commands
                     .entity(entity)
                     .with_children(|parent| {
@@ -229,7 +231,7 @@ pub fn highlight_focused_item(
                             .spawn((
                                 Node {
                                     min_width: Val::Px(220.0),
-                                    height: Val::Px(120.0),
+                                    height,
                                     bottom: Val::Px(5.0),
                                     border: UiRect::all(Val::Px(1.0)),
                                     left: Val::Px(10.0),
@@ -301,4 +303,3 @@ pub fn set_up_loot_image(
         println!("Player inventory not found!");
     }
 }
-

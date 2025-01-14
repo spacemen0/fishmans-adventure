@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-use rand::{random, Rng};
+use rand::{random, seq::SliceRandom, Rng};
 
 use crate::{
     collision::EnemyKdTree,
     configs::{LAYER1, MAX_DEFENSE, WH, WW},
+    loot::LootType,
 };
 
 #[derive(Component, Default)]
@@ -144,4 +145,60 @@ pub fn calculate_defense_percentage(defense: u32) -> f32 {
     let max_percentage = 0.8;
     let scaled_defense = (defense as f32).sqrt() / (MAX_DEFENSE as f32).sqrt();
     scaled_defense * max_percentage
+}
+
+pub fn generate_random_cool_name(loot_type: LootType) -> String {
+    let adjectives = [
+        "Epic",
+        "Legendary",
+        "Mystic",
+        "Ancient",
+        "Enchanted",
+        "Fierce",
+        "Glorious",
+        "Heroic",
+        "Mighty",
+        "Noble",
+        "Powerful",
+        "Radiant",
+        "Savage",
+        "Valiant",
+        "Vicious",
+    ];
+
+    let gun_nouns = [
+        "Blaster", "Cannon", "Rifle", "Pistol", "Shotgun", "Sniper", "Launcher", "Repeater",
+    ];
+
+    let armor_nouns = [
+        "Armor",
+        "Shield",
+        "Helmet",
+        "Chestplate",
+        "Gauntlets",
+        "Greaves",
+        "Boots",
+        "Bracers",
+    ];
+
+    let potion_nouns = [
+        "Potion",
+        "Elixir",
+        "Brew",
+        "Tonic",
+        "Draught",
+        "Serum",
+        "Concoction",
+        "Mixture",
+    ];
+
+    let mut rng = rand::thread_rng();
+    let adjective = adjectives.choose(&mut rng).unwrap();
+    let noun = match loot_type {
+        LootType::Gun => gun_nouns.choose(&mut rng).unwrap(),
+        LootType::Armor => armor_nouns.choose(&mut rng).unwrap(),
+        LootType::Potion => potion_nouns.choose(&mut rng).unwrap(),
+    };
+
+    format!("{} {}", adjective, noun)
 }

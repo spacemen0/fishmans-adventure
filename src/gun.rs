@@ -31,7 +31,7 @@ pub struct GunPlugin;
                 lifespan: BULLET_TIME_SECS,
             }), GunStats(||GunStats {
                 bullets_per_shot: NUM_BULLETS_PER_SHOT,
-                firing_interval: BULLET_SPAWN_INTERVAL,
+                firing_interval: FIRING_INTERVAL,
                 bullet_spread: BULLET_SPREAD,
             }), InGameEntity, Sprite, Description)]
 pub struct Gun;

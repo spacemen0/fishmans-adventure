@@ -6,7 +6,7 @@ use crate::{
     configs::{LAYER2, SPRITE_SCALE_FACTOR},
     gun::{BulletStats, Gun, GunStats, GunType},
     potion::{Potion, PotionStats, PotionType},
-    utils::{get_random_position_around, Pickable},
+    utils::{generate_random_cool_name, get_random_position_around, Pickable},
 };
 
 #[derive(Component, Default)]
@@ -121,6 +121,11 @@ fn spawn_gun(
             firing_interval: rng.gen_range(range.firing_interval.0..=range.firing_interval.1),
             bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
         };
+        let bullet_stats = BulletStats {
+            speed: rng.gen_range(range.bullet_speed.0..=range.bullet_speed.1),
+            lifespan: rng.gen_range(range.bullet_lifespan.0..=range.bullet_lifespan.1),
+            damage: rng.gen_range(range.bullet_damage.0..=range.bullet_damage.1),
+        };
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
         let gun_type = match rng.gen_range(0..3) {
             0 => GunType::FocusedAim,
@@ -142,14 +147,21 @@ fn spawn_gun(
                 ..default()
             },
             gun_type,
-            BulletStats {
-                speed: rng.gen_range(range.bullet_speed.0..=range.bullet_speed.1),
-                lifespan: rng.gen_range(range.bullet_lifespan.0..=range.bullet_lifespan.1),
-                damage: rng.gen_range(range.bullet_damage.0..=range.bullet_damage.1),
+            Description {
+                name: generate_random_cool_name(LootType::Gun),
+                description:format!("Bullets per shot: {}\nFiring interval: {:.2}s\nBullet spread: {:.2}\nBullet speed: {}\nBullet lifespan: {:.2}s\nBullet damage: {}",
+                    gun_stats.bullets_per_shot,
+                    gun_stats.firing_interval,
+                    gun_stats.bullet_spread,
+                    bullet_stats.speed,
+                    bullet_stats.lifespan,
+                    bullet_stats.damage
+                ),
             },
             Transform::from_translation(Vec3::new(x, y, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             gun_stats,
+            bullet_stats,
             Pickable,
         ));
     }
@@ -174,7 +186,6 @@ fn spawn_armor(
             Name::new("Armor"),
             Armor,
             Value(value),
-            armor_stats,
             Sprite {
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {
@@ -183,6 +194,14 @@ fn spawn_armor(
                 }),
                 ..default()
             },
+            Description {
+                name: generate_random_cool_name(LootType::Armor),
+                description: format!(
+                    "Defense: {}\nDurability: {}",
+                    armor_stats.defense, armor_stats.durability
+                ),
+            },
+            armor_stats,
             Transform::from_translation(Vec3::new(x, y, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
@@ -222,6 +241,16 @@ fn spawn_potion(
                     index: potion_type.1,
                 }),
                 ..default()
+            },
+            Description {
+                name: generate_random_cool_name(LootType::Potion),
+                description: match potion_type.0 {
+                    PotionType::Speed => format!(
+                        "Effect duration: {:.2}s\nEffect amount: {}",
+                        potion_stats.effect_duration, potion_stats.effect_amount
+                    ),
+                    PotionType::Health => format!("Effect amount: {}", potion_stats.effect_amount),
+                },
             },
             potion_stats,
             potion_type.0,
