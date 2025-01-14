@@ -19,18 +19,28 @@ pub fn update_enemy_movement(
     time: Res<Time>,
     player_query: Query<&Transform, With<Player>>,
     mut enemy_query: Query<
-        (&Enemy, &mut Transform, &mut EnemyState),
         (
-            Without<Player>,
-            Without<ChargeAbility>,
-            Without<RangedBehavior>,
+            Entity,
+            &Enemy,
+            &mut Transform,
+            &mut EnemyState,
+            Option<&SeparationBehavior>,
+            Option<&RangedBehavior>,
         ),
+        (Without<Player>, Without<ChargeAbility>),
     >,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
         let player_pos = player_transform.translation;
 
-        for (enemy, mut transform, mut state) in enemy_query.iter_mut() {
+        let enemy_positions: Vec<(Entity, Vec3)> = enemy_query
+            .iter()
+            .map(|(entity, _, transform, _, _, _)| (entity, transform.translation))
+            .collect();
+
+        for (entity, enemy, mut transform, mut state, separation_behavior, ranged_behavior) in
+            enemy_query.iter_mut()
+        {
             match &mut *state {
                 EnemyState::Wandering {
                     direction,
@@ -49,12 +59,35 @@ pub fn update_enemy_movement(
                             *direction = Vec2::new(angle.cos(), angle.sin());
                         }
 
-                        let movement = *direction * enemy.speed as f32 * 0.5;
+                        let mut movement = *direction * enemy.speed as f32 * 0.5;
+
+                        if let Some(behavior) = separation_behavior {
+                            let separation = calculate_separation(
+                                &enemy_positions,
+                                entity,
+                                transform.translation,
+                                behavior.radius,
+                            );
+                            movement += separation.truncate() * enemy.speed as f32 * behavior.force;
+                        }
+
                         apply_movement(&mut transform.translation, movement, LAYER1);
                     }
                 }
                 EnemyState::Pursuing => {
-                    let direction = (player_pos - transform.translation).normalize();
+                    let mut direction = (player_pos - transform.translation).normalize();
+
+                    if let Some(behavior) = separation_behavior {
+                        let separation = calculate_separation(
+                            &enemy_positions,
+                            entity,
+                            transform.translation,
+                            behavior.radius,
+                        );
+                        direction += separation * behavior.force;
+                        direction = direction.normalize();
+                    }
+
                     let movement = direction.truncate() * enemy.speed as f32;
                     apply_movement(&mut transform.translation, movement, LAYER1);
 
@@ -74,12 +107,89 @@ pub fn update_enemy_movement(
                         }
                     }
                 }
-                EnemyState::Retreating | EnemyState::MaintainingDistance => {
-                    *state = EnemyState::Pursuing;
+                EnemyState::MaintainingDistance => {
+                    if let Some(ranged_behavior) = ranged_behavior {
+                        let distance_to_player = transform.translation.distance(player_pos);
+                        let mut direction = (player_pos - transform.translation).normalize();
+
+                        if let Some(behavior) = separation_behavior {
+                            let separation = calculate_separation(
+                                &enemy_positions,
+                                entity,
+                                transform.translation,
+                                behavior.radius,
+                            );
+                            direction += separation * behavior.force;
+                            direction = direction.normalize();
+                        }
+
+                        let distance_difference =
+                            distance_to_player - ranged_behavior.preferred_distance;
+
+                        if distance_difference.abs() > ranged_behavior.tolerance {
+                            let movement = if distance_difference > 0.0 {
+                                direction.truncate() * enemy.speed as f32
+                            } else {
+                                -direction.truncate() * enemy.speed as f32
+                            };
+                            apply_movement(&mut transform.translation, movement, LAYER1);
+                        } else if distance_difference.abs() > ranged_behavior.tolerance * 0.5 {
+                            let movement = direction.truncate() * (distance_difference * 0.1);
+                            apply_movement(&mut transform.translation, movement, LAYER1);
+                        }
+                    } else {
+                        *state = EnemyState::Pursuing;
+                    }
+                }
+                EnemyState::Retreating => {
+                    let mut direction = (transform.translation - player_pos).normalize();
+
+                    if let Some(behavior) = separation_behavior {
+                        let separation = calculate_separation(
+                            &enemy_positions,
+                            entity,
+                            transform.translation,
+                            behavior.radius,
+                        );
+                        direction += separation * behavior.force;
+                        direction = direction.normalize();
+                    }
+
+                    let movement = direction.truncate() * enemy.speed as f32;
+                    apply_movement(&mut transform.translation, movement, LAYER1);
                 }
             }
         }
     }
+}
+
+fn calculate_separation(
+    enemy_positions: &[(Entity, Vec3)],
+    current_entity: Entity,
+    current_pos: Vec3,
+    separation_radius: f32,
+) -> Vec3 {
+    let mut separation = Vec3::ZERO;
+    let mut count = 0;
+
+    for &(other_entity, other_pos) in enemy_positions {
+        if other_entity == current_entity {
+            continue;
+        }
+
+        let distance = current_pos.distance(other_pos);
+        if distance < separation_radius {
+            let away = (current_pos - other_pos).normalize();
+            separation += away * (1.0 - distance / separation_radius);
+            count += 1;
+        }
+    }
+
+    if count > 0 {
+        separation = separation.normalize_or_zero();
+    }
+
+    separation
 }
 
 pub fn spawn_enemies(
@@ -436,19 +546,6 @@ pub fn handle_enemy_death(
         }
     }
 }
-
-// fn spawn_trail(commands: &mut Commands, position: Vec3, damage: u32, radius: f32) {
-//     commands.spawn((
-//         Name::new("Trail"),
-//         Sprite {
-//             color: Color::srgba(0.0, 0.8, 0.0, 0.5),
-//             custom_size: Some(Vec2::new(20.0, 20.0)),
-//             ..default()
-//         },
-//         Transform::from_translation(position),
-//         Trail { damage, radius },
-//     ));
-// }
 
 fn spawn_trail_segment(
     commands: &mut Commands,

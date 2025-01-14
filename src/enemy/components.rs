@@ -95,6 +95,12 @@ pub struct SpawnIndicator {
 }
 
 #[derive(Component)]
+pub struct SeparationBehavior {
+    pub radius: f32,
+    pub force: f32,
+}
+
+#[derive(Component)]
 #[require(InGameEntity, HasLifespan(||HasLifespan::new(std::time::Duration::from_secs_f32(5.0))))]
 pub struct Trail {
     pub damage: u32,
