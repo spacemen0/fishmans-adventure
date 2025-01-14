@@ -84,9 +84,11 @@ pub fn update_enemy_movement(
 
 pub fn spawn_enemies(
     mut commands: Commands,
+    time: Res<Time>,
     handle: Res<GlobalTextureAtlas>,
     player_query: Query<(&Transform, &Health), With<Player>>,
     enemy_query: Query<(), With<Enemy>>,
+    mut indicator_query: Query<(Entity, &mut SpawnIndicator, &mut Sprite)>,
     mut wave: ResMut<Wave>,
 ) {
     if !enemy_query.is_empty() {
@@ -98,54 +100,97 @@ pub fn spawn_enemies(
     }
 
     let (player_transform, health) = player_query.single();
-
     if health.0 == 0 {
         return;
     }
 
-    wave.number += 1;
-    let player_pos = player_transform.translation.truncate();
+    for (entity, mut indicator, mut sprite) in indicator_query.iter_mut() {
+        indicator.timer.tick(time.delta());
+        
+        let alpha = (indicator.timer.elapsed_secs() * 5.0).sin().abs();
+        sprite.color.set_alpha(alpha);
 
-    let num_enemies = calculate_enemies_for_wave(wave.number);
+        if indicator.timer.finished() {
+            commands.entity(entity).despawn();
 
-    for _ in 0..num_enemies {
-        let (x, y) = get_random_position_around(player_pos, 200.0..500.0);
-        let mut position = Vec3::new(x, y, LAYER1);
-        clamp_position(&mut position);
-
-        let enemy = match wave.number {
-            1..=2 => create_basic_enemy(),
-            3..=4 => {
-                if rand::random::<f32>() < 0.5 {
-                    create_trail_enemy()
-                } else {
-                    create_charging_enemy()
-                }
-            }
-            5..=7 => match rand::random::<f32>() {
-                x if x < 0.3 => create_shooter_enemy(),
-                x if x < 0.6 => create_bomber_enemy(),
-                x if x < 0.8 => create_splitting_enemy(),
-                _ => create_trail_enemy(),
-            },
-            8..=9 => create_gurgle_enemy(),
-            _ => {
-                if wave.number % 10 == 0 {
-                    create_midgame_boss_enemy()
-                } else {
-                    match rand::random::<f32>() {
-                        x if x < 0.3 => create_charging_enemy(),
-                        x if x < 0.4 => create_trail_enemy(),
-                        x if x < 0.5 => create_splitting_enemy(),
-                        x if x < 0.7 => create_shooter_enemy(),
-                        x if x < 0.9 => create_bomber_enemy(),
-                        _ => create_gurgle_enemy(),
+            let enemy = match wave.number {
+                1..=2 => create_basic_enemy(),
+                3..=4 => {
+                    if rand::random::<f32>() < 0.5 {
+                        create_trail_enemy()
+                    } else {
+                        create_charging_enemy()
                     }
                 }
-            }
-        };
+                5..=7 => match rand::random::<f32>() {
+                    x if x < 0.3 => create_shooter_enemy(),
+                    x if x < 0.6 => create_bomber_enemy(),
+                    x if x < 0.8 => create_splitting_enemy(),
+                    _ => create_trail_enemy(),
+                },
+                8..=9 => create_gurgle_enemy(),
+                _ => {
+                    if wave.number % 10 == 0 {
+                        create_midgame_boss_enemy()
+                    } else {
+                        match rand::random::<f32>() {
+                            x if x < 0.3 => create_charging_enemy(),
+                            x if x < 0.4 => create_trail_enemy(),
+                            x if x < 0.5 => create_splitting_enemy(),
+                            x if x < 0.7 => create_shooter_enemy(),
+                            x if x < 0.9 => create_bomber_enemy(),
+                            _ => create_gurgle_enemy(),
+                        }
+                    }
+                }
+            };
 
-        enemy.spawn(&mut commands, position, &handle);
+            enemy.spawn(&mut commands, indicator.spawn_position, &handle);
+        }
+    }
+
+    if indicator_query.is_empty() {
+        wave.number += 1;
+        let player_pos = player_transform.translation.truncate();
+        let num_enemies = calculate_enemies_for_wave(wave.number);
+
+        for _ in 0..num_enemies {
+            let (x, y) = get_random_position_around(player_pos, 200.0..500.0);
+            let mut position = Vec3::new(x, y, LAYER1);
+            clamp_position(&mut position);
+
+            commands.spawn((
+                Name::new("SpawnIndicator"),
+                Sprite {
+                    image: handle.image.clone().unwrap(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: handle.layout_16x16.clone().unwrap(),
+                        index: 160, 
+                    }),
+                    color: Color::srgba(1.0, 1.0, 1.0, 1.0),
+                    ..default()
+                },
+                Transform::from_translation(position)
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                SpawnIndicator {
+                    timer: Timer::from_seconds(2.0, TimerMode::Once),
+                    spawn_position: position,
+                },
+                InGameEntity,
+            ));
+        }
+    }
+}
+
+pub fn update_spawn_indicators(
+    time: Res<Time>,
+    mut indicator_query: Query<(&mut SpawnIndicator, &mut Sprite)>,
+) {
+    for (mut indicator, mut sprite) in indicator_query.iter_mut() {
+        indicator.timer.tick(time.delta());
+        
+        let alpha = (indicator.timer.elapsed_secs() * 5.0).sin().abs();
+        sprite.color.set_alpha(alpha);
     }
 }
 
