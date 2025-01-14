@@ -1,5 +1,5 @@
 use crate::{
-    configs::{LAYER0, LAYER1},
+    configs::{LAYER0, LAYER1, LAYER4},
     enemy::Collider,
     gun::HasLifespan,
     player::{Health, Player},
@@ -144,7 +144,7 @@ pub fn spawn_floating_text(
         TextBounds::from(Vec2::new(400.0, 200.0)),
         TextColor(text_color.into()),
         Transform {
-            translation: position + Vec3::new(0.0, 30.0, 0.0),
+            translation: (position + Vec3::new(0.0, 30.0, 0.0)).with_z(LAYER4),
             ..default()
         },
         Collider { radius: 5 },

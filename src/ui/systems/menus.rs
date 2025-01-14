@@ -1,10 +1,19 @@
+use std::time::Duration;
+
 use crate::{
+    armor::{Armor, ArmorStats},
+    configs::SPRITE_SCALE_FACTOR,
     game_state::GameState,
+    gun::{BulletStats, Gun, GunStats, GunType},
     input::Action,
-    resources::UiFont,
+    loot::Value,
+    player::{Gold, PlayerInventory},
+    potion::{Potion, PotionStats, PotionType},
+    resources::{GlobalTextureAtlas, UiFont},
     ui::components::{
-        BlinkingText, ControlWidget, DeathScreenRoot, MainMenuButton, MainMenuButtonIndex,
-        MainMenuRoot, PauseMenuButton, PauseMenuButtonIndex, PauseMenuRoot,
+        BlinkingText, ControlWidget, DeathScreenRoot, FloatingTextBox, MainMenuButton,
+        MainMenuButtonIndex, MainMenuRoot, PauseMenuButton, PauseMenuButtonIndex, PauseMenuRoot,
+        ShopMenuButton, ShopMenuButtonIndex, ShopMenuRoot,
     },
     utils::{cleanup_entities, InGameEntity},
 };
@@ -504,5 +513,460 @@ pub fn handle_death_screen_input(
         let entity = query.single_mut();
         commands.entity(entity).despawn_recursive();
         next_state.set(GameState::MainMenu);
+    }
+}
+
+pub fn handle_shop_input(
+    action_state: Res<ActionState<Action>>,
+    mut next_state: ResMut<NextState<GameState>>,
+    mut query: Query<&mut Visibility, With<ShopMenuRoot>>,
+    current_state: Res<State<GameState>>,
+) {
+    if action_state.just_pressed(&Action::ToggleShop) {
+        let mut visibility = query.single_mut();
+        if current_state.get() == &GameState::Combat {
+            next_state.set(GameState::Shopping);
+
+            *visibility = Visibility::Visible;
+        } else {
+            next_state.set(GameState::Combat);
+            *visibility = Visibility::Hidden;
+        }
+    }
+}
+
+pub fn setup_shop_menu(mut commands: Commands, font: Res<UiFont>) {
+    commands
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            Visibility::Hidden,
+            ShopMenuRoot,
+            InGameEntity,
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(600.0),
+                        height: Val::Px(400.0),
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceEvenly,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BorderRadius::all(Val::Px(10.0)),
+                    BackgroundColor(Color::srgba_u8(237, 217, 165, 230)),
+                ))
+                .with_children(|parent| {
+                    spawn_shop_menu_button(
+                        parent,
+                        "Health Potion - 50g",
+                        ShopMenuButton::BuyHealthPotion,
+                        &font.0,
+                        0,
+                    );
+                    spawn_shop_menu_button(
+                        parent,
+                        "Speed Potion - 50g",
+                        ShopMenuButton::BuySpeedPotion,
+                        &font.0,
+                        1,
+                    );
+                    spawn_shop_menu_button(
+                        parent,
+                        "Gun - 200g",
+                        ShopMenuButton::BuyGun,
+                        &font.0,
+                        2,
+                    );
+                    spawn_shop_menu_button(
+                        parent,
+                        "Armor - 100g",
+                        ShopMenuButton::BuyArmor,
+                        &font.0,
+                        3,
+                    );
+                });
+        });
+}
+
+fn spawn_shop_menu_button(
+    parent: &mut ChildBuilder,
+    button_text: &str,
+    menu_button_type: ShopMenuButton,
+    font: &Handle<Font>,
+    index: u8,
+) {
+    parent
+        .spawn((
+            Node {
+                width: Val::Px(400.0),
+                height: Val::Px(50.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BorderRadius::all(Val::Px(6.0)),
+            ShopMenuButtonIndex(index),
+            BackgroundColor(Color::srgba_u8(255, 246, 225, 230)),
+            menu_button_type,
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                Text::new(button_text),
+                TextFont {
+                    font: font.clone(),
+                    font_size: 30.0,
+                    ..default()
+                },
+                TextColor(Color::BLACK),
+            ));
+        });
+}
+
+pub fn handle_shop_menu_buttons(
+    mut commands: Commands,
+    mut player_query: Query<(&mut PlayerInventory, &mut Gold)>,
+    action_state: Res<ActionState<Action>>,
+    mut selected_button: Local<u8>,
+    mut query: Query<(&ShopMenuButton, &mut BackgroundColor, &ShopMenuButtonIndex)>,
+    texture_atlases: Res<GlobalTextureAtlas>,
+    mut menu_query: Query<&mut Visibility, With<ShopMenuRoot>>,
+    font: Res<UiFont>,
+    next_state: ResMut<NextState<GameState>>,
+) {
+    let button_count = 4;
+    let mut execute = false;
+
+    if action_state.just_pressed(&Action::NavigateUp) {
+        *selected_button = (*selected_button + button_count - 1) % button_count;
+    }
+
+    if action_state.just_pressed(&Action::NavigateDown) {
+        *selected_button = (*selected_button + 1) % button_count;
+    }
+
+    if action_state.just_pressed(&Action::Confirm) {
+        execute = true;
+    }
+
+    let mut visibility = menu_query.get_single_mut().unwrap();
+
+    for (button, mut color, index) in query.iter_mut() {
+        if index.0 == *selected_button {
+            *color = BackgroundColor(Color::srgba_u8(204, 195, 176, 230));
+            if execute {
+                if let Ok((mut inventory, mut gold)) = player_query.get_single_mut() {
+                    match button {
+                        ShopMenuButton::BuyHealthPotion => {
+                            handle_buy_health_potion(
+                                &mut commands,
+                                &mut inventory,
+                                &mut gold,
+                                &texture_atlases,
+                                &mut visibility,
+                                &font,
+                                next_state,
+                            );
+                            break;
+                        }
+                        ShopMenuButton::BuySpeedPotion => {
+                            handle_buy_speed_potion(
+                                &mut commands,
+                                &mut inventory,
+                                &mut gold,
+                                &texture_atlases,
+                                &mut visibility,
+                                &font,
+                                next_state,
+                            );
+                            break;
+                        }
+                        ShopMenuButton::BuyGun => {
+                            handle_buy_gun(
+                                &mut commands,
+                                &mut inventory,
+                                &mut gold,
+                                &texture_atlases,
+                                &mut visibility,
+                                &font,
+                                next_state,
+                            );
+                            break;
+                        }
+                        ShopMenuButton::BuyArmor => {
+                            handle_buy_armor(
+                                &mut commands,
+                                &mut inventory,
+                                &mut gold,
+                                &texture_atlases,
+                                &mut visibility,
+                                &font,
+                                next_state,
+                            );
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            *color = BackgroundColor(Color::srgba_u8(255, 246, 225, 230));
+        }
+    }
+}
+
+fn handle_buy_health_potion(
+    commands: &mut Commands,
+    inventory: &mut PlayerInventory,
+    gold: &mut Gold,
+    texture_atlases: &GlobalTextureAtlas,
+    visibility: &mut Visibility,
+    font: &UiFont,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if gold.0 >= 50 {
+        if inventory.health_potions.len() < 4 {
+            gold.0 -= 50;
+            let health_potion = commands
+                .spawn((
+                    Name::new("HealthPotion"),
+                    Potion,
+                    Value(5),
+                    Sprite {
+                        image: texture_atlases.image.clone().unwrap(),
+                        texture_atlas: Some(TextureAtlas {
+                            layout: texture_atlases.layout_16x16.clone().unwrap(),
+                            index: 96,
+                        }),
+                        ..default()
+                    },
+                    Visibility::Hidden,
+                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    PotionStats {
+                        effect_duration: 0.0,
+                        effect_amount: 10,
+                    },
+                    PotionType::Health,
+                ))
+                .id();
+            inventory.health_potions.push(health_potion);
+            *visibility = Visibility::Hidden;
+            next_state.set(GameState::Combat);
+            spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
+        } else {
+            spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
+        }
+    } else {
+        spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
+    }
+}
+
+fn handle_buy_speed_potion(
+    commands: &mut Commands,
+    inventory: &mut PlayerInventory,
+    gold: &mut Gold,
+    texture_atlases: &GlobalTextureAtlas,
+    visibility: &mut Visibility,
+    font: &UiFont,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if gold.0 >= 50 {
+        if inventory.speed_potions.len() < 4 {
+            gold.0 -= 50;
+            let speed_potion = commands
+                .spawn((
+                    Name::new("SpeedPotion"),
+                    Potion,
+                    Value(5),
+                    Sprite {
+                        image: texture_atlases.image.clone().unwrap(),
+                        texture_atlas: Some(TextureAtlas {
+                            layout: texture_atlases.layout_16x16.clone().unwrap(),
+                            index: 97,
+                        }),
+                        ..default()
+                    },
+                    Visibility::Hidden,
+                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    PotionStats {
+                        effect_duration: 1.0,
+                        effect_amount: 10,
+                    },
+                    PotionType::Speed,
+                ))
+                .id();
+            inventory.speed_potions.push(speed_potion);
+            *visibility = Visibility::Hidden;
+            next_state.set(GameState::Combat);
+            spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
+        } else {
+            spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
+        }
+    } else {
+        spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
+    }
+}
+
+fn handle_buy_gun(
+    commands: &mut Commands,
+    inventory: &mut PlayerInventory,
+    gold: &mut Gold,
+    texture_atlases: &GlobalTextureAtlas,
+    visibility: &mut Visibility,
+    font: &UiFont,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if gold.0 >= 200 {
+        if inventory.guns.len() < 4 {
+            gold.0 -= 200;
+            let gun = commands
+                .spawn((
+                    Name::new("RandomGun"),
+                    Gun,
+                    Value(10),
+                    Sprite {
+                        image: texture_atlases.image.clone().unwrap(),
+                        texture_atlas: Some(TextureAtlas {
+                            layout: texture_atlases.layout_16x16.clone().unwrap(),
+                            index: 65,
+                        }),
+                        ..default()
+                    },
+                    Visibility::Hidden,
+                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    GunType::SingleDirectionSpread,
+                    GunStats {
+                        bullets_per_shot: 5,
+                        firing_interval: 0.5,
+                        bullet_spread: 0.2,
+                    },
+                    BulletStats {
+                        speed: 20,
+                        damage: 20,
+                        lifespan: 0.6,
+                    },
+                ))
+                .id();
+            inventory.guns.push(gun);
+            *visibility = Visibility::Hidden;
+            next_state.set(GameState::Combat);
+            spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
+        } else {
+            spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
+        }
+    } else {
+        spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
+    }
+}
+
+fn handle_buy_armor(
+    commands: &mut Commands,
+    inventory: &mut PlayerInventory,
+    gold: &mut Gold,
+    texture_atlases: &GlobalTextureAtlas,
+    visibility: &mut Visibility,
+
+    font: &UiFont,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    if gold.0 >= 100 {
+        if inventory.armors.len() < 4 {
+            gold.0 -= 100;
+            let armor = commands
+                .spawn((
+                    Name::new("RandomArmor"),
+                    Armor,
+                    Value(10),
+                    ArmorStats {
+                        defense: 2,
+                        durability: 20,
+                    },
+                    Sprite {
+                        image: texture_atlases.image.clone().unwrap(),
+                        texture_atlas: Some(TextureAtlas {
+                            layout: texture_atlases.layout_16x16.clone().unwrap(),
+                            index: 98,
+                        }),
+                        ..default()
+                    },
+                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                    Visibility::Hidden,
+                ))
+                .id();
+            inventory.armors.push(armor);
+            *visibility = Visibility::Hidden;
+            next_state.set(GameState::Combat);
+            spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
+        } else {
+            spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
+        }
+    } else {
+        spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
+    }
+}
+
+fn spawn_floating_text_box(commands: &mut Commands, font: &Handle<Font>, message: String) {
+    commands
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            FloatingTextBox::new(Duration::from_secs(1)),
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn((
+                    Node {
+                        width: Val::Px(300.0),
+                        height: Val::Px(100.0),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BorderRadius::all(Val::Px(10.0)),
+                    BackgroundColor(Color::srgba_u8(0, 0, 0, 200)),
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text::new(message),
+                        TextFont {
+                            font: font.clone(),
+                            font_size: 30.0,
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
+                    ));
+                });
+        });
+}
+
+pub fn despawn_floating_text_box(
+    mut commands: Commands,
+    text_box_query: Query<(Entity, &FloatingTextBox)>,
+) {
+    for (entity, text_box) in text_box_query.iter() {
+        if text_box.spawn_time.elapsed() > text_box.lifespan {
+            commands.entity(entity).try_despawn_recursive();
+        }
+    }
+}
+
+pub fn despawn_all_floating_text_boxes(
+    mut commands: Commands,
+    text_box_query: Query<Entity, With<FloatingTextBox>>,
+) {
+    for entity in text_box_query.iter() {
+        commands.entity(entity).try_despawn_recursive();
     }
 }

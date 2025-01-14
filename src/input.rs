@@ -17,6 +17,7 @@ pub enum Action {
     UsePotion2,
     ToggleLootBoard,
     SellLoot,
+    ToggleShop,
 }
 
 impl Action {
@@ -38,6 +39,7 @@ impl Action {
             (Self::UsePotion2, KeyCode::Digit2),
             (Self::ToggleLootBoard, KeyCode::Tab),
             (Self::SellLoot, KeyCode::Delete),
+            (Self::ToggleShop, KeyCode::KeyO),
         ])
         .with_dual_axis(
             Self::Move,

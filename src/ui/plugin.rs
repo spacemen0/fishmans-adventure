@@ -1,3 +1,14 @@
+use super::{
+    components::LootSaleEvent,
+    systems::{
+        in_game_ui::update_floating_text,
+        menus::{
+            despawn_all_floating_text_boxes, despawn_floating_text_box, handle_control_widget,
+            handle_shop_input, handle_shop_menu_buttons, setup_shop_menu,
+        },
+    },
+};
+use crate::ui::systems::player_info;
 use crate::{
     game_state::GameState,
     ui::systems::{
@@ -11,11 +22,6 @@ use bevy::{
     app::{App, Plugin, Update},
     prelude::{in_state, Condition, IntoSystemConfigs, OnEnter, OnExit},
 };
-use crate::ui::systems::player_info;
-use super::{
-    components::LootSaleEvent,
-    systems::{in_game_ui::update_floating_text, menus::handle_control_widget},
-};
 
 pub struct UiPlugin;
 
@@ -27,6 +33,7 @@ impl Plugin for UiPlugin {
                 (
                     player_info::setup_ui,
                     menus::setup_pause_menu,
+                    setup_shop_menu,
                     in_game_ui::setup_health_bar.after(init_world),
                 ),
             )
@@ -86,6 +93,17 @@ impl Plugin for UiPlugin {
                     handle_death_screen_input.run_if(in_state(GameState::End)),
                     update_floating_text,
                 ),
-            );
+            )
+            .add_systems(
+                Update,
+                handle_shop_input
+                    .run_if(in_state(GameState::Combat).or(in_state(GameState::Shopping))),
+            )
+            .add_systems(
+                Update,
+                (handle_shop_menu_buttons, despawn_floating_text_box)
+                    .run_if(in_state(GameState::Shopping)),
+            )
+            .add_systems(OnExit(GameState::Shopping), despawn_all_floating_text_boxes);
     }
 }

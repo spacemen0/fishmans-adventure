@@ -8,10 +8,11 @@ use crate::{
         PlayerLevelingUpEvent,
     },
     ui::components::LootSaleEvent,
+    utils::cleanup_entities,
 };
 use bevy::{
     app::{App, Plugin, Update},
-    prelude::{any_component_removed, in_state, on_event, IntoSystemConfigs},
+    prelude::{any_component_removed, in_state, on_event, IntoSystemConfigs, OnEnter},
 };
 
 use super::handle_loot_sale_event;
@@ -42,6 +43,7 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 Update,
                 handle_loot_sale_event.run_if(on_event::<LootSaleEvent>),
-            );
+            )
+            .add_systems(OnEnter(GameState::End), cleanup_entities);
     }
 }

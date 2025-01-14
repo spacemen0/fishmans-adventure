@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use bevy::prelude::*;
 
 use crate::loot::LootType;
@@ -41,6 +43,35 @@ pub struct ControlWidget;
 
 #[derive(Component)]
 pub struct BlinkingText;
+
+#[derive(Component)]
+pub struct ShopMenuRoot;
+
+#[derive(Component)]
+pub struct ShopMenuButtonIndex(pub u8);
+
+#[derive(Component)]
+pub enum ShopMenuButton {
+    BuyHealthPotion,
+    BuySpeedPotion,
+    BuyGun,
+    BuyArmor,
+}
+
+#[derive(Component)]
+pub struct FloatingTextBox {
+    pub spawn_time: Instant,
+    pub lifespan: Duration,
+}
+
+impl FloatingTextBox {
+    pub fn new(lifespan: Duration) -> Self {
+        FloatingTextBox {
+            spawn_time: Instant::now(),
+            lifespan,
+        }
+    }
+}
 
 #[derive(Component)]
 pub struct DeathScreenRoot;
