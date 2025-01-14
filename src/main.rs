@@ -13,7 +13,7 @@ use fishmans_adventure::{
     game_state::GameState,
     gun::GunPlugin,
     input::InputPlugin,
-    player::{plugin::PlayerPlugin, PlayerInventory, Speed},
+    player::{plugin::PlayerPlugin, PlayerInventory},
     potion::PotionPlugin,
     resources::ResourcesPlugin,
     ui::plugin::UiPlugin,
@@ -54,7 +54,6 @@ fn main() {
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2,
         )))
         .register_type::<PlayerInventory>()
-        .register_type::<Speed>()
         .add_plugins(EmbeddedAssetPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EntityCountDiagnosticsPlugin)

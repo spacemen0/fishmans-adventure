@@ -4,7 +4,7 @@ use rand::Rng;
 use crate::{
     armor::{Armor, ArmorStats},
     configs::{LAYER2, SPRITE_SCALE_FACTOR},
-    gun::{Gun, GunStats},
+    gun::{Gun, GunStats, GunType},
     potion::{Potion, PotionStats, PotionType},
     utils::{get_random_position_around, Pickable},
 };
@@ -46,6 +46,7 @@ pub enum LootStatRange {
 pub struct LootDefinition {
     pub loot_type: LootType,
     pub drop_chance: f32,
+    pub value: u32,
     pub spawn_fn: fn(
         &mut Commands,
         &Transform,
@@ -113,6 +114,12 @@ fn spawn_gun(
             bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
         };
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
+        let gun_type = match rng.gen_range(0..3) {
+            0 => GunType::FocusedAim,
+            1 => GunType::OmniSpread,
+            2 => GunType::SingleDirectionSpread,
+            _ => unreachable!(),
+        };
         commands.spawn((
             Name::new("Gun"),
             Gun,
@@ -120,11 +127,12 @@ fn spawn_gun(
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 97,
+                    index: rng.gen_range(64..67),
                 }),
 
                 ..default()
             },
+            gun_type,
             Transform::from_translation(Vec3::new(x, y, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             gun_stats,
@@ -155,7 +163,7 @@ fn spawn_armor(
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 95,
+                    index: rng.gen_range(98..99),
                 }),
                 ..default()
             },
@@ -180,8 +188,8 @@ fn spawn_potion(
             effect_amount: rng.gen_range(range.effect_amount.0..=range.effect_amount.1),
         };
         let potion_type = match rng.gen_range(0..2) {
-            0 => PotionType::Speed,
-            1 => PotionType::Health,
+            0 => (PotionType::Speed, 96),
+            1 => (PotionType::Health, 97),
             _ => unreachable!(),
         };
         let name_string = format!("{:?} Potion ", potion_type.clone());
@@ -193,12 +201,12 @@ fn spawn_potion(
                 image: image.unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: layout.unwrap(),
-                    index: 96,
+                    index: potion_type.1,
                 }),
                 ..default()
             },
             potion_stats,
-            potion_type,
+            potion_type.0,
             Transform::from_translation(Vec3::new(x, y, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
@@ -212,15 +220,17 @@ pub fn weak_enemies_bundle() -> LootPool {
             LootDefinition {
                 loot_type: LootType::Potion,
                 drop_chance: 0.2,
+                value: 10,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
-                    effect_duration: (3.0, 5.0),
+                    effect_duration: (1.0, 3.0),
                     effect_amount: (5, 10),
                 }),
             },
             LootDefinition {
                 loot_type: LootType::Gun,
                 drop_chance: 0.05,
+                value: 20,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
                     bullets_per_shot: (3, 5),
@@ -238,15 +248,17 @@ pub fn medium_enemies_bundle() -> LootPool {
             LootDefinition {
                 loot_type: LootType::Potion,
                 drop_chance: 0.3,
+                value: 12,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
-                    effect_duration: (4.0, 7.0),
+                    effect_duration: (2.0, 4.0),
                     effect_amount: (7, 12),
                 }),
             },
             LootDefinition {
                 loot_type: LootType::Armor,
                 drop_chance: 0.1,
+                value: 25,
                 spawn_fn: spawn_armor,
                 stat_range: LootStatRange::Armor(ArmorStatRange {
                     defense: (1, 3),
@@ -256,6 +268,7 @@ pub fn medium_enemies_bundle() -> LootPool {
             LootDefinition {
                 loot_type: LootType::Gun,
                 drop_chance: 0.1,
+                value: 30,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
                     bullets_per_shot: (5, 8),
@@ -273,6 +286,7 @@ pub fn strong_enemies_bundle() -> LootPool {
             LootDefinition {
                 loot_type: LootType::Potion,
                 drop_chance: 0.8,
+                value: 15,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
                     effect_duration: (5.0, 10.0),
@@ -281,7 +295,8 @@ pub fn strong_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Gun,
-                drop_chance: 0.99,
+                drop_chance: 0.3,
+                value: 40,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
                     bullets_per_shot: (8, 12),
@@ -291,7 +306,8 @@ pub fn strong_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Armor,
-                drop_chance: 0.4,
+                drop_chance: 0.3,
+                value: 40,
                 spawn_fn: spawn_armor,
                 stat_range: LootStatRange::Armor(ArmorStatRange {
                     defense: (2, 5),

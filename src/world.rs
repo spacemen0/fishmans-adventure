@@ -146,7 +146,7 @@ pub fn init_world(
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: handle.layout_16x16.clone().unwrap(),
-                    index: 69,
+                    index: 96,
                 }),
 
                 ..default()
@@ -167,7 +167,7 @@ pub fn init_world(
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: handle.layout_16x16.clone().unwrap(),
-                    index: 69,
+                    index: 97,
                 }),
 
                 ..default()
@@ -194,7 +194,7 @@ pub fn init_world(
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: handle.layout_16x16.clone().unwrap(),
-                    index: 69,
+                    index: 98,
                 }),
                 ..default()
             },
@@ -215,7 +215,7 @@ pub fn init_world(
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: handle.layout_16x16.clone().unwrap(),
-                    index: 69,
+                    index: 99,
                 }),
                 ..default()
             },
