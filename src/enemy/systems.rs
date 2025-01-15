@@ -361,20 +361,20 @@ fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
         1
     } else {
         let base = match wave_number {
-            1..=3 => 15 + wave_number * 3, 
-            4..=6 => 25 + wave_number * 4, 
-            7..=9 => 45 + wave_number * 5, 
+            1..=3 => 15 + wave_number * 3,
+            4..=6 => 25 + wave_number * 4,
+            7..=9 => 45 + wave_number * 5,
             _ => {
                 let scaling = if wave_number <= 15 {
-                    90 + (wave_number - 9) * 8 
+                    90 + (wave_number - 9) * 8
                 } else {
-                    140 + (wave_number - 15) * 12 
+                    140 + (wave_number - 15) * 12
                 };
                 scaling
             }
         };
 
-        base + (random::<u32>() % 15) 
+        base + (random::<u32>() % 15)
     }
 }
 
@@ -560,24 +560,44 @@ pub fn handle_charge_abilities(
                 ChargeState::Preparing => {
                     if charge.charge_timer.just_finished() {
                         charge.state = ChargeState::Charging;
-                        charge.charge_timer = Timer::from_seconds(2.0, TimerMode::Once);
+                        charge.charge_timer = Timer::from_seconds(0.5, TimerMode::Once);
                         charge.target_position = Some(player_transform.translation.truncate());
                     }
                 }
                 ChargeState::Charging => {
                     if charge.charge_timer.just_finished() {
-                        charge.state = ChargeState::CoolingDown;
-                        charge.charge_timer = Timer::from_seconds(1.5, TimerMode::Once);
+                        charge.state = ChargeState::Cooldown;
+                        charge.charge_timer =
+                            Timer::from_seconds(charge.cooldown_duration, TimerMode::Once);
                         charge.target_position = None;
                     } else if let Some(target) = charge.target_position {
                         let direction = (target.extend(0.0) - transform.translation).normalize();
                         let movement = direction.truncate() * charge.charge_speed as f32;
                         apply_movement(&mut transform.translation, movement, LAYER1);
+
+                        let shake_amount = 2.0;
+                        let shake_offset = Vec2::new(
+                            rand::random::<f32>() * shake_amount - shake_amount / 2.0,
+                            rand::random::<f32>() * shake_amount - shake_amount / 2.0,
+                        );
+                        transform.translation += shake_offset.extend(0.0);
                     }
                 }
-                ChargeState::CoolingDown => {
+                ChargeState::Cooldown => {
                     if charge.charge_timer.just_finished() {
                         charge.state = ChargeState::Approaching;
+                    } else {
+                        let direction =
+                            (player_transform.translation - transform.translation).normalize();
+                        let movement = direction.truncate() * enemy.speed as f32;
+                        apply_movement(&mut transform.translation, movement, LAYER1);
+
+                        let shake_amount = 1.0;
+                        let shake_offset = Vec2::new(
+                            rand::random::<f32>() * shake_amount - shake_amount / 2.0,
+                            rand::random::<f32>() * shake_amount - shake_amount / 2.0,
+                        );
+                        transform.translation += shake_offset.extend(0.0);
                     }
                 }
             }

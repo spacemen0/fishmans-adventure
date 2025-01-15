@@ -74,7 +74,7 @@ pub enum ChargeState {
     Approaching,
     Preparing,
     Charging,
-    CoolingDown,
+    Cooldown,
 }
 
 #[derive(Component)]
@@ -84,6 +84,7 @@ pub struct ChargeAbility {
     pub charge_distance: u32,
     pub charge_speed: u32,
     pub target_position: Option<Vec2>,
+    pub cooldown_duration: f32,
 }
 
 #[derive(Component)]
@@ -151,10 +152,7 @@ pub struct GurgleEnemy;
 
 #[derive(Component, Debug)]
 pub enum EnemyState {
-    Wandering {
-        direction: Vec2,
-        timer: Timer,
-    },
+    Wandering { direction: Vec2, timer: Timer },
     Pursuing,
     MaintainingDistance,
     Retreating,

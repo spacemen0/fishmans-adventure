@@ -96,7 +96,7 @@ impl EnemyBuilder {
         self
     }
 
-    pub fn with_charge(mut self, distance: u32, speed: u32, prepare_time: f32) -> Self {
+    pub fn with_charge(mut self, distance: u32, speed: u32, prepare_time: f32, cooldown: f32) -> Self {
         self.abilities.push(Box::new(move |commands, entity| {
             commands.entity(entity).insert(ChargeAbility {
                 state: ChargeState::Approaching,
@@ -104,6 +104,7 @@ impl EnemyBuilder {
                 charge_distance: distance,
                 charge_speed: speed,
                 target_position: None,
+                cooldown_duration: cooldown,
             });
         }));
         self
