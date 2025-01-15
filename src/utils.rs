@@ -73,10 +73,6 @@ pub fn get_random_position_around(pos: Vec2, dist_range: std::ops::Range<f32>) -
     (random_x.clamp(-WW, WW), random_y.clamp(-WH, WH))
 }
 
-pub fn safe_subtract(a: u32, b: u32) -> u32 {
-    a.saturating_sub(b)
-}
-
 pub fn clamp_position(position: &mut Vec3) {
     let edge_offset = TILE_W as f32 * SPRITE_SCALE_FACTOR;
     position.x = position.x.clamp(-WW + edge_offset, WW - edge_offset);

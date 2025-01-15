@@ -51,7 +51,7 @@ pub fn handle_player_damaged_events(
                         (event.damage as f32 * calculate_defense_percentage(total_defense)) as u32;
 
                     armor_stats.durability =
-                        safe_subtract(armor_stats.durability, damage_after_defense);
+                        armor_stats.durability.saturating_sub(damage_after_defense);
 
                     if armor_stats.durability == 0 {
                         commands.entity(armor_entity).despawn();

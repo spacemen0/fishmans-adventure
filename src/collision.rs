@@ -4,7 +4,6 @@ use crate::{
     configs::KD_TREE_REFRESH_RATE,
     gun::BulletStats,
     player::{DamageBoost, InvincibilityEffect},
-    utils::safe_subtract,
 };
 use bevy::{prelude::*, time::common_conditions::on_timer};
 use kd_tree::{KdPoint, KdTree};
@@ -141,8 +140,9 @@ fn handle_enemy_bullet_collision(
         if let Some(enemy) = enemies_in_radius.first() {
             if let Ok((_, mut enemy_component, enemy_entity)) = enemy_query.get_mut(enemy.entity) {
                 if enemy_component.health > 0 {
-                    enemy_component.health =
-                        safe_subtract(enemy_component.health, stats.damage + player_damage_boost);
+                    enemy_component.health = enemy_component
+                        .health
+                        .saturating_sub(stats.damage + player_damage_boost);
 
                     if enemy_component.health > 0 {
                         commands.entity(enemy_entity).insert(HitFlash::default());
