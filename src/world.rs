@@ -58,7 +58,7 @@ pub fn init_world(
             Transform::from_translation(Vec3::new(0.0, 0.0, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Player,
-            Health(PLAYER_HEALTH, 200),
+            Health(PLAYER_HEALTH, 50),
             Speed(PLAYER_SPEED),
             Defense(1),
             Gold(1000),

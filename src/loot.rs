@@ -265,7 +265,7 @@ pub fn weak_enemies_bundle() -> LootPool {
         items: vec![
             LootDefinition {
                 loot_type: LootType::Potion,
-                drop_chance: 0.1,
+                drop_chance: 0.08,
                 value: 10,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
@@ -275,7 +275,7 @@ pub fn weak_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Gun,
-                drop_chance: 0.02,
+                drop_chance: 0.01,
                 value: 20,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
@@ -284,7 +284,7 @@ pub fn weak_enemies_bundle() -> LootPool {
                     bullet_spread: (0.15, 0.2),
                     bullet_speed: (10, 20),
                     bullet_lifespan: (1.0, 2.0),
-                    bullet_damage: (40, 60),
+                    bullet_damage: (30, 40),
                 }),
             },
         ],
@@ -296,7 +296,7 @@ pub fn medium_enemies_bundle() -> LootPool {
         items: vec![
             LootDefinition {
                 loot_type: LootType::Potion,
-                drop_chance: 0.2,
+                drop_chance: 0.1,
                 value: 12,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
@@ -306,7 +306,7 @@ pub fn medium_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Armor,
-                drop_chance: 0.05,
+                drop_chance: 0.03,
                 value: 25,
                 spawn_fn: spawn_armor,
                 stat_range: LootStatRange::Armor(ArmorStatRange {
@@ -316,7 +316,7 @@ pub fn medium_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Gun,
-                drop_chance: 0.05,
+                drop_chance: 0.04,
                 value: 30,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
@@ -337,7 +337,7 @@ pub fn strong_enemies_bundle() -> LootPool {
         items: vec![
             LootDefinition {
                 loot_type: LootType::Potion,
-                drop_chance: 0.5,
+                drop_chance: 0.3,
                 value: 15,
                 spawn_fn: spawn_potion,
                 stat_range: LootStatRange::Potion(PotionStatRange {
@@ -347,26 +347,67 @@ pub fn strong_enemies_bundle() -> LootPool {
             },
             LootDefinition {
                 loot_type: LootType::Gun,
-                drop_chance: 0.2,
+                drop_chance: 0.1,
                 value: 40,
                 spawn_fn: spawn_gun,
                 stat_range: LootStatRange::Gun(GunStatRange {
                     bullets_per_shot: (40, 60),
                     firing_interval: (0.1, 0.3),
                     bullet_spread: (0.05, 0.15),
-                    bullet_damage: (80, 160),
+                    bullet_damage: (70, 120),
                     bullet_lifespan: (2.0, 4.0),
                     bullet_speed: (30, 50),
                 }),
             },
             LootDefinition {
                 loot_type: LootType::Armor,
-                drop_chance: 0.2,
+                drop_chance: 0.1,
                 value: 40,
                 spawn_fn: spawn_armor,
                 stat_range: LootStatRange::Armor(ArmorStatRange {
                     defense: (2, 5),
                     durability: (20, 40),
+                }),
+            },
+        ],
+    }
+}
+
+pub fn boss_enemy_bundle() -> LootPool {
+    LootPool {
+        items: vec![
+            LootDefinition {
+                loot_type: LootType::Potion,
+                drop_chance: 0.5,
+                value: 20,
+                spawn_fn: spawn_potion,
+                stat_range: LootStatRange::Potion(PotionStatRange {
+                    effect_duration: (10.0, 20.0),
+                    effect_amount: (10, 20),
+                }),
+            },
+            LootDefinition {
+                loot_type: LootType::Gun,
+                drop_chance: 0.2,
+                value: 50,
+                spawn_fn: spawn_gun,
+                stat_range: LootStatRange::Gun(GunStatRange {
+                    bullets_per_shot: (60, 80),
+                    firing_interval: (0.1, 0.2),
+                    bullet_spread: (0.05, 0.1),
+                    bullet_damage: (140, 200),
+                    bullet_lifespan: (3.0, 5.0),
+                    bullet_speed: (50, 80),
+                }),
+            },
+            LootDefinition {
+                loot_type: LootType::Armor,
+                drop_chance: 0.2,
+                value: 50,
+                spawn_fn: spawn_armor,
+                stat_range: LootStatRange::Armor(ArmorStatRange {
+                    defense: (3, 7),
+                    durability: (30, 60),
                 }),
             },
         ],

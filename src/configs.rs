@@ -18,7 +18,7 @@ pub const NUM_WORLD_DECORATIONS: usize = 100;
 
 // Player
 pub const PLAYER_SPEED: u32 = 15;
-pub const PLAYER_HEALTH: u32 = 200;
+pub const PLAYER_HEALTH: u32 = 50;
 pub const PLAYER_INVINCIBLE_TIME: f32 = 0.1;
 pub const MAX_DEFENSE: u32 = 30;
 
@@ -38,7 +38,7 @@ pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
 pub const FIRING_INTERVAL: f32 = 0.2;
 pub const BULLET_TIME_SECS: f32 = 0.5;
 pub const BULLET_SPEED: u32 = 15;
-pub const BULLET_DAMAGE: u32 = 55;
+pub const BULLET_DAMAGE: u32 = 25;
 pub const BULLET_SPREAD: f32 = 0.7;
 pub const NUM_BULLETS_PER_SHOT: usize = 5;
 

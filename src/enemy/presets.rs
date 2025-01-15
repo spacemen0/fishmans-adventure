@@ -1,5 +1,7 @@
 use super::builder::EnemyBuilder;
-use crate::loot::{medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle};
+use crate::loot::{
+    boss_enemy_bundle, medium_enemies_bundle, strong_enemies_bundle, weak_enemies_bundle,
+};
 
 pub fn create_basic_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
@@ -14,7 +16,7 @@ pub fn create_trail_enemy() -> EnemyBuilder {
         .with_stats(50, 10, 6, 5)
         .with_sprite(20, (16, 16))
         .with_trail(4, 0.05, 10.0, 3.0)
-        .with_loot_pool(medium_enemies_bundle())
+        .with_loot_pool(weak_enemies_bundle())
         .with_separation(35.0, 0.5)
 }
 
@@ -33,7 +35,7 @@ pub fn create_charging_enemy() -> EnemyBuilder {
         .with_stats(80, 6, 8, 8)
         .with_sprite(36, (16, 16))
         .with_charge(200, 15, 1.5, 5.0)
-        .with_loot_pool(medium_enemies_bundle())
+        .with_loot_pool(weak_enemies_bundle())
         .with_separation(25.0, 0.3)
 }
 
@@ -54,6 +56,7 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
         .with_ranged_behavior(1150.0, 50.0)
         .with_gurgle_marker()
         .with_separation(100.0, 0.7)
+        .with_loot_pool(strong_enemies_bundle())
 }
 
 pub fn create_splitting_enemy() -> EnemyBuilder {
@@ -61,7 +64,7 @@ pub fn create_splitting_enemy() -> EnemyBuilder {
         .with_stats(120, 7, 8, 15)
         .with_sprite(56, (16, 16))
         .with_splitting(3)
-        .with_loot_pool(strong_enemies_bundle())
+        .with_loot_pool(weak_enemies_bundle())
 }
 
 pub fn create_midgame_boss_enemy() -> EnemyBuilder {
@@ -72,5 +75,5 @@ pub fn create_midgame_boss_enemy() -> EnemyBuilder {
         .with_shooting(5, 1.0, 500.0, 300, 15)
         .with_charge(600, 50, 0.6, 3.0)
         .with_summoning(6, 12, 10.0)
-        .with_loot_pool(strong_enemies_bundle())
+        .with_loot_pool(boss_enemy_bundle())
 }

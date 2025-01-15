@@ -21,7 +21,7 @@ pub fn calculate_enemies_per_wave(_wave_number: u32) -> u32 {
 }
 
 pub fn calculate_health_increase(level: u32) -> u32 {
-    let base_health_increase = 10.0;
+    let base_health_increase = 5.0;
     let exponential_factor: f32 = 1.05;
     let diminishing_return_factor: f32 = 0.95;
 
