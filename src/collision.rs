@@ -43,7 +43,7 @@ impl Plugin for CollisionPlugin {
     }
 }
 
-fn handle_enemy_player_collision(
+pub fn handle_enemy_player_collision(
     mut commands: Commands,
     player_query: Query<&Transform, (With<Player>, Without<InvincibilityEffect>)>,
     mut enemy_query: Query<(Entity, &Transform, &mut Enemy, Option<&ExplosionAbility>)>,
@@ -64,12 +64,6 @@ fn handle_enemy_player_collision(
     if let Ok((entity, transform, enemy_component, explosion_ability)) =
         enemy_query.get_mut(enemies.first().unwrap().entity)
     {
-        if enemy_component.damage > 0 {
-            ev.send(PlayerDamagedEvent {
-                damage: enemy_component.damage,
-            });
-        }
-
         if let Some(explosion) = explosion_ability {
             spawn_explosion(
                 &mut commands,
@@ -77,12 +71,17 @@ fn handle_enemy_player_collision(
                 explosion.explosion_radius,
                 explosion.explosion_damage,
             );
-
             ev.send(PlayerDamagedEvent {
                 damage: explosion.explosion_damage,
             });
-
             commands.entity(entity).despawn();
+            return;
+        }
+        if enemy_component.damage > 0 {
+            ev.send(PlayerDamagedEvent {
+                damage: enemy_component.damage,
+            });
+            return;
         }
     }
 }
@@ -104,7 +103,7 @@ fn handle_player_trail_collision(
             ev.send(PlayerDamagedEvent {
                 damage: trail.damage,
             });
-            break;
+            return;
         }
     }
 }

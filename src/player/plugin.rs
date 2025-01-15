@@ -1,4 +1,5 @@
 use crate::{
+    collision::handle_enemy_player_collision,
     game_state::GameState,
     player::{
         handle_acceleration_effect, handle_invincibility_effect, handle_leveling_up,
@@ -27,7 +28,9 @@ impl Plugin for PlayerPlugin {
                 Update,
                 (
                     handle_player_movement,
-                    handle_player_damaged_events.run_if(on_event::<PlayerDamagedEvent>),
+                    handle_player_damaged_events
+                        .run_if(on_event::<PlayerDamagedEvent>)
+                        .after(handle_enemy_player_collision),
                     handle_invincibility_effect,
                     handle_acceleration_effect,
                     handle_leveling_up.run_if(on_event::<PlayerLevelingUpEvent>),

@@ -1,4 +1,5 @@
 use bevy::{prelude::*, time::Stopwatch};
+use chrono::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use super::*;
@@ -48,7 +49,6 @@ pub fn handle_player_damaged_events(
                     total_defense += armor_stats.defense;
                     let damage_after_defense =
                         (event.damage as f32 * calculate_defense_percentage(total_defense)) as u32;
-                    health.0 = safe_subtract(health.0, damage_after_defense);
 
                     armor_stats.durability =
                         safe_subtract(armor_stats.durability, damage_after_defense);
@@ -62,7 +62,14 @@ pub fn handle_player_damaged_events(
                         }
                     }
                     if damage_after_defense > 0 {
+                        health.0 = health.0.saturating_sub(damage_after_defense);
                         println!("Player took {} damage", damage_after_defense);
+                        let current_time = chrono::Local::now();
+                        println!(
+                            "Current time: {:02}:{:02}",
+                            current_time.minute(),
+                            current_time.second()
+                        );
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
@@ -74,11 +81,13 @@ pub fn handle_player_damaged_events(
                             format!("-{}", damage_after_defense.to_owned()),
                             None,
                         );
+                        return;
                     }
                 }
             } else {
-                let damage_after_defense = safe_subtract(event.damage, player_defense.0);
-                health.0 = safe_subtract(health.0, damage_after_defense);
+                let damage_after_defense =
+                    (event.damage as f32 * calculate_defense_percentage(player_defense.0)) as u32;
+                health.0 = health.0.saturating_sub(damage_after_defense);
                 if damage_after_defense > 0 {
                     spawn_floating_text(
                         &mut commands,
@@ -87,6 +96,7 @@ pub fn handle_player_damaged_events(
                         format!("-{}", damage_after_defense.to_owned()),
                         None,
                     );
+                    return;
                 }
             }
         } else {
