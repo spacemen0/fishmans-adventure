@@ -2,6 +2,7 @@ use super::{
     components::LootSaleEvent,
     systems::{
         in_game_ui::update_floating_text,
+        loot_grid::highlight_active_item,
         menus::{
             despawn_all_floating_text_boxes, despawn_floating_text_box, handle_control_widget,
             handle_shop_input, handle_shop_menu_buttons, setup_shop_menu,
@@ -12,8 +13,8 @@ use crate::ui::systems::player_info;
 use crate::{
     game_state::GameState,
     ui::systems::{
-        in_game_ui, loot_grid, menus,
-        menus::{handle_death_screen_input, set_up_death_screen, set_up_win_screen},
+        in_game_ui, loot_grid,
+        menus::{self, handle_death_screen_input, set_up_death_screen, set_up_win_screen},
     },
     utils::cleanup_entities,
     world::init_world,
@@ -81,6 +82,7 @@ impl Plugin for UiPlugin {
                     loot_grid::highlight_focused_item,
                     loot_grid::handle_sell_focused_item,
                     player_info::update_ui,
+                    highlight_active_item,
                 )
                     .run_if(in_state(GameState::Ui)),
             )

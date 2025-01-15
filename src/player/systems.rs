@@ -4,7 +4,7 @@ use leafwing_input_manager::prelude::*;
 
 use super::*;
 use crate::{
-    armor::{Armor, ArmorStats},
+    armor::{ActiveArmor, Armor, ArmorStats},
     configs::*,
     gun::{ActiveGun, Gun},
     input::Action,
@@ -59,6 +59,13 @@ pub fn handle_player_damaged_events(
                         inventory.armors.remove(armor_to_remove);
                         if inventory.active_armor_index >= inventory.armors.len() {
                             inventory.active_armor_index = 0;
+                        }
+                        if let Some(new_active_armor_entity) =
+                            inventory.armors.get(inventory.active_armor_index)
+                        {
+                            commands
+                                .entity(*new_active_armor_entity)
+                                .insert(ActiveArmor);
                         }
                     }
                     if damage_after_defense > 0 {
@@ -385,6 +392,10 @@ pub fn handle_loot_sale_event(
                         if inventory.active_armor_index >= inventory.armors.len() {
                             inventory.active_armor_index = 0;
                         }
+                        commands
+                            .entity(inventory.armors[inventory.active_armor_index])
+                            .insert(ActiveArmor)
+                            .insert(Visibility::Visible);
                     }
                 }
                 commands.entity(event.0).despawn();

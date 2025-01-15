@@ -18,6 +18,8 @@ pub struct ArmorStats {
     pub durability: u32,
 }
 
+#[derive(Component)]
+pub struct ActiveArmor;
 pub struct ArmorPlugin;
 
 impl Plugin for ArmorPlugin {
@@ -29,6 +31,8 @@ impl Plugin for ArmorPlugin {
 fn switch_armor(
     mut player_query: Query<&mut PlayerInventory, With<Player>>,
     active_state: Res<ActionState<Action>>,
+    mut commands: Commands,
+    armor_query: Query<Entity, With<Armor>>,
 ) {
     if player_query.is_empty() {
         return;
@@ -38,5 +42,12 @@ fn switch_armor(
 
     if active_state.just_pressed(&Action::SwitchArmor) {
         inventory.active_armor_index = (inventory.active_armor_index + 1) % inventory.armors.len();
+        for (index, entity) in armor_query.iter().enumerate() {
+            if index == inventory.active_armor_index {
+                commands.entity(entity).insert(ActiveArmor);
+            } else {
+                commands.entity(entity).remove::<ActiveArmor>();
+            }
+        }
     }
 }

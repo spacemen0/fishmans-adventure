@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::{
     animation::AnimationTimer,
-    armor::{Armor, ArmorStats},
+    armor::{ActiveArmor, Armor, ArmorStats},
     configs::*,
     game_state::GameState,
     gun::{ActiveGun, Gun},
@@ -168,6 +168,7 @@ pub fn init_world(
                 }),
                 ..default()
             },
+            ActiveArmor,
             Description {
                 name: "Apprentice Armor".to_string(),
                 description: "Defense: 2, Durability: 15".to_string(),

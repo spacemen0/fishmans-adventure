@@ -1,4 +1,6 @@
 use crate::{
+    armor::ActiveArmor,
+    gun::ActiveGun,
     input::Action,
     loot::{Description, LootType},
     player::{Player, PlayerInventory},
@@ -301,5 +303,23 @@ pub fn set_up_loot_image(
         }
     } else {
         println!("Player inventory not found!");
+    }
+}
+
+pub fn highlight_active_item(
+    mut grid_query: Query<(&GridSlot, &mut BorderColor)>,
+    gun_query: Query<&ActiveGun>,
+    armor_query: Query<&ActiveArmor>,
+) {
+    for (grid_slot, mut border_color) in grid_query.iter_mut() {
+        if grid_slot.y == 2 && grid_slot.item.is_some() {
+            if let Ok(_) = gun_query.get(grid_slot.item.unwrap()) {
+                border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+            }
+        } else if grid_slot.y == 3 && grid_slot.item.is_some() {
+            if let Ok(_) = armor_query.get(grid_slot.item.unwrap()) {
+                border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+            }
+        }
     }
 }
