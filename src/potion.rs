@@ -58,8 +58,6 @@ fn apply_potion_effects(
     let (mut health, mut player_inventory, entity, mut speed, transform, acceleration_effect) =
         player_query.single_mut();
     if action_state.just_pressed(&Action::UsePotion1) {
-        println!("Use potion 1");
-        println!("Player inventory: {:?}", player_inventory);
         if let Some(health_potion_entity) = player_inventory.health_potions.first() {
             if let Ok((potion_entity, potion_stats)) = potion_query.get(*health_potion_entity) {
                 health.0 = (health.0 + potion_stats.effect_amount).min(health.1);

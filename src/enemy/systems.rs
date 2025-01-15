@@ -651,7 +651,6 @@ pub fn handle_enemy_death(
                     );
                     let distance = player_transform.translation.distance(transform.translation);
                     if distance <= explosion.explosion_radius && is_invincible.is_none() {
-                        println!("send explosion event");
                         ev_player_damaged.send(PlayerDamagedEvent {
                             damage: explosion.explosion_damage,
                         });

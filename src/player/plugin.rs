@@ -11,7 +11,7 @@ use crate::{
     utils::cleanup_entities,
 };
 use bevy::{
-    app::{App, Plugin, Update},
+    app::{App, Plugin, PostUpdate, Update},
     prelude::{any_component_removed, in_state, on_event, IntoSystemConfigs, OnEnter},
 };
 
@@ -26,7 +26,6 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_player_death,
                     handle_player_movement,
                     handle_player_damaged_events.run_if(on_event::<PlayerDamagedEvent>),
                     handle_invincibility_effect,
@@ -44,6 +43,7 @@ impl Plugin for PlayerPlugin {
                 Update,
                 handle_loot_sale_event.run_if(on_event::<LootSaleEvent>),
             )
+            .add_systems(PostUpdate, handle_player_death)
             .add_systems(OnEnter(GameState::End), cleanup_entities)
             .add_systems(OnEnter(GameState::Win), cleanup_entities);
     }

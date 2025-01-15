@@ -57,6 +57,7 @@ pub enum ShopMenuButton {
     BuySpeedPotion,
     BuyGun,
     BuyArmor,
+    BuyXP,
 }
 
 #[derive(Component)]

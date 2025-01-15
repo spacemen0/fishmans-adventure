@@ -58,30 +58,31 @@ fn handle_enemy_player_collision(
     let player_pos = player_transform.translation;
 
     let enemies = tree.0.within_radius(&[player_pos.x, player_pos.y], 50.0);
-    for enemy in enemies {
-        if let Ok((entity, transform, enemy_component, explosion_ability)) =
-            enemy_query.get_mut(enemy.entity)
-        {
-            if enemy_component.damage > 0 {
-                ev.send(PlayerDamagedEvent {
-                    damage: enemy_component.damage,
-                });
-            }
+    if enemies.is_empty() {
+        return;
+    }
+    if let Ok((entity, transform, enemy_component, explosion_ability)) =
+        enemy_query.get_mut(enemies.first().unwrap().entity)
+    {
+        if enemy_component.damage > 0 {
+            ev.send(PlayerDamagedEvent {
+                damage: enemy_component.damage,
+            });
+        }
 
-            if let Some(explosion) = explosion_ability {
-                spawn_explosion(
-                    &mut commands,
-                    transform.translation,
-                    explosion.explosion_radius,
-                    explosion.explosion_damage,
-                );
+        if let Some(explosion) = explosion_ability {
+            spawn_explosion(
+                &mut commands,
+                transform.translation,
+                explosion.explosion_radius,
+                explosion.explosion_damage,
+            );
 
-                ev.send(PlayerDamagedEvent {
-                    damage: explosion.explosion_damage,
-                });
+            ev.send(PlayerDamagedEvent {
+                damage: explosion.explosion_damage,
+            });
 
-                commands.entity(entity).despawn();
-            }
+            commands.entity(entity).despawn();
         }
     }
 }

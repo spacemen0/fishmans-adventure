@@ -7,9 +7,9 @@ use crate::{
     gun::{BulletStats, Gun, GunStats, GunType},
     input::Action,
     loot::Value,
-    player::{Gold, PlayerInventory},
+    player::{Gold, PlayerInventory, PlayerLevelingUpEvent},
     potion::{Potion, PotionStats, PotionType},
-    resources::{GameMode, GlobalTextureAtlas, UiFont},
+    resources::{GameMode, GlobalTextureAtlas, Level, UiFont},
     ui::components::{
         BlinkingText, ControlWidget, DeathScreenRoot, FloatingTextBox, MainMenuButton,
         MainMenuButtonIndex, MainMenuRoot, PauseMenuButton, PauseMenuButtonIndex, PauseMenuRoot,
@@ -659,6 +659,13 @@ pub fn setup_shop_menu(mut commands: Commands, font: Res<UiFont>) {
                         &font.0,
                         3,
                     );
+                    spawn_shop_menu_button(
+                        parent,
+                        "Buy XP - 400g",
+                        ShopMenuButton::BuyArmor,
+                        &font.0,
+                        4,
+                    );
                 });
         });
 }
@@ -707,8 +714,10 @@ pub fn handle_shop_menu_buttons(
     mut menu_query: Query<&mut Visibility, With<ShopMenuRoot>>,
     font: Res<UiFont>,
     next_state: ResMut<NextState<GameState>>,
+    level: ResMut<Level>,
+    ew: EventWriter<PlayerLevelingUpEvent>,
 ) {
-    let button_count = 4;
+    let button_count = 5;
     let mut execute = false;
 
     if action_state.just_pressed(&Action::NavigateUp) {
@@ -779,12 +788,48 @@ pub fn handle_shop_menu_buttons(
                             );
                             break;
                         }
+                        ShopMenuButton::BuyXP => {
+                            handle_buy_xp(
+                                &mut commands,
+                                level,
+                                &mut gold,
+                                &mut visibility,
+                                &font,
+                                next_state,
+                                ew,
+                            );
+                            break;
+                        }
                     }
                 }
             }
         } else {
             *color = BackgroundColor(Color::srgba_u8(255, 246, 225, 230));
         }
+    }
+}
+
+fn handle_buy_xp(
+    commands: &mut Commands,
+    mut level: ResMut<Level>,
+    gold: &mut Gold,
+    visibility: &mut Visibility,
+    font: &UiFont,
+    mut next_state: ResMut<NextState<GameState>>,
+    mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
+) {
+    if gold.0 >= 400 {
+        gold.0 -= 400;
+        if level.add_xp(100) {
+            ev_level_up.send(PlayerLevelingUpEvent {
+                new_level: level.level(),
+            });
+        }
+        *visibility = Visibility::Hidden;
+        next_state.set(GameState::Combat);
+        spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
+    } else {
+        spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
     }
 }
 
