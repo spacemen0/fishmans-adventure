@@ -111,8 +111,8 @@ fn spawn_main_menu_button(
     parent
         .spawn((
             Node {
-                width: Val::Px(400.0),
-                height: Val::Px(100.0),
+                width: Val::Px(360.0),
+                height: Val::Px(80.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
@@ -150,7 +150,7 @@ pub fn handle_main_menu_buttons(
     if !control_query.is_empty() || visibility_query.is_empty() {
         return;
     }
-    let button_count = 3;
+    let button_count = 4;
     let mut execute = false;
 
     if action_state.just_pressed(&Action::NavigateUp) {
@@ -250,6 +250,7 @@ pub fn setup_control_widget(commands: &mut Commands, font: Handle<Font>) {
                     spawn_control_binding_text(parent, "Navigate: Arrow Keys/WASD", &font);
                     spawn_control_binding_text(parent, "Use Health Potion: 1", &font);
                     spawn_control_binding_text(parent, "Use Speed Potion: 2", &font);
+                    spawn_control_binding_text(parent, "Toggle Shop: O", &font);
                     spawn_control_binding_text(parent, "Toggle Loot Board: Tab", &font);
                     spawn_control_binding_text(parent, "Sell Loot: Del", &font);
                     parent
