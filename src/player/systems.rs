@@ -89,6 +89,17 @@ pub fn handle_player_damaged_events(
                     (event.damage as f32 * calculate_defense_percentage(player_defense.0)) as u32;
                 health.0 = health.0.saturating_sub(damage_after_defense);
                 if damage_after_defense > 0 {
+                    println!("Player took {} damage", damage_after_defense);
+                    let current_time = chrono::Local::now();
+                    println!(
+                        "Current time: {:02}:{:02}",
+                        current_time.minute(),
+                        current_time.second()
+                    );
+                    commands.entity(entity).insert(InvincibilityEffect(
+                        Stopwatch::new(),
+                        PLAYER_INVINCIBLE_TIME,
+                    ));
                     spawn_floating_text(
                         &mut commands,
                         &font.0,
