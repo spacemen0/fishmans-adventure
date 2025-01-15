@@ -27,7 +27,7 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0.0, 16.0, LAYER0),
+                    translation: Vec3::new(0.0, 8.0, LAYER0),
                     ..default()
                 },
             ));
@@ -40,7 +40,7 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                         ..default()
                     },
                     Transform {
-                        translation: Vec3::new(0.0, 16.0, LAYER1),
+                        translation: Vec3::new(0.0, 8.0, LAYER1),
                         ..default()
                     },
                 ))

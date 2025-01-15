@@ -127,8 +127,8 @@ fn update_gun_transform(
         }
     }
     gun_transform.translation = vec3(
-        player_pos.x + 10.0, // offset from player, need adjustment
-        player_pos.y,
+        player_pos.x + 5.0, // offset from player, need adjustment
+        player_pos.y - 5.0,
         gun_transform.translation.z,
     );
 }
@@ -326,8 +326,8 @@ fn switch_gun(
             {
                 if gun_index == inventory.active_gun_index {
                     gun_transform.translation = vec3(
-                        player_transform.translation.x + 10.0, // offset from player, need adjustment
-                        player_transform.translation.y,
+                        player_transform.translation.x + 5.0, // offset from player, need adjustment
+                        player_transform.translation.y - 5.0,
                         gun_transform.translation.z,
                     );
                     commands.entity(entity).insert(ActiveGun);
