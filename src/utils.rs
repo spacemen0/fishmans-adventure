@@ -3,7 +3,7 @@ use rand::{seq::SliceRandom, Rng};
 
 use crate::{
     collision::EnemyKdTree,
-    configs::{LAYER1, MAX_DEFENSE, WH, WW},
+    configs::{LAYER1, MAX_DEFENSE, SPRITE_SCALE_FACTOR, TILE_W, WH, WW},
     loot::LootType,
 };
 
@@ -78,8 +78,9 @@ pub fn safe_subtract(a: u32, b: u32) -> u32 {
 }
 
 pub fn clamp_position(position: &mut Vec3) {
-    position.x = position.x.clamp(-WW, WW);
-    position.y = position.y.clamp(-WH, WH);
+    let edge_offset = TILE_W as f32 * SPRITE_SCALE_FACTOR;
+    position.x = position.x.clamp(-WW + edge_offset, WW - edge_offset);
+    position.y = position.y.clamp(-WH + edge_offset, WH - edge_offset);
     position.z = LAYER1;
 }
 

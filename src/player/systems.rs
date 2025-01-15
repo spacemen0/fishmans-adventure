@@ -197,8 +197,7 @@ pub fn handle_player_movement(
         sprite.flip_x = movement.x < 0.0;
         transform.translation.x += movement.x;
         transform.translation.y += movement.y;
-
-        *player_state = PlayerState::Run;
+        clamp_position(&mut transform.translation);
     } else {
         *player_state = PlayerState::Idle;
     }
