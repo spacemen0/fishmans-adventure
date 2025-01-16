@@ -37,7 +37,9 @@ pub fn update_enemy_movement(
             .map(|(entity, _, transform, _, _, _)| (entity, transform.translation))
             .collect();
 
-        for (entity, enemy, mut transform, mut state, ranged_behavior, trail_ability) in enemy_query.iter_mut() {
+        for (entity, enemy, mut transform, mut state, ranged_behavior, trail_ability) in
+            enemy_query.iter_mut()
+        {
             let mut movement = Vec2::ZERO;
 
             match &mut *state {
@@ -118,33 +120,42 @@ pub fn update_enemy_movement(
                 }
             }
 
-            let collision_radius = 30.0;
-            let mut collision_resolution = Vec2::ZERO;
-
-            for (other_entity, other_pos) in &enemy_positions {
-                if *other_entity != entity {
-                    let diff = transform.translation - *other_pos;
-                    let distance = diff.length();
-
-                    if distance < collision_radius {
-                        if distance > 0.0 {
-                            collision_resolution +=
-                                diff.truncate().normalize() * (collision_radius - distance);
-                        } else {
-                            let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
-                            collision_resolution +=
-                                Vec2::new(random_angle.cos(), random_angle.sin())
-                                    * collision_radius;
-                        }
-                    }
-                }
-            }
-
+            let collision_resolution =
+                calculate_collision_resolution(entity, transform.translation, &enemy_positions);
             let final_movement = movement + collision_resolution;
 
             apply_movement(&mut transform.translation, final_movement, LAYER2);
         }
     }
+}
+
+fn calculate_collision_resolution(
+    current_entity: Entity,
+    current_pos: Vec3,
+    enemy_positions: &Vec<(Entity, Vec3)>,
+) -> Vec2 {
+    let collision_radius = 30.0;
+    let mut collision_resolution = Vec2::ZERO;
+
+    for (other_entity, other_pos) in enemy_positions {
+        if *other_entity != current_entity {
+            let diff = current_pos - *other_pos;
+            let distance = diff.length();
+
+            if distance < collision_radius {
+                if distance > 0.0 {
+                    collision_resolution +=
+                        diff.truncate().normalize() * (collision_radius - distance);
+                } else {
+                    let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
+                    collision_resolution +=
+                        Vec2::new(random_angle.cos(), random_angle.sin()) * collision_radius;
+                }
+            }
+        }
+    }
+
+    collision_resolution
 }
 
 pub fn spawn_enemies(
@@ -560,28 +571,8 @@ pub fn handle_charge_abilities(
                 }
             }
 
-            let collision_radius = 30.0;
-            let mut collision_resolution = Vec2::ZERO;
-
-            for (other_entity, other_pos) in &enemy_positions {
-                if *other_entity != entity {
-                    let diff = transform.translation - *other_pos;
-                    let distance = diff.length();
-
-                    if distance < collision_radius {
-                        if distance > 0.0 {
-                            collision_resolution +=
-                                diff.truncate().normalize() * (collision_radius - distance);
-                        } else {
-                            let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
-                            collision_resolution +=
-                                Vec2::new(random_angle.cos(), random_angle.sin())
-                                    * collision_radius;
-                        }
-                    }
-                }
-            }
-
+            let collision_resolution =
+                calculate_collision_resolution(entity, transform.translation, &enemy_positions);
             let final_movement = movement + collision_resolution;
 
             apply_movement(&mut transform.translation, final_movement, LAYER2);
@@ -818,11 +809,7 @@ fn spawn_enemy_bullets(
         );
         let bullet_direction = (direction + spread).normalize();
 
-        let sprite_index = if is_exploding {
-            89
-        } else {
-            88
-        };
+        let sprite_index = if is_exploding { 89 } else { 88 };
 
         let mut bullet_entity = commands.spawn((
             Name::new("Enemy Bullet"),
