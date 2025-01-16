@@ -97,12 +97,6 @@ pub struct SpawnIndicator {
 }
 
 #[derive(Component)]
-pub struct SeparationBehavior {
-    pub radius: f32,
-    pub force: f32,
-}
-
-#[derive(Component)]
 pub struct HitFlash(pub Timer);
 
 impl Default for HitFlash {

@@ -193,14 +193,4 @@ impl EnemyBuilder {
         }));
         self
     }
-
-    pub fn with_separation(mut self, radius: f32, force: f32) -> Self {
-        self.abilities.push(Box::new(move |commands, entity| {
-            commands.entity(entity).insert(SeparationBehavior {
-                radius,
-                force,
-            });
-        }));
-        self
-    }
 }

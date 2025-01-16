@@ -22,7 +22,6 @@ pub fn update_enemy_movement(
             &Enemy,
             &mut Transform,
             &mut EnemyState,
-            Option<&SeparationBehavior>,
             Option<&RangedBehavior>,
         ),
         (Without<Player>, Without<ChargeAbility>),
@@ -31,14 +30,16 @@ pub fn update_enemy_movement(
     if let Ok(player_transform) = player_query.get_single() {
         let player_pos = player_transform.translation;
 
+        // Collect all enemy positions first
         let enemy_positions: Vec<(Entity, Vec3)> = enemy_query
             .iter()
-            .map(|(entity, _, transform, _, _, _)| (entity, transform.translation))
+            .map(|(entity, _, transform, _, _)| (entity, transform.translation))
             .collect();
 
-        for (entity, enemy, mut transform, mut state, separation_behavior, ranged_behavior) in
-            enemy_query.iter_mut()
-        {
+        for (entity, enemy, mut transform, mut state, ranged_behavior) in enemy_query.iter_mut() {
+            let mut movement = Vec2::ZERO;
+
+            // Calculate base movement based on enemy state
             match &mut *state {
                 EnemyState::Wandering { direction, timer } => {
                     timer.tick(time.delta());
@@ -83,121 +84,72 @@ pub fn update_enemy_movement(
                             timer.reset();
                         }
 
-                        let mut movement = *direction * enemy.speed as f32 * 0.5;
-
-                        if let Some(behavior) = separation_behavior {
-                            let separation = calculate_separation(
-                                &enemy_positions,
-                                entity,
-                                transform.translation,
-                                behavior.radius,
-                            );
-                            movement += separation.truncate() * enemy.speed as f32 * behavior.force;
-                        }
-
-                        apply_movement(&mut transform.translation, movement, LAYER1);
+                        movement = *direction * enemy.speed as f32 * 0.5;
                     }
                 }
                 EnemyState::Pursuing => {
-                    let mut direction = (player_pos - transform.translation).normalize();
-
-                    if let Some(behavior) = separation_behavior {
-                        let separation = calculate_separation(
-                            &enemy_positions,
-                            entity,
-                            transform.translation,
-                            behavior.radius,
-                        );
-                        direction += separation * behavior.force;
-                        direction = direction.normalize();
-                    }
-
-                    let movement = direction.truncate() * enemy.speed as f32;
-                    apply_movement(&mut transform.translation, movement, LAYER1);
+                    let dir = (player_pos - transform.translation).normalize();
+                    movement = dir.truncate() * enemy.speed as f32;
                 }
                 EnemyState::MaintainingDistance => {
                     if let Some(ranged_behavior) = ranged_behavior {
                         let distance_to_player = transform.translation.distance(player_pos);
-                        let mut direction = (player_pos - transform.translation).normalize();
-
-                        if let Some(behavior) = separation_behavior {
-                            let separation = calculate_separation(
-                                &enemy_positions,
-                                entity,
-                                transform.translation,
-                                behavior.radius,
-                            );
-                            direction += separation * behavior.force;
-                            direction = direction.normalize();
-                        }
+                        let direction = (player_pos - transform.translation).normalize();
 
                         let distance_difference =
                             distance_to_player - ranged_behavior.preferred_distance;
 
                         if distance_difference.abs() > ranged_behavior.tolerance {
-                            let movement = if distance_difference > 0.0 {
-                                direction.truncate() * enemy.speed as f32
+                            if distance_difference > 0.0 {
+                                movement = direction.truncate() * enemy.speed as f32;
                             } else {
-                                -direction.truncate() * enemy.speed as f32
-                            };
-                            apply_movement(&mut transform.translation, movement, LAYER1);
+                                movement = -direction.truncate() * enemy.speed as f32;
+                            }
                         } else if distance_difference.abs() > ranged_behavior.tolerance * 0.5 {
-                            let movement = direction.truncate() * (distance_difference * 0.1);
-                            apply_movement(&mut transform.translation, movement, LAYER1);
+                            movement = direction.truncate() * (distance_difference * 0.1);
                         }
                     } else {
                         *state = EnemyState::Pursuing;
                     }
                 }
                 EnemyState::Retreating => {
-                    let mut direction = (transform.translation - player_pos).normalize();
-
-                    if let Some(behavior) = separation_behavior {
-                        let separation = calculate_separation(
-                            &enemy_positions,
-                            entity,
-                            transform.translation,
-                            behavior.radius,
-                        );
-                        direction += separation * behavior.force;
-                        direction = direction.normalize();
-                    }
-
-                    let movement = direction.truncate() * enemy.speed as f32;
-                    apply_movement(&mut transform.translation, movement, LAYER1);
+                    let dir = (transform.translation - player_pos).normalize();
+                    movement = dir.truncate() * enemy.speed as f32;
                 }
             }
+
+            // Handle collisions with other enemies
+            let collision_radius = 30.0; // Adjust this value to change how close enemies can get
+            let mut collision_resolution = Vec2::ZERO;
+
+            for (other_entity, other_pos) in &enemy_positions {
+                if *other_entity != entity {
+                    let diff = transform.translation - *other_pos;
+                    let distance = diff.length();
+
+                    if distance < collision_radius {
+                        if distance > 0.0 {
+                            // Add a strong pushing force when enemies get too close
+                            collision_resolution +=
+                                diff.truncate().normalize() * (collision_radius - distance);
+                        } else {
+                            // If enemies are at exactly the same position, push in a random direction
+                            let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
+                            collision_resolution +=
+                                Vec2::new(random_angle.cos(), random_angle.sin())
+                                    * collision_radius;
+                        }
+                    }
+                }
+            }
+
+            // Apply both movement and collision resolution
+            let final_movement = movement + collision_resolution;
+
+            // Apply the movement with existing boundary checking
+            apply_movement(&mut transform.translation, final_movement, LAYER1);
         }
     }
-}
-
-fn calculate_separation(
-    enemy_positions: &[(Entity, Vec3)],
-    current_entity: Entity,
-    current_pos: Vec3,
-    separation_radius: f32,
-) -> Vec3 {
-    let mut separation = Vec3::ZERO;
-    let mut count = 0;
-
-    for &(other_entity, other_pos) in enemy_positions {
-        if other_entity == current_entity {
-            continue;
-        }
-
-        let distance = current_pos.distance(other_pos);
-        if distance < separation_radius {
-            let away = (current_pos - other_pos).normalize();
-            separation += away * (1.0 - distance / separation_radius);
-            count += 1;
-        }
-    }
-
-    if count > 0 {
-        separation = separation.normalize_or_zero();
-    }
-
-    separation
 }
 
 pub fn spawn_enemies(
@@ -536,12 +488,19 @@ pub fn handle_exploding_bullets(
 
 pub fn handle_charge_abilities(
     time: Res<Time>,
-    mut enemy_query: Query<(&mut Transform, &mut ChargeAbility, &Enemy)>,
+    mut enemy_query: Query<(Entity, &mut Transform, &mut ChargeAbility, &Enemy)>,
     player_query: Query<&Transform, (With<Player>, Without<Enemy>)>,
 ) {
     if let Ok(player_transform) = player_query.get_single() {
-        for (mut transform, mut charge, enemy) in enemy_query.iter_mut() {
+        let enemy_positions: Vec<(Entity, Vec3)> = enemy_query
+            .iter()
+            .map(|(entity, transform, _, _)| (entity, transform.translation))
+            .collect();
+
+        for (entity, mut transform, mut charge, enemy) in enemy_query.iter_mut() {
             charge.charge_timer.tick(time.delta());
+
+            let mut movement = Vec2::ZERO;
 
             match charge.state {
                 ChargeState::Approaching => {
@@ -553,8 +512,7 @@ pub fn handle_charge_abilities(
                     } else {
                         let direction =
                             (player_transform.translation - transform.translation).normalize();
-                        let movement = direction.truncate() * enemy.speed as f32;
-                        apply_movement(&mut transform.translation, movement, LAYER1);
+                        movement = direction.truncate() * enemy.speed as f32;
                     }
                 }
                 ChargeState::Preparing => {
@@ -572,8 +530,7 @@ pub fn handle_charge_abilities(
                         charge.target_position = None;
                     } else if let Some(target) = charge.target_position {
                         let direction = (target.extend(0.0) - transform.translation).normalize();
-                        let movement = direction.truncate() * charge.charge_speed as f32;
-                        apply_movement(&mut transform.translation, movement, LAYER1);
+                        movement = direction.truncate() * charge.charge_speed as f32;
 
                         let shake_amount = 2.0;
                         let shake_offset = Vec2::new(
@@ -589,8 +546,7 @@ pub fn handle_charge_abilities(
                     } else {
                         let direction =
                             (player_transform.translation - transform.translation).normalize();
-                        let movement = direction.truncate() * enemy.speed as f32;
-                        apply_movement(&mut transform.translation, movement, LAYER1);
+                        movement = direction.truncate() * enemy.speed as f32;
 
                         let shake_amount = 1.0;
                         let shake_offset = Vec2::new(
@@ -601,6 +557,32 @@ pub fn handle_charge_abilities(
                     }
                 }
             }
+
+            let collision_radius = 30.0;
+            let mut collision_resolution = Vec2::ZERO;
+
+            for (other_entity, other_pos) in &enemy_positions {
+                if *other_entity != entity {
+                    let diff = transform.translation - *other_pos;
+                    let distance = diff.length();
+
+                    if distance < collision_radius {
+                        if distance > 0.0 {
+                            collision_resolution +=
+                                diff.truncate().normalize() * (collision_radius - distance);
+                        } else {
+                            let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
+                            collision_resolution +=
+                                Vec2::new(random_angle.cos(), random_angle.sin())
+                                    * collision_radius;
+                        }
+                    }
+                }
+            }
+
+            let final_movement = movement + collision_resolution;
+
+            apply_movement(&mut transform.translation, final_movement, LAYER1);
         }
     }
 }
