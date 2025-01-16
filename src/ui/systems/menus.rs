@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::SPRITE_SCALE_FACTOR,
+    configs::{SPRITE_SCALE_FACTOR, UI_BG_COLOR},
     game_state::GameState,
     gun::{BulletStats, Gun, GunStats, GunType},
     input::Action,
@@ -37,6 +37,7 @@ pub fn setup_main_menu(mut commands: Commands, font: Res<UiFont>) {
                 flex_direction: FlexDirection::Column,
                 ..default()
             },
+            BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
             MainMenuRoot,
         ))
         .with_children(|parent| {
@@ -112,7 +113,7 @@ fn spawn_main_menu_button(
         .spawn((
             Node {
                 width: Val::Px(360.0),
-                height: Val::Px(80.0),
+                height: Val::Px(70.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 ..default()
@@ -476,13 +477,16 @@ pub fn pause_menu_navigation(
 
 pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
     commands
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        })
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
+        ))
         .with_children(|parent| {
             parent
                 .spawn((
@@ -524,13 +528,16 @@ pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
 
 pub fn set_up_win_screen(mut commands: Commands, font: Res<UiFont>) {
     commands
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        })
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
+        ))
         .with_children(|parent| {
             parent
                 .spawn((

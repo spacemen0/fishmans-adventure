@@ -37,7 +37,8 @@ pub const BULLET_SPREAD: f32 = 0.7;
 pub const NUM_BULLETS_PER_SHOT: usize = 5;
 
 // Colors
-pub const BG_COLOR: (u8, u8, u8) = (143, 64, 41);
+pub const BG_COLOR: (u8, u8, u8) = (72, 59, 58);
+pub const UI_BG_COLOR: (u8, u8, u8) = (197, 204, 184);
 pub const LAYER0: f32 = 0.0;
 pub const LAYER1: f32 = 1.0;
 pub const LAYER2: f32 = 2.0;
