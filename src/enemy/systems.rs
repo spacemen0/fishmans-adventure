@@ -590,7 +590,7 @@ pub fn handle_charge_abilities(
 }
 
 pub fn handle_charge_enemy_flash(
-    mut enemy_query: Query<(&ChargeAbility, &mut Sprite, &OriginalEnemyColor)>,
+    mut enemy_query: Query<(&ChargeAbility, &mut Sprite, &OriginalEnemyColor), Without<HitFlash>>,
     time: Res<Time>,
 ) {
     for (charge, mut sprite, original_color) in enemy_query.iter_mut() {

@@ -40,8 +40,8 @@ impl Plugin for EnemyPlugin {
                 (handle_explosions, handle_explosion_player_collision)
                     .after(handle_exploding_bullets),
                 (
-                    handle_charge_enemy_flash,
-                    handle_hit_flash,
+                    handle_charge_enemy_flash.after(handle_hit_flash),
+                    handle_hit_flash.before(handle_charge_enemy_flash),
                     handle_death_effect,
                 ),
                 (handle_enemy_death, handle_enemy_splitting)
