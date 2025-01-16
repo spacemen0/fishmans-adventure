@@ -229,42 +229,37 @@ pub fn highlight_focused_item(
                     _ => Val::Px(100.0),
                 };
 
-                commands
-                    .entity(entity)
-                    .with_children(|parent| {
-                        parent
-                            .spawn((
-                                Node {
-                                    min_width: Val::Px(220.0),
-                                    height,
-                                    bottom: Val::Px(5.0),
-                                    border: UiRect::all(Val::Px(1.0)),
-                                    left: Val::Px(10.0),
-                                    ..default()
-                                },
-                                BorderRadius::all(Val::Px(6.0)),
-                                BorderColor(Color::BLACK),
-                                GlobalZIndex(4),
-                                BackgroundColor(Color::srgba_u8(251, 255, 148, 238)),
-                            ))
-                            .with_child((
-                                Text::new(format!(
-                                    "{} {}",
-                                    description.name, description.description
-                                )),
-                                TextFont {
-                                    font: font.0.clone(),
-                                    font_size: 30.0,
-                                    ..default()
-                                },
-                                TextLayout {
-                                    justify: JustifyText::Center,
-                                    ..default()
-                                },
-                                TextColor(Color::BLACK),
-                            ));
-                    })
-                    .insert(DescriptionTextBox);
+                commands.entity(entity).with_children(|parent| {
+                    parent
+                        .spawn((
+                            Node {
+                                min_width: Val::Px(220.0),
+                                height,
+                                bottom: Val::Px(5.0),
+                                border: UiRect::all(Val::Px(1.0)),
+                                left: Val::Px(10.0),
+                                ..default()
+                            },
+                            BorderRadius::all(Val::Px(6.0)),
+                            BorderColor(Color::BLACK),
+                            GlobalZIndex(4),
+                            DescriptionTextBox,
+                            BackgroundColor(Color::srgba_u8(251, 255, 148, 238)),
+                        ))
+                        .with_child((
+                            Text::new(format!("{} {}", description.name, description.description)),
+                            TextFont {
+                                font: font.0.clone(),
+                                font_size: 30.0,
+                                ..default()
+                            },
+                            TextLayout {
+                                justify: JustifyText::Center,
+                                ..default()
+                            },
+                            TextColor(Color::BLACK),
+                        ));
+                });
             }
         }
     }
@@ -275,7 +270,12 @@ pub fn set_up_loot_image(
     inventory_query: Query<&PlayerInventory, With<Player>>,
     sprite_query: Query<&Sprite>,
     mut grid_slot_query: Query<&mut GridSlot, Without<ImageNode>>,
+    mut commands: Commands,
+    text_box_query: Query<Entity, With<DescriptionTextBox>>,
 ) {
+    for entity in text_box_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
     if let Ok(player_inventory) = inventory_query.get_single() {
         for (mut image_node, grid_slot, parent) in grid_query.iter_mut() {
             let item_entity = match grid_slot.y {

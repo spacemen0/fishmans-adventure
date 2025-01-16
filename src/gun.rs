@@ -119,7 +119,7 @@ fn update_gun_transform(
     };
 
     let player_pos = player_transform.translation.truncate();
-    if let Some(nearest_enemy_pos) = get_nearest_enemy_position(player_pos, &enemy_kd_tree, 500.0) {
+    if let Some(nearest_enemy_pos) = get_nearest_enemy_position(player_pos, &enemy_kd_tree, 600.0) {
         let angle =
             (player_pos.y - nearest_enemy_pos.y).atan2(player_pos.x - nearest_enemy_pos.x) + PI;
         gun_transform.rotation = Quat::from_rotation_z(angle);
@@ -170,7 +170,7 @@ fn handle_gun_firing(
         gun_query.get_single_mut()
     {
         let player_pos = player_query.single().translation.truncate();
-        if get_nearest_enemy_position(player_pos, &enemy_kd_tree, 500.0).is_none() {
+        if get_nearest_enemy_position(player_pos, &enemy_kd_tree, 600.0).is_none() {
             return;
         }
         gun_timer.0.tick(time.delta());

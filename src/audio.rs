@@ -80,7 +80,7 @@ fn play_audio_event(
                 audio.play(audio_handles.kill.clone()).with_volume(0.6);
             }
             AudioEvent::Hit => {
-                audio.play(audio_handles.hit.clone()).with_volume(0.1);
+                audio.play(audio_handles.hit.clone()).with_volume(0.15);
             }
             AudioEvent::Fire => {
                 audio.play(audio_handles.fire.clone()).with_volume(0.2);
