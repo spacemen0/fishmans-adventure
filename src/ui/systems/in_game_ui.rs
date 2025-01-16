@@ -1,5 +1,5 @@
 use crate::{
-    configs::{LAYER0, LAYER1, LAYER4},
+    configs::{LAYER1, LAYER2, LAYER5},
     enemy::Collider,
     gun::HasLifespan,
     player::{Health, Player},
@@ -23,11 +23,11 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
             parent.spawn((
                 Sprite {
                     color: Color::linear_rgb(0.5, 0.5, 0.5),
-                    custom_size: Some(Vec2::new(18.0, 4.0)),
+                    custom_size: Some(Vec2::new(12.0, 3.0)),
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0.0, 8.0, LAYER0),
+                    translation: Vec3::new(0.0, 4.0, LAYER1),
                     ..default()
                 },
             ));
@@ -36,11 +36,11 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                 .spawn((
                     Sprite {
                         color: Color::linear_rgb(0.0, 1.0, 0.0),
-                        custom_size: Some(Vec2::new(18.0, 4.0)),
+                        custom_size: Some(Vec2::new(12.0, 3.0)),
                         ..default()
                     },
                     Transform {
-                        translation: Vec3::new(0.0, 8.0, LAYER1),
+                        translation: Vec3::new(0.0, 4.0, LAYER2),
                         ..default()
                     },
                 ))
@@ -56,8 +56,8 @@ pub fn update_health_bar(
     if let Ok(health) = player_query.get_single() {
         if let Ok((mut transform, mut sprite)) = health_bar_query.get_single_mut() {
             let health_percentage = health.0 as f32 / health.1 as f32;
-            sprite.custom_size = Some(Vec2::new(18.0 * health_percentage, 4.0));
-            transform.translation.x = -9.0 + (9.0 * health_percentage);
+            sprite.custom_size = Some(Vec2::new(12.0 * health_percentage, 2.0));
+            transform.translation.x = -6.0 + (6.0 * health_percentage);
         }
     }
 }
@@ -144,7 +144,7 @@ pub fn spawn_floating_text(
         TextBounds::from(Vec2::new(400.0, 200.0)),
         TextColor(text_color.into()),
         Transform {
-            translation: (position + Vec3::new(0.0, 30.0, 0.0)).with_z(LAYER4),
+            translation: (position + Vec3::new(0.0, 30.0, 0.0)).with_z(LAYER5),
             ..default()
         },
         Collider { radius: 5 },

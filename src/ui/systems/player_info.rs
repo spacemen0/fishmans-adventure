@@ -1,3 +1,4 @@
+use crate::audio::AudioEvent;
 use crate::configs::MAX_DEFENSE;
 use crate::game_state::GameState;
 use crate::input::Action;
@@ -15,9 +16,9 @@ use bevy::core::Name;
 use bevy::hierarchy::{BuildChildren, ChildBuild, ChildBuilder};
 use bevy::image::Image;
 use bevy::prelude::{
-    default, AlignItems, BackgroundColor, BorderColor, Commands, Component, FlexDirection, Font,
-    GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res, ResMut, Text, TextColor,
-    TextFont, TextureAtlas, UiRect, Val, Visibility, With,
+    default, AlignItems, BackgroundColor, BorderColor, Commands, Component, EventWriter,
+    FlexDirection, Font, GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res, ResMut,
+    Text, TextColor, TextFont, TextureAtlas, UiRect, Val, Visibility, With,
 };
 use leafwing_input_manager::action_state::ActionState;
 
@@ -190,15 +191,18 @@ pub fn toggle_loot_ui_visibility(
     action_state: Res<ActionState<Action>>,
     mut ui_query: Query<&mut Visibility, With<UiRoot>>,
     mut next_state: ResMut<NextState<GameState>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if action_state.just_pressed(&Action::ToggleLootBoard) {
         for mut visibility in ui_query.iter_mut() {
             if *visibility == Visibility::Hidden {
                 *visibility = Visibility::Visible;
                 next_state.set(GameState::Ui);
+                ew.send(AudioEvent::PopUp);
             } else {
                 *visibility = Visibility::Hidden;
                 next_state.set(GameState::Combat);
+                ew.send(AudioEvent::PopUp);
             }
         }
     }

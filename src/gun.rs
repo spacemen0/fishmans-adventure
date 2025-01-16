@@ -10,6 +10,7 @@ use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 
 use crate::{
+    audio::AudioEvent,
     collision::EnemyKdTree,
     configs::*,
     game_state::GameState,
@@ -161,6 +162,7 @@ fn handle_gun_firing(
         With<ActiveGun>,
     >,
     handle: Res<GlobalTextureAtlas>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.get_single().is_err() {
         return;
@@ -174,7 +176,7 @@ fn handle_gun_firing(
         if gun_timer.0.elapsed_secs() < gun_stats.firing_interval {
             return;
         }
-
+        ew.send(AudioEvent::Fire);
         gun_timer.0.reset();
         let gun_pos = gun_transform.translation.truncate();
         let bullet_direction = gun_transform.local_x();
@@ -247,7 +249,7 @@ fn fire_bullets(
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER4))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Bullet,
             BulletDirection(dir),
@@ -290,7 +292,7 @@ fn fire_omni_bullets(
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER4))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Bullet,
             BulletDirection(dir),
@@ -311,6 +313,7 @@ fn switch_gun(
     action_state: Res<ActionState<Action>>,
     mut commands: Commands,
     mut gun_query: Query<(&mut Transform, &mut Visibility, Entity), (With<Gun>, Without<Player>)>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -325,6 +328,7 @@ fn switch_gun(
                 gun_query.get_mut(*gun_entity)
             {
                 if gun_index == inventory.active_gun_index {
+                    ew.send(AudioEvent::UI);
                     gun_transform.translation = vec3(
                         player_transform.translation.x + 5.0, // offset from player, need adjustment
                         player_transform.translation.y - 5.0,
@@ -360,12 +364,12 @@ fn move_bullets(
             GunType::SingleDirectionSpread => {
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
             GunType::OmniSpread => {
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
             GunType::FocusedAim => {
                 let player_transform = if let Ok(transform) = player_query.get_single() {
@@ -386,7 +390,7 @@ fn move_bullets(
                 }
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
         }
     }

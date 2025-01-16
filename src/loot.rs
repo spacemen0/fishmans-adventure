@@ -3,7 +3,7 @@ use rand::Rng;
 
 use crate::{
     armor::{Armor, ArmorStats},
-    configs::{LAYER2, SPRITE_SCALE_FACTOR},
+    configs::{LAYER3, SPRITE_SCALE_FACTOR},
     gun::{BulletStats, Gun, GunStats, GunType},
     potion::{Potion, PotionStats, PotionType},
     utils::{generate_random_cool_name, get_random_position_around, Pickable},
@@ -157,7 +157,7 @@ fn spawn_gun(
                     gun_stats.bullets_per_shot,
                 ),
             },
-            Transform::from_translation(Vec3::new(x, y, LAYER2))
+            Transform::from_translation(Vec3::new(x, y, LAYER3))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             gun_stats,
             bullet_stats,
@@ -201,7 +201,7 @@ fn spawn_armor(
                 ),
             },
             armor_stats,
-            Transform::from_translation(Vec3::new(x, y, LAYER2))
+            Transform::from_translation(Vec3::new(x, y, LAYER3))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
         ));
@@ -253,7 +253,7 @@ fn spawn_potion(
             },
             potion_stats,
             potion_type.0,
-            Transform::from_translation(Vec3::new(x, y, LAYER2))
+            Transform::from_translation(Vec3::new(x, y, LAYER3))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Pickable,
         ));

@@ -1,5 +1,6 @@
 use crate::{
     armor::ActiveArmor,
+    audio::AudioEvent,
     gun::ActiveGun,
     input::Action,
     loot::{Description, LootType},
@@ -158,6 +159,7 @@ pub fn navigate_loot_items(
         With<FocusedItem>,
     >,
     mut grid_query: Query<(&GridSlot, Entity), (Without<FocusedItem>, Without<ImageNode>)>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if focused_item_query.iter().next().is_none() {
         return;
@@ -182,6 +184,7 @@ pub fn navigate_loot_items(
     if !pressed {
         return;
     }
+    ew.send(AudioEvent::UI);
     for (grid_slot, entity) in grid_query.iter_mut() {
         if let Some((dx, dy)) = new_focus {
             if (grid_slot.x as isize - dx) == focused_item.0.x as isize

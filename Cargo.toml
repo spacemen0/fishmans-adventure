@@ -13,6 +13,7 @@ typenum = "1.17.0"
 iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui" }
 bevy-inspector-egui = "0.28"
 chrono = "0.4.39"
+bevy_kira_audio = "0.22.0"
 
 [workspace]
 resolver = "2"

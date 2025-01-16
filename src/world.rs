@@ -25,7 +25,13 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             OnEnter(GameState::Initializing),
-            (init_world, spawn_world_decorations, spawn_world_edges),
+            (
+                spawn_background,
+                spawn_world_decorations,
+                spawn_world_edges,
+                init_world,
+            )
+                .chain(),
         );
     }
 }
@@ -55,10 +61,10 @@ pub fn init_world(
                 }),
                 ..default()
             },
-            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER1))
+            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Player,
-            Health(PLAYER_HEALTH, 50),
+            Health(PLAYER_HEALTH, PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
             Defense(1),
             Gold(1000),
@@ -91,7 +97,7 @@ pub fn init_world(
                     BULLET_DAMAGE, BULLET_SPEED, FIRING_INTERVAL, NUM_BULLETS_PER_SHOT,
                 ),
             },
-            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER2))
+            Transform::from_translation(Vec3::new(0.0, 0.0, LAYER3))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
         ))
         .id();
@@ -216,6 +222,31 @@ pub fn init_world(
     next_state.set(GameState::Combat);
 }
 
+pub fn spawn_background(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
+    let tile_size = TILE_W as f32 * SPRITE_SCALE_FACTOR;
+    let width = WW;
+    let height = WH;
+
+    for x in (-width as i32..=width as i32).step_by(tile_size as usize) {
+        for y in (-height as i32..=height as i32).step_by(tile_size as usize) {
+            commands.spawn((
+                Name::new("Background"),
+                Sprite {
+                    image: handle.image.clone().unwrap(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: handle.layout_16x16.clone().unwrap(),
+                        index: rand::thread_rng().gen_range(8..=13),
+                    }),
+                    ..default()
+                },
+                Transform::from_translation(vec3(x as f32, y as f32, LAYER0))
+                    .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
+                InGameEntity,
+            ));
+        }
+    }
+}
+
 fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
     let mut rng = rand::thread_rng();
     for _ in 0..NUM_WORLD_DECORATIONS {
@@ -231,7 +262,7 @@ fn spawn_world_decorations(mut commands: Commands, handle: Res<GlobalTextureAtla
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(x, y, LAYER0))
+            Transform::from_translation(vec3(x, y, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
@@ -251,7 +282,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(x as f32, WH, LAYER0))
+            Transform::from_translation(vec3(x as f32, WH, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
@@ -269,7 +300,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(x as f32, -WH, LAYER0))
+            Transform::from_translation(vec3(x as f32, -WH, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
@@ -287,7 +318,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(-WW, y as f32, LAYER0))
+            Transform::from_translation(vec3(-WW, y as f32, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));
@@ -305,7 +336,7 @@ fn spawn_world_edges(mut commands: Commands, handle: Res<GlobalTextureAtlas>) {
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(WW, y as f32, LAYER0))
+            Transform::from_translation(vec3(WW, y as f32, LAYER1))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             InGameEntity,
         ));

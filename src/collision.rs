@@ -1,6 +1,7 @@
 use bevy::utils::Duration;
 
 use crate::{
+    audio::AudioEvent,
     configs::KD_TREE_REFRESH_RATE,
     gun::BulletStats,
     player::{DamageBoost, InvincibilityEffect},
@@ -128,6 +129,7 @@ fn handle_enemy_bullet_collision(
     tree: Res<EnemyKdTree>,
     mut enemy_query: Query<(&Transform, &mut Enemy, Entity), With<Enemy>>,
     player_query: Query<&DamageBoost, With<Player>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if bullet_query.is_empty() || enemy_query.is_empty() || player_query.is_empty() {
         return;
@@ -145,6 +147,7 @@ fn handle_enemy_bullet_collision(
                         .saturating_sub(stats.damage + player_damage_boost);
 
                     if enemy_component.health > 0 {
+                        ew.send(AudioEvent::Hit);
                         commands.entity(enemy_entity).insert(HitFlash::default());
                     }
                 }
