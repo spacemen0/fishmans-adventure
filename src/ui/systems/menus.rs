@@ -391,12 +391,19 @@ pub fn setup_pause_menu(mut commands: Commands, asset_server: Res<AssetServer>, 
                     spawn_pause_menu_button(parent, "Resume", PauseMenuButton::Resume, &font.0, 0);
                     spawn_pause_menu_button(
                         parent,
-                        "Restart",
-                        PauseMenuButton::Restart,
+                        "Toggle Mute",
+                        PauseMenuButton::ToggleMute,
                         &font.0,
                         1,
                     );
-                    spawn_pause_menu_button(parent, "Quit", PauseMenuButton::Quit, &font.0, 2);
+                    spawn_pause_menu_button(
+                        parent,
+                        "Restart",
+                        PauseMenuButton::Restart,
+                        &font.0,
+                        2,
+                    );
+                    spawn_pause_menu_button(parent, "Quit", PauseMenuButton::Quit, &font.0, 3);
                 });
         });
 }
@@ -484,6 +491,11 @@ pub fn pause_menu_navigation(
                     PauseMenuButton::Quit => {
                         exit.send(AppExit::Success);
                         return;
+                    }
+                    PauseMenuButton::ToggleMute => {
+                        ew.send(AudioEvent::ToggleMute);
+                        next_state.set(GameState::Combat);
+                        *visibility = Visibility::Hidden;
                     }
                 }
                 *selected_button = 0;

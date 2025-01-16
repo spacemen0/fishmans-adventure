@@ -1,5 +1,8 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
-use bevy_kira_audio::{Audio, AudioControl, AudioSource};
+use bevy_kira_audio::{Audio, AudioControl, AudioSource, AudioTween};
+use kira::tween::Easing;
 
 use crate::{configs::*, game_state::GameState};
 
@@ -16,6 +19,7 @@ pub enum AudioEvent {
     Lose,
     LevelUp,
     PickUp,
+    ToggleMute,
 }
 
 #[derive(Resource)]
@@ -98,6 +102,17 @@ fn play_audio_event(
             }
             AudioEvent::PickUp => {
                 audio.play(audio_handles.pick_up.clone()).with_volume(0.8);
+            }
+            AudioEvent::ToggleMute => {
+                if audio.is_playing_sound() {
+                    audio
+                        .pause()
+                        .fade_out(AudioTween::new(Duration::from_secs(1), Easing::Linear));
+                } else {
+                    audio
+                        .resume()
+                        .fade_in(AudioTween::new(Duration::from_secs(1), Easing::Linear));
+                }
             }
         };
     }

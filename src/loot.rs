@@ -116,21 +116,46 @@ fn spawn_gun(
 ) {
     if let LootStatRange::Gun(range) = stat_range {
         let mut rng = rand::thread_rng();
-        let gun_stats = GunStats {
-            bullets_per_shot: rng.gen_range(range.bullets_per_shot.0..=range.bullets_per_shot.1),
-            firing_interval: rng.gen_range(range.firing_interval.0..=range.firing_interval.1),
-            bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
-        };
         let bullet_stats = BulletStats {
             speed: rng.gen_range(range.bullet_speed.0..=range.bullet_speed.1),
             lifespan: rng.gen_range(range.bullet_lifespan.0..=range.bullet_lifespan.1),
             damage: rng.gen_range(range.bullet_damage.0..=range.bullet_damage.1),
         };
         let (x, y) = get_random_position_around(transform.translation.xy(), 30.0..60.0);
-        let gun_type = match rng.gen_range(0..3) {
-            0 => GunType::FocusedAim,
-            1 => GunType::OmniSpread,
-            2 => GunType::SingleDirectionSpread,
+        let (gun_type, gun_stats) = match rng.gen_range(0..3) {
+            0 => (
+                GunType::FocusedAim,
+                GunStats {
+                    bullets_per_shot: 1,
+                    firing_interval: rng
+                        .gen_range(range.firing_interval.0..=range.firing_interval.1)
+                        * 0.5,
+                    bullet_spread: 0.0,
+                },
+            ),
+            1 => (
+                GunType::OmniSpread,
+                GunStats {
+                    bullets_per_shot: (rng
+                        .gen_range(range.bullets_per_shot.0..=range.bullets_per_shot.1)
+                        as f32
+                        * 1.5) as usize,
+                    firing_interval: rng
+                        .gen_range(range.firing_interval.0..=range.firing_interval.1)
+                        * 0.8,
+                    bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
+                },
+            ),
+            2 => (
+                GunType::SingleDirectionSpread,
+                GunStats {
+                    bullets_per_shot: rng
+                        .gen_range(range.bullets_per_shot.0..=range.bullets_per_shot.1),
+                    firing_interval: rng
+                        .gen_range(range.firing_interval.0..=range.firing_interval.1),
+                    bullet_spread: rng.gen_range(range.bullet_spread.0..=range.bullet_spread.1),
+                },
+            ),
             _ => unreachable!(),
         };
         commands.spawn((
@@ -150,7 +175,7 @@ fn spawn_gun(
             Description {
                 name: generate_random_cool_name(LootType::Gun),
                 description: format!(
-                    "Damage: {}; Speed: {}; Firing Interval: {:.1}; Bullet Per Shot: {}",
+                    "Damage: {}; Speed: {}; Firing Interval: {:.2}; Bullet Per Shot: {}",
                     bullet_stats.damage,
                     bullet_stats.speed,
                     gun_stats.firing_interval,

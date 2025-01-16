@@ -24,6 +24,7 @@ pub enum PauseMenuButton {
     Resume,
     Restart,
     Quit,
+    ToggleMute,
 }
 
 #[derive(Component)]

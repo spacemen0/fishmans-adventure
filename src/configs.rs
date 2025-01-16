@@ -41,12 +41,12 @@ pub const REPEL_MARGIN: f32 = 100.0;
 pub const KD_TREE_REFRESH_RATE: f32 = 0.1;
 
 // Default Gun
-pub const FIRING_INTERVAL: f32 = 0.2;
+pub const FIRING_INTERVAL: f32 = 0.4;
 pub const BULLET_TIME_SECS: f32 = 0.5;
-pub const BULLET_SPEED: u32 = 15;
+pub const BULLET_SPEED: u32 = 10;
 pub const BULLET_DAMAGE: u32 = 25;
 pub const BULLET_SPREAD: f32 = 0.7;
-pub const NUM_BULLETS_PER_SHOT: usize = 5;
+pub const NUM_BULLETS_PER_SHOT: usize = 4;
 
 // Colors
 pub const BG_COLOR: (u8, u8, u8) = (72, 59, 58);
