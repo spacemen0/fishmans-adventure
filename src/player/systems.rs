@@ -385,24 +385,32 @@ pub fn handle_loot_sale_event(
                         inventory.speed_potions.retain(|&e| e != event.0);
                     }
                     LootType::Gun => {
-                        inventory.guns.retain(|&e| e != event.0);
-                        if inventory.active_gun_index >= inventory.guns.len() {
-                            inventory.active_gun_index = 0;
-                        }
                         commands
                             .entity(inventory.guns[inventory.active_gun_index])
-                            .insert(ActiveGun)
-                            .insert(Visibility::Visible);
+                            .remove::<ActiveGun>();
+                        inventory.guns.retain(|&e| e != event.0);
+                        inventory.active_gun_index = 0;
+
+                        if inventory.guns.len() > 0 {
+                            commands
+                                .entity(inventory.guns[inventory.active_gun_index])
+                                .insert(ActiveGun)
+                                .insert(Visibility::Visible);
+                        }
                     }
                     LootType::Armor => {
-                        inventory.armors.retain(|&e| e != event.0);
-                        if inventory.active_armor_index >= inventory.armors.len() {
-                            inventory.active_armor_index = 0;
-                        }
                         commands
                             .entity(inventory.armors[inventory.active_armor_index])
-                            .insert(ActiveArmor)
-                            .insert(Visibility::Visible);
+                            .remove::<ActiveGun>();
+                        inventory.armors.retain(|&e| e != event.0);
+                        inventory.active_armor_index = 0;
+
+                        if inventory.armors.len() > 0 {
+                            commands
+                                .entity(inventory.armors[inventory.active_armor_index])
+                                .insert(ActiveArmor)
+                                .insert(Visibility::Visible);
+                        }
                     }
                 }
                 commands.entity(event.0).despawn();

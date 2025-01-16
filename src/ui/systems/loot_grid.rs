@@ -302,6 +302,9 @@ pub fn set_up_loot_image(
             } else {
                 image_node.image = Default::default();
                 image_node.texture_atlas = None;
+                if let Ok(mut grid_slot) = grid_slot_query.get_mut(**parent) {
+                    grid_slot.item = None;
+                }
             }
         }
     } else {
@@ -310,18 +313,46 @@ pub fn set_up_loot_image(
 }
 
 pub fn highlight_active_item(
-    mut grid_query: Query<(&GridSlot, &mut BorderColor)>,
+    mut grid_query: Query<(&GridSlot, &mut BorderColor, Option<&FocusedItem>)>,
     gun_query: Query<&ActiveGun>,
     armor_query: Query<&ActiveArmor>,
 ) {
-    for (grid_slot, mut border_color) in grid_query.iter_mut() {
-        if grid_slot.y == 2 && grid_slot.item.is_some() {
-            if let Ok(_) = gun_query.get(grid_slot.item.unwrap()) {
-                border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+    for (grid_slot, mut border_color, is_focused) in grid_query.iter_mut() {
+        if grid_slot.y == 2 {
+            if grid_slot.item.is_some() {
+                if let Ok(_) = gun_query.get(grid_slot.item.unwrap()) {
+                    border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+                } else {
+                    if is_focused.is_some() {
+                        border_color.0 = Color::linear_rgb(1.0, 1.0, 0.0);
+                    } else {
+                        border_color.0 = Color::BLACK;
+                    }
+                }
+            } else {
+                if is_focused.is_some() {
+                    border_color.0 = Color::linear_rgb(1.0, 1.0, 0.0);
+                } else {
+                    border_color.0 = Color::BLACK;
+                }
             }
-        } else if grid_slot.y == 3 && grid_slot.item.is_some() {
-            if let Ok(_) = armor_query.get(grid_slot.item.unwrap()) {
-                border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+        } else if grid_slot.y == 3 {
+            if grid_slot.item.is_some() {
+                if let Ok(_) = armor_query.get(grid_slot.item.unwrap()) {
+                    border_color.0 = Color::linear_rgb(0.0, 1.0, 0.0);
+                } else {
+                    if is_focused.is_some() {
+                        border_color.0 = Color::linear_rgb(1.0, 1.0, 0.0);
+                    } else {
+                        border_color.0 = Color::BLACK;
+                    }
+                }
+            } else {
+                if is_focused.is_some() {
+                    border_color.0 = Color::linear_rgb(1.0, 1.0, 0.0);
+                } else {
+                    border_color.0 = Color::BLACK;
+                }
             }
         }
     }
