@@ -1,13 +1,11 @@
 use std::time::Duration;
 
 use crate::{
-    armor::{Armor, ArmorStats},
     audio::AudioEvent,
     configs::{SPRITE_SCALE_FACTOR, UI_BG_COLOR},
     game_state::GameState,
-    gun::{BulletStats, Gun, GunStats, GunType},
     input::Action,
-    loot::Value,
+    loot::{medium_enemies_loots, spawn_armor_entity, spawn_gun_entity, LootStatRange, Value},
     player::{Gold, PlayerInventory, PlayerLevelingUpEvent},
     potion::{Potion, PotionStats, PotionType},
     resources::{GameMode, GlobalTextureAtlas, Level, UiFont},
@@ -767,9 +765,7 @@ pub fn handle_shop_menu_buttons(
     mut selected_button: Local<u8>,
     mut query: Query<(&ShopMenuButton, &mut BackgroundColor, &ShopMenuButtonIndex)>,
     texture_atlases: Res<GlobalTextureAtlas>,
-    mut menu_query: Query<&mut Visibility, With<ShopMenuRoot>>,
     font: Res<UiFont>,
-    next_state: ResMut<NextState<GameState>>,
     level: ResMut<Level>,
     ew: EventWriter<PlayerLevelingUpEvent>,
     mut audio_ew: EventWriter<AudioEvent>,
@@ -792,8 +788,6 @@ pub fn handle_shop_menu_buttons(
         audio_ew.send(AudioEvent::PopUp);
     }
 
-    let mut visibility = menu_query.get_single_mut().unwrap();
-
     for (button, mut color, index) in query.iter_mut() {
         if index.0 == *selected_button {
             *color = BackgroundColor(Color::srgba_u8(204, 195, 176, 230));
@@ -806,9 +800,7 @@ pub fn handle_shop_menu_buttons(
                                 &mut inventory,
                                 &mut gold,
                                 &texture_atlases,
-                                &mut visibility,
                                 &font,
-                                next_state,
                             );
                             break;
                         }
@@ -818,9 +810,7 @@ pub fn handle_shop_menu_buttons(
                                 &mut inventory,
                                 &mut gold,
                                 &texture_atlases,
-                                &mut visibility,
                                 &font,
-                                next_state,
                             );
                             break;
                         }
@@ -830,9 +820,7 @@ pub fn handle_shop_menu_buttons(
                                 &mut inventory,
                                 &mut gold,
                                 &texture_atlases,
-                                &mut visibility,
                                 &font,
-                                next_state,
                             );
                             break;
                         }
@@ -842,22 +830,12 @@ pub fn handle_shop_menu_buttons(
                                 &mut inventory,
                                 &mut gold,
                                 &texture_atlases,
-                                &mut visibility,
                                 &font,
-                                next_state,
                             );
                             break;
                         }
                         ShopMenuButton::BuyXP => {
-                            handle_buy_xp(
-                                &mut commands,
-                                level,
-                                &mut gold,
-                                &mut visibility,
-                                &font,
-                                next_state,
-                                ew,
-                            );
+                            handle_buy_xp(&mut commands, level, &mut gold, &font, ew);
                             break;
                         }
                     }
@@ -873,9 +851,7 @@ fn handle_buy_xp(
     commands: &mut Commands,
     mut level: ResMut<Level>,
     gold: &mut Gold,
-    visibility: &mut Visibility,
     font: &UiFont,
-    mut next_state: ResMut<NextState<GameState>>,
     mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
 ) {
     if gold.0 >= 400 {
@@ -885,8 +861,6 @@ fn handle_buy_xp(
                 new_level: level.level(),
             });
         }
-        *visibility = Visibility::Hidden;
-        next_state.set(GameState::Combat);
         spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
     } else {
         spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
@@ -898,9 +872,7 @@ fn handle_buy_health_potion(
     inventory: &mut PlayerInventory,
     gold: &mut Gold,
     texture_atlases: &GlobalTextureAtlas,
-    visibility: &mut Visibility,
     font: &UiFont,
-    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if gold.0 >= 50 {
         if inventory.health_potions.len() < 4 {
@@ -928,8 +900,6 @@ fn handle_buy_health_potion(
                 ))
                 .id();
             inventory.health_potions.push(health_potion);
-            *visibility = Visibility::Hidden;
-            next_state.set(GameState::Combat);
             spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
         } else {
             spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
@@ -944,9 +914,7 @@ fn handle_buy_speed_potion(
     inventory: &mut PlayerInventory,
     gold: &mut Gold,
     texture_atlases: &GlobalTextureAtlas,
-    visibility: &mut Visibility,
     font: &UiFont,
-    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if gold.0 >= 50 {
         if inventory.speed_potions.len() < 4 {
@@ -967,15 +935,13 @@ fn handle_buy_speed_potion(
                     Visibility::Hidden,
                     Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                     PotionStats {
-                        effect_duration: 1.0,
+                        effect_duration: 5.0,
                         effect_amount: 10,
                     },
                     PotionType::Speed,
                 ))
                 .id();
             inventory.speed_potions.push(speed_potion);
-            *visibility = Visibility::Hidden;
-            next_state.set(GameState::Combat);
             spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
         } else {
             spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
@@ -985,49 +951,41 @@ fn handle_buy_speed_potion(
     }
 }
 
-fn handle_buy_gun(
+pub fn handle_buy_gun(
     commands: &mut Commands,
     inventory: &mut PlayerInventory,
     gold: &mut Gold,
     texture_atlases: &GlobalTextureAtlas,
-    visibility: &mut Visibility,
     font: &UiFont,
-    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if gold.0 >= 200 {
         if inventory.guns.len() < 4 {
             gold.0 -= 200;
-            let gun = commands
-                .spawn((
-                    Name::new("RandomGun"),
-                    Gun,
-                    Value(10),
-                    Sprite {
-                        image: texture_atlases.image.clone().unwrap(),
-                        texture_atlas: Some(TextureAtlas {
-                            layout: texture_atlases.layout_16x16.clone().unwrap(),
-                            index: 65,
-                        }),
-                        ..default()
-                    },
-                    Visibility::Hidden,
-                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    GunType::SingleDirectionSpread,
-                    GunStats {
-                        bullets_per_shot: 5,
-                        firing_interval: 0.5,
-                        bullet_spread: 0.2,
-                    },
-                    BulletStats {
-                        speed: 20,
-                        damage: 20,
-                        lifespan: 0.6,
-                    },
-                ))
-                .id();
+            let medium_enemies_loot = medium_enemies_loots();
+            let gun_stat_range = if let Some(gun_loot) = medium_enemies_loot
+                .items
+                .iter()
+                .find(|item| matches!(item.stat_range, LootStatRange::Gun(_)))
+            {
+                if let LootStatRange::Gun(range) = &gun_loot.stat_range {
+                    range.clone()
+                } else {
+                    panic!("Expected GunStatRange");
+                }
+            } else {
+                panic!("No gun stat range found in medium enemies bundle");
+            };
+
+            let gun = spawn_gun_entity(
+                commands,
+                Vec3::new(0.0, 0.0, SPRITE_SCALE_FACTOR),
+                texture_atlases.image.clone().unwrap(),
+                texture_atlases.layout_16x16.clone().unwrap(),
+                gun_stat_range,
+                200,
+            );
+            commands.entity(gun).insert(Visibility::Hidden);
             inventory.guns.push(gun);
-            *visibility = Visibility::Hidden;
-            next_state.set(GameState::Combat);
             spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
         } else {
             spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());
@@ -1036,44 +994,41 @@ fn handle_buy_gun(
         spawn_floating_text_box(commands, &font.0, "Not Enough Gold".to_owned());
     }
 }
-
-fn handle_buy_armor(
+pub fn handle_buy_armor(
     commands: &mut Commands,
     inventory: &mut PlayerInventory,
     gold: &mut Gold,
     texture_atlases: &GlobalTextureAtlas,
-    visibility: &mut Visibility,
-
     font: &UiFont,
-    mut next_state: ResMut<NextState<GameState>>,
 ) {
     if gold.0 >= 100 {
         if inventory.armors.len() < 4 {
             gold.0 -= 100;
-            let armor = commands
-                .spawn((
-                    Name::new("RandomArmor"),
-                    Armor,
-                    Value(10),
-                    ArmorStats {
-                        defense: 2,
-                        durability: 20,
-                    },
-                    Sprite {
-                        image: texture_atlases.image.clone().unwrap(),
-                        texture_atlas: Some(TextureAtlas {
-                            layout: texture_atlases.layout_16x16.clone().unwrap(),
-                            index: 98,
-                        }),
-                        ..default()
-                    },
-                    Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
-                    Visibility::Hidden,
-                ))
-                .id();
+            let medium_enemies_loot = medium_enemies_loots();
+            let armor_stat_range = if let Some(armor_loot) = medium_enemies_loot
+                .items
+                .iter()
+                .find(|item| matches!(item.stat_range, LootStatRange::Armor(_)))
+            {
+                if let LootStatRange::Armor(range) = &armor_loot.stat_range {
+                    range.clone()
+                } else {
+                    panic!("Expected ArmorStatRange");
+                }
+            } else {
+                panic!("No armor stat range found in medium enemies bundle");
+            };
+
+            let armor = spawn_armor_entity(
+                commands,
+                Vec3::new(0.0, 0.0, SPRITE_SCALE_FACTOR),
+                texture_atlases.image.clone().unwrap(),
+                texture_atlases.layout_16x16.clone().unwrap(),
+                armor_stat_range,
+                100,
+            );
+            commands.entity(armor).insert(Visibility::Hidden);
             inventory.armors.push(armor);
-            *visibility = Visibility::Hidden;
-            next_state.set(GameState::Combat);
             spawn_floating_text_box(commands, &font.0, "Item Bought!".to_owned());
         } else {
             spawn_floating_text_box(commands, &font.0, "Inventory Full".to_owned());

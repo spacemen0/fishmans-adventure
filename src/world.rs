@@ -146,7 +146,7 @@ pub fn init_world(
             Visibility::Hidden,
             Transform::from_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             PotionStats {
-                effect_duration: 1.0,
+                effect_duration: 5.0,
                 effect_amount: 10,
             },
             Description {

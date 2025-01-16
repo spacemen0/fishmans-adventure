@@ -66,7 +66,7 @@ fn play_background_music(audio: Res<Audio>, audio_handles: Res<AudioHandles>) {
     audio
         .play(audio_handles.background.clone())
         .looped()
-        .with_volume(0.8);
+        .with_volume(0.6);
 }
 
 fn play_audio_event(
