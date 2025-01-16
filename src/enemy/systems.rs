@@ -24,6 +24,7 @@ pub fn update_enemy_movement(
             &mut Transform,
             &mut EnemyState,
             Option<&RangedBehavior>,
+            Option<&TrailAbility>,
         ),
         (Without<Player>, Without<ChargeAbility>),
     >,
@@ -33,10 +34,10 @@ pub fn update_enemy_movement(
 
         let enemy_positions: Vec<(Entity, Vec3)> = enemy_query
             .iter()
-            .map(|(entity, _, transform, _, _)| (entity, transform.translation))
+            .map(|(entity, _, transform, _, _, _)| (entity, transform.translation))
             .collect();
 
-        for (entity, enemy, mut transform, mut state, ranged_behavior) in enemy_query.iter_mut() {
+        for (entity, enemy, mut transform, mut state, ranged_behavior, trail_ability) in enemy_query.iter_mut() {
             let mut movement = Vec2::ZERO;
 
             match &mut *state {
@@ -44,7 +45,7 @@ pub fn update_enemy_movement(
                     timer.tick(time.delta());
 
                     let distance_to_player = transform.translation.distance(player_pos);
-                    if distance_to_player < 500.0 {
+                    if distance_to_player < 500.0 && trail_ability.is_none() {
                         *state = EnemyState::Pursuing;
                     } else {
                         if timer.just_finished() {
@@ -214,7 +215,7 @@ pub fn spawn_enemies(
         let num_enemies = calculate_enemies_for_wave(wave.number);
 
         for _ in 0..num_enemies {
-            let (x, y) = get_random_position_around(player_pos, 200.0..500.0);
+            let (x, y) = get_random_position_around(player_pos, 250.0..1000.0);
             let mut position = Vec3::new(x, y, LAYER2);
             clamp_position(&mut position);
 
@@ -231,7 +232,7 @@ pub fn spawn_enemies(
                 },
                 Transform::from_translation(position).with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
                 SpawnIndicator {
-                    timer: Timer::from_seconds(2.0, TimerMode::Once),
+                    timer: Timer::from_seconds(2.5, TimerMode::Once),
                     spawn_position: position,
                 },
                 InGameEntity,
@@ -598,7 +599,7 @@ pub fn handle_charge_enemy_flash(
                 let flash_rate = 18.0;
                 let flash_amount = (time.elapsed_secs() * flash_rate).sin() * 0.5 + 0.5;
 
-                sprite.color = Color::srgba(1.0, 0.0, 0.0, flash_amount);
+                sprite.color = Color::srgba(0.3, 0.7, 1.0, flash_amount);
             }
             _ => {
                 sprite.color = original_color.0;
@@ -839,7 +840,7 @@ fn spawn_enemy_bullets(
 
         if is_exploding {
             bullet_entity.insert(ExplodingBullet {
-                radius: 100.0,
+                radius: 135.0,
                 damage: 30,
             });
         }
@@ -963,18 +964,27 @@ pub fn handle_summoning_abilities(
         if summoning_ability.timer.just_finished() {
             let num_minions = rand::thread_rng()
                 .gen_range(summoning_ability.min_minions..=summoning_ability.max_minions);
-            for _ in 0..num_minions {
-                let offset = Vec2::new(
-                    rand::random::<f32>() * 100.0 - 50.0,
-                    rand::random::<f32>() * 100.0 - 50.0,
-                );
-                let position = transform.translation + Vec3::new(offset.x, offset.y, 0.0);
+            let spread_radius_min = 200.0;
+            let spread_radius_max = 1000.0;
+            let angle_step = 2.0 * std::f32::consts::PI / num_minions as f32;
+            for i in 0..num_minions {
+                let angle = angle_step * i as f32;
+                let radius = rand::thread_rng().gen_range(spread_radius_min..spread_radius_max);
+
+                let offset_x = angle.cos() * radius;
+                let offset_y = angle.sin() * radius;
+
+                let mut position = transform.translation + Vec3::new(offset_x, offset_y, 0.0);
+                clamp_position(&mut position);
+
                 let enemy = match rand::random::<f32>() {
+                    x if x < 0.03 => create_splitting_enemy(),
                     x if x < 0.2 => create_basic_enemy(),
                     x if x < 0.4 => create_trail_enemy(),
-                    x if x < 0.6 => create_shooter_enemy(),
-                    x if x < 0.8 => create_charging_enemy(),
-                    _ => create_bomber_enemy(),
+                    x if x < 0.65 => create_charging_enemy(),
+                    x if x < 0.8 => create_shooter_enemy(),
+                    x if x < 0.95 => create_bomber_enemy(),
+                    _ => create_gurgle_enemy(),
                 };
                 enemy.spawn(&mut commands, position, &handle);
             }

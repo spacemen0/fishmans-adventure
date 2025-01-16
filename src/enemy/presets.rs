@@ -45,9 +45,9 @@ pub fn create_shooter_enemy() -> EnemyBuilder {
 
 pub fn create_bomber_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(30, 7, 30, 25)
+        .with_stats(30, 9, 30, 25)
         .with_sprite(48, (16, 16))
-        .with_explosion(130.0, 14)
+        .with_explosion(140.0, 14)
         .with_loot_pool(strong_enemies_bundle())
 }
 
@@ -63,7 +63,7 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
 
 pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(50000, 9, 20, 200)
+        .with_stats(35000, 9, 20, 200)
         .with_sprite(56, (32, 32))
         .with_shooting(5, 1.0, 800.0, 300, 15)
         .with_charge(600, 50, 0.6, 3.0)
