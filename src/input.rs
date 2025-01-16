@@ -25,6 +25,7 @@ impl Action {
         InputMap::new([
             (Self::SwitchGun, KeyCode::KeyQ),
             (Self::TogglePause, KeyCode::KeyP),
+            (Self::TogglePause, KeyCode::Escape),
             (Self::SwitchArmor, KeyCode::KeyZ),
             (Self::Confirm, KeyCode::Enter),
             (Self::NavigateUp, KeyCode::ArrowUp),

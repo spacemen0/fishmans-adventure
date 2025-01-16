@@ -249,7 +249,7 @@ pub fn setup_control_widget(commands: &mut Commands, font: Handle<Font>) {
                         });
                     spawn_control_binding_text(parent, "Move: W/A/S/D", &font);
                     spawn_control_binding_text(parent, "Switch Gun: Q", &font);
-                    spawn_control_binding_text(parent, "Pause MenuL P", &font);
+                    spawn_control_binding_text(parent, "Pause Menu: P/ESC", &font);
                     spawn_control_binding_text(parent, "Confirm: Enter", &font);
                     spawn_control_binding_text(parent, "Navigate: Arrow Keys/WASD", &font);
                     spawn_control_binding_text(parent, "Use Health Potion: 1", &font);

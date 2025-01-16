@@ -127,7 +127,7 @@ pub fn spawn_gun_entity(
                 bullets_per_shot: 1,
                 firing_interval: rng
                     .gen_range(stat_range.firing_interval.0..=stat_range.firing_interval.1)
-                    * 0.5,
+                    * 0.7,
                 bullet_spread: 0.0,
             },
         ),

@@ -1,5 +1,4 @@
 #[cfg(not(target_arch = "wasm32"))]
-use iyes_perf_ui::prelude::PerfUiDefaultEntries;
 use rand::Rng;
 
 use crate::{
@@ -43,12 +42,6 @@ pub fn init_world(
 ) {
     commands.insert_resource(Wave::default());
     commands.insert_resource(Level::default());
-    #[cfg(not(target_arch = "wasm32"))]
-    commands.spawn((
-        PerfUiDefaultEntries::default(),
-        Name::new("Debug Ui"),
-        InGameEntity,
-    ));
 
     let player_entity = commands
         .spawn((
