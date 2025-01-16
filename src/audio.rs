@@ -3,6 +3,7 @@ use std::time::Duration;
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl, AudioSource, AudioTween};
 use kira::tween::Easing;
+use rand::Rng;
 
 use crate::{configs::*, game_state::GameState};
 
@@ -36,12 +37,19 @@ struct AudioHandles {
     pick_up: Handle<AudioSource>,
 }
 
+#[derive(Resource)]
+struct HitSoundTimer(Timer);
+
 impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AudioEvent>()
+            .insert_resource(HitSoundTimer(Timer::from_seconds(0.3, TimerMode::Once)))
             .add_systems(OnEnter(GameState::Loading), load_audio_assets)
             .add_systems(Startup, play_background_music)
-            .add_systems(Update, play_audio_event.run_if(on_event::<AudioEvent>));
+            .add_systems(
+                Update,
+                (play_audio_event.run_if(on_event::<AudioEvent>), tick_timer),
+            );
     }
 }
 
@@ -66,21 +74,33 @@ fn play_background_music(audio: Res<Audio>, audio_handles: Res<AudioHandles>) {
     audio
         .play(audio_handles.background.clone())
         .looped()
-        .with_volume(0.6);
+        .with_volume(0.35);
+}
+
+fn tick_timer(mut timer: ResMut<HitSoundTimer>, time: Res<Time>) {
+    timer.0.tick(time.delta());
 }
 
 fn play_audio_event(
     audio: Res<Audio>,
     audio_handles: Res<AudioHandles>,
     mut event_reader: EventReader<AudioEvent>,
+    mut hit_sound_timer: ResMut<HitSoundTimer>,
 ) {
+    let mut rng = rand::thread_rng();
     for event in event_reader.read() {
         match event {
             AudioEvent::Kill => {
-                audio.play(audio_handles.kill.clone()).with_volume(0.6);
+                audio.play(audio_handles.kill.clone()).with_volume(0.8);
             }
             AudioEvent::Hit => {
-                audio.play(audio_handles.hit.clone()).with_volume(0.15);
+                if hit_sound_timer.0.finished() {
+                    audio.play(audio_handles.hit.clone()).with_volume(0.2);
+                    hit_sound_timer.0.reset();
+                    hit_sound_timer
+                        .0
+                        .set_duration(Duration::from_secs_f32(rng.gen_range(0.1..0.4)));
+                }
             }
             AudioEvent::Fire => {
                 audio.play(audio_handles.fire.clone()).with_volume(0.2);

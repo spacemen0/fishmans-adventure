@@ -32,31 +32,30 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                 },
             ));
 
-            parent
-                .spawn((
-                    Sprite {
-                        color: Color::linear_rgb(0.0, 1.0, 0.0),
-                        custom_size: Some(Vec2::new(12.0, 3.0)),
-                        ..default()
-                    },
-                    Transform {
-                        translation: Vec3::new(0.0, 4.0, LAYER2),
-                        ..default()
-                    },
-                ))
-                .insert(PlayerHealthBar);
+            parent.spawn((
+                Sprite {
+                    color: Color::linear_rgb(0.0, 1.0, 0.0),
+                    custom_size: Some(Vec2::new(12.0, 3.0)),
+                    ..default()
+                },
+                Transform {
+                    translation: Vec3::new(0.0, 4.0, LAYER2),
+                    ..default()
+                },
+                PlayerHealthBar,
+            ));
         });
     }
 }
 
 pub fn update_health_bar(
-    player_query: Query<&Health, With<Player>>,
+    player_query: Query<&Health, (With<Player>, Changed<Health>)>,
     mut health_bar_query: Query<(&mut Transform, &mut Sprite), With<PlayerHealthBar>>,
 ) {
     if let Ok(health) = player_query.get_single() {
         if let Ok((mut transform, mut sprite)) = health_bar_query.get_single_mut() {
             let health_percentage = health.0 as f32 / health.1 as f32;
-            sprite.custom_size = Some(Vec2::new(12.0 * health_percentage, 2.0));
+            sprite.custom_size = Some(Vec2::new(12.0 * health_percentage, 3.0));
             transform.translation.x = -6.0 + (6.0 * health_percentage);
         }
     }
