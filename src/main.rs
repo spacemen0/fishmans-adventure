@@ -1,7 +1,12 @@
 #[cfg(debug_assertions)]
 use bevy::input::common_conditions::input_toggle_active;
 
-use bevy::{asset::embedded_asset, diagnostic::*, prelude::*, window::WindowMode};
+use bevy::{
+    asset::embedded_asset,
+    diagnostic::*,
+    prelude::*,
+    window::{CursorOptions, WindowMode},
+};
 #[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
@@ -37,15 +42,17 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        mode: WindowMode::Fullscreen(MonitorSelection::Primary),
+                        mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                         resizable: true,
                         canvas: Some("#fishmans_adventure".to_owned()),
                         title: "Fishman's Adventure".to_owned(),
+                        fit_canvas_to_parent: true,
+                        prevent_default_event_handling: false,
                         focused: true,
-                        // cursor_options: CursorOptions {
-                        //     visible: false,
-                        //     ..default()
-                        // },
+                        cursor_options: CursorOptions {
+                            visible: false,
+                            ..default()
+                        },
                         resolution: (WW, WH).into(),
                         ..default()
                     }),
