@@ -30,7 +30,6 @@ pub fn update_enemy_movement(
     if let Ok(player_transform) = player_query.get_single() {
         let player_pos = player_transform.translation;
 
-        // Collect all enemy positions first
         let enemy_positions: Vec<(Entity, Vec3)> = enemy_query
             .iter()
             .map(|(entity, _, transform, _, _)| (entity, transform.translation))
@@ -39,7 +38,6 @@ pub fn update_enemy_movement(
         for (entity, enemy, mut transform, mut state, ranged_behavior) in enemy_query.iter_mut() {
             let mut movement = Vec2::ZERO;
 
-            // Calculate base movement based on enemy state
             match &mut *state {
                 EnemyState::Wandering { direction, timer } => {
                     timer.tick(time.delta());
@@ -118,8 +116,7 @@ pub fn update_enemy_movement(
                 }
             }
 
-            // Handle collisions with other enemies
-            let collision_radius = 30.0; // Adjust this value to change how close enemies can get
+            let collision_radius = 30.0; 
             let mut collision_resolution = Vec2::ZERO;
 
             for (other_entity, other_pos) in &enemy_positions {
@@ -129,11 +126,9 @@ pub fn update_enemy_movement(
 
                     if distance < collision_radius {
                         if distance > 0.0 {
-                            // Add a strong pushing force when enemies get too close
                             collision_resolution +=
                                 diff.truncate().normalize() * (collision_radius - distance);
                         } else {
-                            // If enemies are at exactly the same position, push in a random direction
                             let random_angle = rand::random::<f32>() * std::f32::consts::TAU;
                             collision_resolution +=
                                 Vec2::new(random_angle.cos(), random_angle.sin())
@@ -143,10 +138,8 @@ pub fn update_enemy_movement(
                 }
             }
 
-            // Apply both movement and collision resolution
             let final_movement = movement + collision_resolution;
 
-            // Apply the movement with existing boundary checking
             apply_movement(&mut transform.translation, final_movement, LAYER1);
         }
     }
@@ -310,7 +303,14 @@ fn select_enemy_type(wave: u32) -> fn() -> EnemyBuilder {
 
 fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
     if is_boss_wave(wave_number) {
-        1
+        let base_boss_count = 3;
+        let additional_bosses = if wave_number <= 10 {
+            0
+        } else {
+            ((wave_number - 10) / 10) as u32
+        };
+        
+        base_boss_count + additional_bosses
     } else {
         let base = match wave_number {
             1..=3 => 15 + wave_number * 3,

@@ -17,7 +17,7 @@ pub const SPRITE_SHEET_H: u32 = 256 / TILE_H;
 pub const NUM_WORLD_DECORATIONS: usize = 100;
 
 // Player
-pub const PLAYER_SPEED: u32 = 15;
+pub const PLAYER_SPEED: u32 = 8;
 pub const PLAYER_HEALTH: u32 = 50;
 pub const PLAYER_INVINCIBLE_TIME: f32 = 0.1;
 pub const MAX_DEFENSE: u32 = 30;
