@@ -11,8 +11,8 @@ use crate::{
     utils::{apply_movement, clamp_position, get_random_position_around, InGameEntity},
 };
 use bevy::prelude::*;
+use bevy::utils::Duration;
 use rand::{random, Rng};
-use std::time::Duration;
 
 pub fn update_enemy_movement(
     time: Res<Time>,

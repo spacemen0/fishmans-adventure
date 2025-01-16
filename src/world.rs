@@ -59,7 +59,7 @@ pub fn init_world(
             Health(PLAYER_HEALTH, PLAYER_HEALTH),
             Speed(PLAYER_SPEED),
             Defense(1),
-            Gold(1000),
+            Gold(100),
             DamageBoost(0),
             OriginalColor(Color::WHITE),
             PlayerState::default(),

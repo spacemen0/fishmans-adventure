@@ -1,4 +1,4 @@
-use std::time::Duration;
+use bevy::utils::Duration;
 
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl, AudioSource, AudioTween};

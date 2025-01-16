@@ -1,4 +1,4 @@
-use std::time::{Duration, Instant};
+use bevy::utils::{Duration, Instant};
 
 use bevy::prelude::*;
 

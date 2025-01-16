@@ -7,6 +7,7 @@ use crate::{
     ui::components::{FloatingText, PlayerHealthBar, WaveDisplay, WaveDisplayRoot},
     utils::InGameEntity,
 };
+use bevy::utils::Duration;
 use bevy::{
     color::Color,
     core::Name,
@@ -15,7 +16,6 @@ use bevy::{
     prelude::*,
     text::TextBounds,
 };
-use std::time::Duration;
 
 pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
     if let Ok(player_entity) = player_query.get_single() {

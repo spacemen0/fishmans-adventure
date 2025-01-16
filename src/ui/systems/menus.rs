@@ -1,4 +1,4 @@
-use std::time::Duration;
+use bevy::utils::Duration;
 
 use crate::{
     audio::AudioEvent,
@@ -1088,14 +1088,5 @@ pub fn despawn_floating_text_box(
         if text_box.spawn_time.elapsed() > text_box.lifespan {
             commands.entity(entity).try_despawn_recursive();
         }
-    }
-}
-
-pub fn despawn_all_floating_text_boxes(
-    mut commands: Commands,
-    text_box_query: Query<Entity, With<FloatingTextBox>>,
-) {
-    for entity in text_box_query.iter() {
-        commands.entity(entity).try_despawn_recursive();
     }
 }
