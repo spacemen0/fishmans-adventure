@@ -10,7 +10,6 @@ leafwing-input-manager = "0.16"
 wasm-bindgen = "0.2.99"
 rand = "0.8.5"
 typenum = "1.17.0"
-iyes_perf_ui = { git = "https://github.com/IyesGames/iyes_perf_ui" }
 bevy-inspector-egui = "0.28"
 chrono = "0.4.39"
 bevy_kira_audio = "0.22.0"

@@ -9,12 +9,12 @@ use super::{
         },
     },
 };
-use crate::ui::systems::player_info;
 use crate::{
     game_state::GameState,
     ui::systems::{
         in_game_ui, loot_grid,
         menus::{self, handle_end_screen_input, set_up_death_screen, set_up_win_screen},
+        player_info,
     },
     utils::cleanup_entities,
     world::init_world,

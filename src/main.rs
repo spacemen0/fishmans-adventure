@@ -1,6 +1,8 @@
-use bevy::{
-    asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active, prelude::*,
-};
+#[cfg(debug_assertions)]
+use bevy::input::common_conditions::input_toggle_active;
+
+use bevy::{asset::embedded_asset, diagnostic::*, prelude::*, window::WindowMode};
+#[cfg(debug_assertions)]
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_kira_audio::AudioPlugin;
 use fishmans_adventure::{
@@ -20,7 +22,6 @@ use fishmans_adventure::{
     ui::{components::GridSlot, plugin::UiPlugin},
     world::WorldPlugin,
 };
-use iyes_perf_ui::PerfUiPlugin;
 use wasm_bindgen::prelude::wasm_bindgen;
 
 #[wasm_bindgen]
@@ -36,7 +37,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        // mode: bevy::window::WindowMode::Fullscreen,
+                        mode: WindowMode::Fullscreen(MonitorSelection::Primary),
                         resizable: true,
                         canvas: Some("#fishmans_adventure".to_owned()),
                         title: "Fishman's Adventure".to_owned(),
@@ -60,13 +61,9 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EntityCountDiagnosticsPlugin)
         .add_plugins(SystemInformationDiagnosticsPlugin)
-        .add_plugins(PerfUiPlugin)
         .add_plugins(UiPlugin)
         .add_plugins(GameAudioPlugin)
         .add_plugins(AudioPlugin)
-        .add_plugins(
-            WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
-        )
         .add_plugins(FollowCameraPlugin)
         .add_plugins(GunPlugin)
         .add_plugins(PlayerPlugin)
@@ -80,6 +77,11 @@ fn main() {
         .add_plugins(InputPlugin)
         .init_state::<GameState>()
         .init_resource::<GameMode>();
+    #[cfg(debug_assertions)]
+    app.add_plugins(
+        WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
+    );
+
     #[cfg(target_arch = "wasm32")]
     app.add_systems(PostUpdate, handle_exit_event);
     app.run();

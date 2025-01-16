@@ -1,24 +1,30 @@
-use crate::audio::AudioEvent;
-use crate::configs::MAX_DEFENSE;
-use crate::game_state::GameState;
-use crate::input::Action;
-use crate::player::{DamageBoost, Defense, Gold, Health, Player};
-use crate::resources::{GlobalTextureAtlas, Level, UiFont};
-use crate::ui::components::{
-    PauseMenuRoot, PlayerDamageBoostText, PlayerDefenseText, PlayerGoldText, PlayerHealthText,
-    PlayerLevelText, PlayerXpText, UiRoot,
+use crate::{
+    audio::AudioEvent,
+    configs::MAX_DEFENSE,
+    game_state::GameState,
+    input::Action,
+    player::{DamageBoost, Defense, Gold, Health, Player},
+    resources::{GlobalTextureAtlas, Level, UiFont},
+    ui::{
+        components::{
+            PauseMenuRoot, PlayerDamageBoostText, PlayerDefenseText, PlayerGoldText,
+            PlayerHealthText, PlayerLevelText, PlayerXpText, UiRoot,
+        },
+        systems::loot_grid,
+    },
+    utils::InGameEntity,
 };
-use crate::ui::systems::loot_grid;
-use crate::utils::InGameEntity;
-use bevy::asset::Handle;
-use bevy::color::Color;
-use bevy::core::Name;
-use bevy::hierarchy::{BuildChildren, ChildBuild, ChildBuilder};
-use bevy::image::Image;
-use bevy::prelude::{
-    default, AlignItems, BackgroundColor, BorderColor, Commands, Component, EventWriter,
-    FlexDirection, Font, GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res, ResMut,
-    Text, TextColor, TextFont, TextureAtlas, UiRect, Val, Visibility, With,
+use bevy::{
+    asset::Handle,
+    color::Color,
+    core::Name,
+    hierarchy::{BuildChildren, ChildBuild, ChildBuilder},
+    image::Image,
+    prelude::{
+        default, AlignItems, BackgroundColor, BorderColor, Commands, Component, EventWriter,
+        FlexDirection, Font, GlobalZIndex, ImageNode, NextState, Node, ParamSet, Query, Res,
+        ResMut, Text, TextColor, TextFont, TextureAtlas, UiRect, Val, Visibility, With,
+    },
 };
 use leafwing_input_manager::action_state::ActionState;
 
