@@ -1,5 +1,6 @@
 use super::{components::*, presets::*};
 use crate::{
+    audio::AudioEvent,
     configs::*,
     enemy::EnemyBuilder,
     game_state::GameState,
@@ -620,10 +621,12 @@ pub fn handle_enemy_death(
     handle: Res<GlobalTextureAtlas>,
     player_query: Query<(&Transform, Option<&InvincibilityEffect>), With<Player>>,
     mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if let Ok((player_transform, is_invincible)) = player_query.get_single() {
         for (entity, enemy, transform, explosion_ability, loot_pool) in enemy_query.iter_mut() {
             if enemy.health == 0 {
+                ew.send(AudioEvent::Kill);
                 if let Some(explosion) = explosion_ability {
                     spawn_explosion(
                         &mut commands,

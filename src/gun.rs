@@ -10,6 +10,7 @@ use leafwing_input_manager::prelude::ActionState;
 use rand::Rng;
 
 use crate::{
+    audio::AudioEvent,
     collision::EnemyKdTree,
     configs::*,
     game_state::GameState,
@@ -161,6 +162,7 @@ fn handle_gun_firing(
         With<ActiveGun>,
     >,
     handle: Res<GlobalTextureAtlas>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.get_single().is_err() {
         return;
@@ -174,7 +176,7 @@ fn handle_gun_firing(
         if gun_timer.0.elapsed_secs() < gun_stats.firing_interval {
             return;
         }
-
+        ew.send(AudioEvent::Fire);
         gun_timer.0.reset();
         let gun_pos = gun_transform.translation.truncate();
         let bullet_direction = gun_transform.local_x();
@@ -311,6 +313,7 @@ fn switch_gun(
     action_state: Res<ActionState<Action>>,
     mut commands: Commands,
     mut gun_query: Query<(&mut Transform, &mut Visibility, Entity), (With<Gun>, Without<Player>)>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -325,6 +328,7 @@ fn switch_gun(
                 gun_query.get_mut(*gun_entity)
             {
                 if gun_index == inventory.active_gun_index {
+                    ew.send(AudioEvent::UI);
                     gun_transform.translation = vec3(
                         player_transform.translation.x + 5.0, // offset from player, need adjustment
                         player_transform.translation.y - 5.0,

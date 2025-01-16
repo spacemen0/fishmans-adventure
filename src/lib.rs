@@ -1,5 +1,6 @@
 pub mod animation;
 pub mod armor;
+pub mod audio;
 pub mod camera;
 pub mod collision;
 pub mod configs;

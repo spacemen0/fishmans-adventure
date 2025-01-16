@@ -2,9 +2,11 @@ use bevy::{
     asset::embedded_asset, diagnostic::*, input::common_conditions::input_toggle_active, prelude::*,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_kira_audio::AudioPlugin;
 use fishmans_adventure::{
     animation::AnimationPlugin,
     armor::ArmorPlugin,
+    audio::GameAudioPlugin,
     camera::FollowCameraPlugin,
     collision::CollisionPlugin,
     configs::{BG_COLOR, WH, WW},
@@ -60,6 +62,8 @@ fn main() {
         .add_plugins(SystemInformationDiagnosticsPlugin)
         .add_plugins(PerfUiPlugin)
         .add_plugins(UiPlugin)
+        .add_plugins(GameAudioPlugin)
+        .add_plugins(AudioPlugin)
         .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::Escape)),
         )

@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use crate::{
     armor::{Armor, ArmorStats},
+    audio::AudioEvent,
     configs::{SPRITE_SCALE_FACTOR, UI_BG_COLOR},
     game_state::GameState,
     gun::{BulletStats, Gun, GunStats, GunType},
@@ -147,6 +148,7 @@ pub fn handle_main_menu_buttons(
     control_query: Query<&ControlWidget>,
     font: Res<UiFont>,
     mut visibility_query: Query<&mut Visibility, With<MainMenuRoot>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if !control_query.is_empty() || visibility_query.is_empty() {
         return;
@@ -156,10 +158,12 @@ pub fn handle_main_menu_buttons(
 
     if action_state.just_pressed(&Action::NavigateUp) {
         *selected_button = (*selected_button + button_count - 1) % button_count;
+        ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::NavigateDown) {
         *selected_button = (*selected_button + 1) % button_count;
+        ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::Confirm) {
@@ -172,6 +176,7 @@ pub fn handle_main_menu_buttons(
             if execute {
                 match button {
                     MainMenuButton::Control => {
+                        ew.send(AudioEvent::PopUp);
                         setup_control_widget(&mut commands, font.0.clone());
                         let mut visibility = visibility_query.get_single_mut().unwrap();
                         *visibility = Visibility::Hidden;
@@ -298,10 +303,12 @@ pub fn handle_control_widget(
     action_state: Res<ActionState<Action>>,
     query: Query<Entity, With<ControlWidget>>,
     mut visibility_query: Query<&mut Visibility, With<MainMenuRoot>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if action_state.just_pressed(&Action::Confirm) {
         if let Ok(entity) = query.get_single() {
             if let Ok(mut visibility) = visibility_query.get_single_mut() {
+                ew.send(AudioEvent::PopUp);
                 commands.entity(entity).despawn_recursive();
                 *visibility = Visibility::Visible;
             }
@@ -331,13 +338,21 @@ pub fn handle_pause_input(
     mut next_state: ResMut<NextState<GameState>>,
     mut query: Query<&mut Visibility, With<PauseMenuRoot>>,
     current_state: Res<State<GameState>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if action_state.just_pressed(&Action::TogglePause) {
         let mut visibility = query.single_mut();
         if current_state.get() == &GameState::Combat {
+            ew.send(AudioEvent::PopUp);
             next_state.set(GameState::Paused);
-
             *visibility = Visibility::Visible;
+            return;
+        }
+        if current_state.get() == &GameState::Paused {
+            ew.send(AudioEvent::PopUp);
+            next_state.set(GameState::Combat);
+            *visibility = Visibility::Hidden;
+            return;
         }
     }
 }
@@ -432,20 +447,24 @@ pub fn pause_menu_navigation(
     )>,
     commands: Commands,
     mut exit: EventWriter<AppExit>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     let button_count = query.iter().count() as u8;
     let mut execute = false;
 
     if action_state.just_pressed(&Action::NavigateUp) {
         *selected_button = (*selected_button + button_count - 1) % button_count;
+        ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::NavigateDown) {
         *selected_button = (*selected_button + 1) % button_count;
+        ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::Confirm) {
         execute = true;
+        ew.send(AudioEvent::UI);
     }
     for (button, mut color, index) in query.iter_mut() {
         if index.0 == *selected_button {
@@ -475,7 +494,12 @@ pub fn pause_menu_navigation(
     }
 }
 
-pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
+pub fn set_up_death_screen(
+    mut commands: Commands,
+    font: Res<UiFont>,
+    mut ew: EventWriter<AudioEvent>,
+) {
+    ew.send(AudioEvent::Lose);
     commands
         .spawn((
             Node {
@@ -526,7 +550,12 @@ pub fn set_up_death_screen(mut commands: Commands, font: Res<UiFont>) {
         });
 }
 
-pub fn set_up_win_screen(mut commands: Commands, font: Res<UiFont>) {
+pub fn set_up_win_screen(
+    mut commands: Commands,
+    font: Res<UiFont>,
+    mut ew: EventWriter<AudioEvent>,
+) {
+    ew.send(AudioEvent::Win);
     commands
         .spawn((
             Node {
@@ -582,10 +611,12 @@ pub fn handle_death_screen_input(
     mut next_state: ResMut<NextState<GameState>>,
     mut query: Query<Entity, With<DeathScreenRoot>>,
     mut commands: Commands,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if action_state.just_pressed(&Action::Confirm) {
         let entity = query.single_mut();
         commands.entity(entity).despawn_recursive();
+        ew.send(AudioEvent::UI);
         next_state.set(GameState::MainMenu);
     }
 }
@@ -595,16 +626,18 @@ pub fn handle_shop_input(
     mut next_state: ResMut<NextState<GameState>>,
     mut query: Query<&mut Visibility, With<ShopMenuRoot>>,
     current_state: Res<State<GameState>>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if action_state.just_pressed(&Action::ToggleShop) {
         let mut visibility = query.single_mut();
         if current_state.get() == &GameState::Combat {
             next_state.set(GameState::Shopping);
-
             *visibility = Visibility::Visible;
+            ew.send(AudioEvent::PopUp);
         } else {
             next_state.set(GameState::Combat);
             *visibility = Visibility::Hidden;
+            ew.send(AudioEvent::PopUp);
         }
     }
 }
@@ -723,20 +756,24 @@ pub fn handle_shop_menu_buttons(
     next_state: ResMut<NextState<GameState>>,
     level: ResMut<Level>,
     ew: EventWriter<PlayerLevelingUpEvent>,
+    mut audio_ew: EventWriter<AudioEvent>,
 ) {
     let button_count = 5;
     let mut execute = false;
 
     if action_state.just_pressed(&Action::NavigateUp) {
         *selected_button = (*selected_button + button_count - 1) % button_count;
+        audio_ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::NavigateDown) {
         *selected_button = (*selected_button + 1) % button_count;
+        audio_ew.send(AudioEvent::UI);
     }
 
     if action_state.just_pressed(&Action::Confirm) {
         execute = true;
+        audio_ew.send(AudioEvent::PopUp);
     }
 
     let mut visibility = menu_query.get_single_mut().unwrap();

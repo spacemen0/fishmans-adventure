@@ -5,6 +5,7 @@ use leafwing_input_manager::prelude::*;
 use super::*;
 use crate::{
     armor::{ActiveArmor, Armor, ArmorStats},
+    audio::AudioEvent,
     configs::*,
     gun::{ActiveGun, Gun},
     input::Action,
@@ -31,6 +32,7 @@ pub fn handle_player_damaged_events(
     mut armor_query: Query<(&mut ArmorStats, Entity), With<Armor>>,
     mut events: EventReader<PlayerDamagedEvent>,
     font: Res<UiFont>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.is_empty() || events.is_empty() {
         return;
@@ -77,6 +79,7 @@ pub fn handle_player_damaged_events(
                             current_time.minute(),
                             current_time.second()
                         );
+                        ew.send(AudioEvent::Hit);
                         commands.entity(entity).insert(InvincibilityEffect(
                             Stopwatch::new(),
                             PLAYER_INVINCIBLE_TIME,
@@ -103,6 +106,7 @@ pub fn handle_player_damaged_events(
                         current_time.minute(),
                         current_time.second()
                     );
+                    ew.send(AudioEvent::Hit);
                     commands.entity(entity).insert(InvincibilityEffect(
                         Stopwatch::new(),
                         PLAYER_INVINCIBLE_TIME,
@@ -131,6 +135,7 @@ pub fn handle_leveling_up(
     >,
     mut commands: Commands,
     font: Res<UiFont>,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -143,6 +148,7 @@ pub fn handle_leveling_up(
         health.0 += calculate_health_increase(level);
         defense.0 += calculate_defense_increase(level);
         damage_boost.0 += calculate_damage_boost_increase(level);
+        ew.send(AudioEvent::LevelUp);
         spawn_floating_text(
             &mut commands,
             &font.0,
@@ -292,6 +298,7 @@ pub fn handle_loot_pickup(
         ),
         With<ReadyForPickup>,
     >,
+    mut ew: EventWriter<AudioEvent>,
 ) {
     if player_query.is_empty() {
         return;
@@ -339,7 +346,7 @@ pub fn handle_loot_pickup(
             }
             _ => {}
         }
-
+        ew.send(AudioEvent::PickUp);
         commands
             .entity(loot_entity)
             .insert(Visibility::Hidden)
