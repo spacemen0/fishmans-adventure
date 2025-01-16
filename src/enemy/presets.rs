@@ -22,7 +22,7 @@ pub fn create_trail_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
         .with_stats(50, 8, 3, 15)
         .with_sprite(20, (16, 16))
-        .with_trail(6, 0.05, 10.0, 3.0)
+        .with_trail(8, 0.05, 10.0, 4.0)
         .with_loot_pool(weak_enemies_bundle())
 }
 
@@ -63,10 +63,10 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
 
 pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(35000, 9, 20, 200)
+        .with_stats(30000, 9, 20, 200)
         .with_sprite(56, (32, 32))
-        .with_shooting(5, 1.0, 800.0, 300, 15)
-        .with_charge(600, 50, 0.6, 3.0)
-        .with_summoning(8, 14, 10.0)
+        .with_shooting(5, 1.0, 1200.0, 400, 15)
+        .with_charge(600, 50, 0.4, 3.0)
+        .with_summoning(8, 14, 9.0)
         .with_loot_pool(boss_enemy_bundle())
 }
