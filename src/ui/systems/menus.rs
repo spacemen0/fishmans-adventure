@@ -210,6 +210,7 @@ pub fn setup_control_widget(commands: &mut Commands, font: Handle<Font>) {
                 ..default()
             },
             ControlWidget,
+            BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
         ))
         .with_children(|parent| {
             parent
@@ -716,7 +717,7 @@ pub fn setup_shop_menu(mut commands: Commands, font: Res<UiFont>) {
                     spawn_shop_menu_button(
                         parent,
                         "Buy XP - 400g",
-                        ShopMenuButton::BuyArmor,
+                        ShopMenuButton::BuyXP,
                         &font.0,
                         4,
                     );
