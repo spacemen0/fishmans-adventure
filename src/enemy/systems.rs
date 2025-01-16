@@ -818,13 +818,19 @@ fn spawn_enemy_bullets(
         );
         let bullet_direction = (direction + spread).normalize();
 
+        let sprite_index = if is_exploding {
+            89
+        } else {
+            88
+        };
+
         let mut bullet_entity = commands.spawn((
             Name::new("Enemy Bullet"),
             Sprite {
                 image: handle.image.clone().unwrap(),
                 texture_atlas: Some(TextureAtlas {
                     layout: handle.layout_16x16.clone().unwrap(),
-                    index: 81,
+                    index: sprite_index,
                 }),
                 ..default()
             },

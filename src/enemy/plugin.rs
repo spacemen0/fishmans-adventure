@@ -22,23 +22,30 @@ impl Plugin for EnemyPlugin {
             Update,
             (
                 spawn_enemies,
-                update_enemy_movement,
-                update_enemy_bullets,
-                handle_ranged_movement,
-                handle_trail_abilities,
-                handle_shooting_abilities,
-                handle_charge_abilities,
-                handle_enemy_death,
-                handle_explosions,
-                handle_enemy_bullet_player_collision,
-                handle_exploding_bullets,
-                handle_explosion_player_collision,
-                handle_enemy_splitting,
-                handle_summoning_abilities,
-                handle_charge_enemy_flash,
                 update_spawn_indicators,
-                handle_hit_flash,
-                handle_death_effect,
+                (update_enemy_movement, handle_ranged_movement).chain(),
+                (
+                    handle_trail_abilities,
+                    handle_shooting_abilities,
+                    handle_charge_abilities,
+                    handle_summoning_abilities,
+                )
+                    .after(update_enemy_movement),
+                (
+                    update_enemy_bullets,
+                    handle_enemy_bullet_player_collision,
+                    handle_exploding_bullets,
+                )
+                    .after(handle_shooting_abilities),
+                (handle_explosions, handle_explosion_player_collision)
+                    .after(handle_exploding_bullets),
+                (
+                    handle_charge_enemy_flash,
+                    handle_hit_flash,
+                    handle_death_effect,
+                ),
+                (handle_enemy_death, handle_enemy_splitting)
+                    .after(handle_enemy_bullet_player_collision),
             )
                 .run_if(in_state(GameState::Combat)),
         );
