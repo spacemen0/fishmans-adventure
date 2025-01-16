@@ -63,7 +63,7 @@ pub fn create_gurgle_enemy() -> EnemyBuilder {
 
 pub fn create_midgame_boss_enemy() -> EnemyBuilder {
     EnemyBuilder::new()
-        .with_stats(30000, 9, 20, 200)
+        .with_stats(10000, 9, 20, 200)
         .with_sprite(56, (32, 32))
         .with_shooting(5, 1.0, 1200.0, 400, 15)
         .with_charge(600, 50, 0.4, 3.0)
