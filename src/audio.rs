@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::{Audio, AudioControl, AudioSource};
 
-use crate::game_state::GameState;
+use crate::{configs::*, game_state::GameState};
 
 pub struct GameAudioPlugin;
 
@@ -36,23 +36,23 @@ impl Plugin for GameAudioPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<AudioEvent>()
             .add_systems(OnEnter(GameState::Loading), load_audio_assets)
-            .add_systems(OnEnter(GameState::Combat), play_background_music)
+            .add_systems(Startup, play_background_music)
             .add_systems(Update, play_audio_event.run_if(on_event::<AudioEvent>));
     }
 }
 
 fn load_audio_assets(asset_server: Res<AssetServer>, mut commands: Commands) {
     let audio_handles = AudioHandles {
-        kill: asset_server.load("audio/kill.ogg"),
-        hit: asset_server.load("audio/hit.ogg"),
-        fire: asset_server.load("audio/fire.ogg"),
-        ui: asset_server.load("audio/ui.ogg"),
-        popup: asset_server.load("audio/popup.ogg"),
-        win: asset_server.load("audio/win.ogg"),
-        lose: asset_server.load("audio/lose.ogg"),
-        background: asset_server.load("audio/background.ogg"),
-        level_up: asset_server.load("audio/level_up.ogg"),
-        pick_up: asset_server.load("audio/pick_up.ogg"),
+        kill: asset_server.load(AUDIO_KILL_PATH),
+        hit: asset_server.load(AUDIO_HIT_PATH),
+        fire: asset_server.load(AUDIO_FIRE_PATH),
+        ui: asset_server.load(AUDIO_UI_PATH),
+        popup: asset_server.load(AUDIO_POPUP_PATH),
+        win: asset_server.load(AUDIO_WIN_PATH),
+        lose: asset_server.load(AUDIO_LOSE_PATH),
+        background: asset_server.load(AUDIO_BACKGROUND_PATH),
+        level_up: asset_server.load(AUDIO_LEVEL_UP_PATH),
+        pick_up: asset_server.load(AUDIO_PICK_UP_PATH),
     };
 
     commands.insert_resource(audio_handles);
@@ -62,7 +62,7 @@ fn play_background_music(audio: Res<Audio>, audio_handles: Res<AudioHandles>) {
     audio
         .play(audio_handles.background.clone())
         .looped()
-        .with_volume(1.2);
+        .with_volume(0.8);
 }
 
 fn play_audio_event(
@@ -76,10 +76,10 @@ fn play_audio_event(
                 audio.play(audio_handles.kill.clone()).with_volume(0.6);
             }
             AudioEvent::Hit => {
-                audio.play(audio_handles.hit.clone()).with_volume(0.05);
+                audio.play(audio_handles.hit.clone()).with_volume(0.1);
             }
             AudioEvent::Fire => {
-                audio.play(audio_handles.fire.clone()).with_volume(0.3);
+                audio.play(audio_handles.fire.clone()).with_volume(0.2);
             }
             AudioEvent::UI => {
                 audio.play(audio_handles.ui.clone());

@@ -91,6 +91,16 @@ impl Plugin for EmbeddedAssetPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "../assets/assets.png");
         embedded_asset!(app, "../assets/monogram.ttf");
+        embedded_asset!(app, "../assets/audio/kill.ogg");
+        embedded_asset!(app, "../assets/audio/hit.ogg");
+        embedded_asset!(app, "../assets/audio/fire.ogg");
+        embedded_asset!(app, "../assets/audio/ui.ogg");
+        embedded_asset!(app, "../assets/audio/popup.ogg");
+        embedded_asset!(app, "../assets/audio/win.ogg");
+        embedded_asset!(app, "../assets/audio/lose.ogg");
+        embedded_asset!(app, "../assets/audio/background.ogg");
+        embedded_asset!(app, "../assets/audio/level_up.ogg");
+        embedded_asset!(app, "../assets/audio/pick_up.ogg");
     }
 }
 
