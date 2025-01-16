@@ -267,7 +267,7 @@ fn calculate_enemy_distribution(wave: u32) -> Vec<(fn() -> EnemyBuilder, f32)> {
     }
 
     if wave >= 3 {
-        let splitter_weight = (wave as f32 * 0.06).min(0.35);
+        let splitter_weight = (wave as f32 * 0.03).min(0.15);
         distributions.push((
             create_splitting_enemy as fn() -> EnemyBuilder,
             splitter_weight,
