@@ -116,7 +116,7 @@ pub fn update_enemy_movement(
                 }
             }
 
-            let collision_radius = 30.0; 
+            let collision_radius = 30.0;
             let mut collision_resolution = Vec2::ZERO;
 
             for (other_entity, other_pos) in &enemy_positions {
@@ -140,7 +140,7 @@ pub fn update_enemy_movement(
 
             let final_movement = movement + collision_resolution;
 
-            apply_movement(&mut transform.translation, final_movement, LAYER1);
+            apply_movement(&mut transform.translation, final_movement, LAYER2);
         }
     }
 }
@@ -214,7 +214,7 @@ pub fn spawn_enemies(
 
         for _ in 0..num_enemies {
             let (x, y) = get_random_position_around(player_pos, 200.0..500.0);
-            let mut position = Vec3::new(x, y, LAYER1);
+            let mut position = Vec3::new(x, y, LAYER2);
             clamp_position(&mut position);
 
             commands.spawn((
@@ -309,7 +309,7 @@ fn calculate_enemies_for_wave(wave_number: u32) -> u32 {
         } else {
             ((wave_number - 10) / 10) as u32
         };
-        
+
         base_boss_count + additional_bosses
     } else {
         let base = match wave_number {
@@ -582,7 +582,7 @@ pub fn handle_charge_abilities(
 
             let final_movement = movement + collision_resolution;
 
-            apply_movement(&mut transform.translation, final_movement, LAYER1);
+            apply_movement(&mut transform.translation, final_movement, LAYER2);
         }
     }
 }
@@ -901,18 +901,18 @@ pub fn handle_ranged_movement(
                 if distance_difference > 0.0 {
                     *state = EnemyState::Pursuing;
                     let movement = direction.truncate() * enemy.speed as f32;
-                    apply_movement(&mut transform.translation, movement, LAYER1);
+                    apply_movement(&mut transform.translation, movement, LAYER2);
                 } else {
                     *state = EnemyState::Retreating;
                     let movement = -direction.truncate() * enemy.speed as f32;
-                    apply_movement(&mut transform.translation, movement, LAYER1);
+                    apply_movement(&mut transform.translation, movement, LAYER2);
                 }
             } else {
                 *state = EnemyState::MaintainingDistance;
 
                 if distance_difference.abs() > range_behavior.tolerance * 0.5 {
                     let movement = direction.truncate() * (distance_difference * 0.1);
-                    apply_movement(&mut transform.translation, movement, LAYER1);
+                    apply_movement(&mut transform.translation, movement, LAYER2);
                 }
             }
         }

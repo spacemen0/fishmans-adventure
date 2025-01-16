@@ -3,7 +3,7 @@ use rand::{seq::SliceRandom, Rng};
 
 use crate::{
     collision::EnemyKdTree,
-    configs::{LAYER1, MAX_DEFENSE, SPRITE_SCALE_FACTOR, TILE_W, WH, WW},
+    configs::{LAYER2, MAX_DEFENSE, SPRITE_SCALE_FACTOR, TILE_W, WH, WW},
     loot::LootType,
 };
 
@@ -77,7 +77,7 @@ pub fn clamp_position(position: &mut Vec3) {
     let edge_offset = TILE_W as f32 * SPRITE_SCALE_FACTOR;
     position.x = position.x.clamp(-WW + edge_offset, WW - edge_offset);
     position.y = position.y.clamp(-WH + edge_offset, WH - edge_offset);
-    position.z = LAYER1;
+    position.z = LAYER2;
 }
 
 pub fn cleanup_entities(mut commands: Commands, all_entities: Query<Entity, With<InGameEntity>>) {

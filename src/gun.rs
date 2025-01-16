@@ -247,7 +247,7 @@ fn fire_bullets(
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER4))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Bullet,
             BulletDirection(dir),
@@ -290,7 +290,7 @@ fn fire_omni_bullets(
                 }),
                 ..default()
             },
-            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER3))
+            Transform::from_translation(vec3(gun_pos.x, gun_pos.y, LAYER4))
                 .with_scale(Vec3::splat(SPRITE_SCALE_FACTOR)),
             Bullet,
             BulletDirection(dir),
@@ -360,12 +360,12 @@ fn move_bullets(
             GunType::SingleDirectionSpread => {
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
             GunType::OmniSpread => {
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
             GunType::FocusedAim => {
                 let player_transform = if let Ok(transform) = player_query.get_single() {
@@ -386,7 +386,7 @@ fn move_bullets(
                 }
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
-                bullet_transform.translation.z = LAYER4;
+                bullet_transform.translation.z = LAYER5;
             }
         }
     }

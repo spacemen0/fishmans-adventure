@@ -1,5 +1,5 @@
 use crate::{
-    configs::{LAYER0, LAYER1, LAYER4},
+    configs::{LAYER1, LAYER2, LAYER5},
     enemy::Collider,
     gun::HasLifespan,
     player::{Health, Player},
@@ -27,7 +27,7 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0.0, 8.0, LAYER0),
+                    translation: Vec3::new(0.0, 8.0, LAYER1),
                     ..default()
                 },
             ));
@@ -40,7 +40,7 @@ pub fn setup_health_bar(mut commands: Commands, player_query: Query<Entity, With
                         ..default()
                     },
                     Transform {
-                        translation: Vec3::new(0.0, 8.0, LAYER1),
+                        translation: Vec3::new(0.0, 8.0, LAYER2),
                         ..default()
                     },
                 ))
@@ -144,7 +144,7 @@ pub fn spawn_floating_text(
         TextBounds::from(Vec2::new(400.0, 200.0)),
         TextColor(text_color.into()),
         Transform {
-            translation: (position + Vec3::new(0.0, 30.0, 0.0)).with_z(LAYER4),
+            translation: (position + Vec3::new(0.0, 30.0, 0.0)).with_z(LAYER5),
             ..default()
         },
         Collider { radius: 5 },

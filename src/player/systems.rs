@@ -271,7 +271,7 @@ pub fn move_loot_to_player(
         let distance = player_pos.distance(current_pos);
 
         let movement = direction * 1000.0 * time.delta_secs();
-        transform.translation += movement.extend(LAYER2);
+        transform.translation += movement.extend(LAYER3);
 
         if distance <= 20.0 {
             commands.entity(loot_entity).insert(ReadyForPickup);
