@@ -5,6 +5,18 @@ pub const WH: f32 = 720.0;
 // Sprites
 pub const SPRITE_SHEET_PATH: &str = "embedded://fishmans_adventure/../assets/assets.png";
 pub const UI_FONT_PATH: &str = "embedded://fishmans_adventure/../assets/monogram.ttf";
+// Audio
+pub const AUDIO_KILL_PATH: &str = "embedded://fishmans_adventure/../assets/audio/kill.ogg";
+pub const AUDIO_HIT_PATH: &str = "embedded://fishmans_adventure/../assets/audio/hit.ogg";
+pub const AUDIO_FIRE_PATH: &str = "embedded://fishmans_adventure/../assets/audio/fire.ogg";
+pub const AUDIO_UI_PATH: &str = "embedded://fishmans_adventure/../assets/audio/ui.ogg";
+pub const AUDIO_POPUP_PATH: &str = "embedded://fishmans_adventure/../assets/audio/popup.ogg";
+pub const AUDIO_WIN_PATH: &str = "embedded://fishmans_adventure/../assets/audio/win.ogg";
+pub const AUDIO_LOSE_PATH: &str = "embedded://fishmans_adventure/../assets/audio/lose.ogg";
+pub const AUDIO_BACKGROUND_PATH: &str =
+    "embedded://fishmans_adventure/../assets/audio/background.ogg";
+pub const AUDIO_LEVEL_UP_PATH: &str = "embedded://fishmans_adventure/../assets/audio/level_up.ogg";
+pub const AUDIO_PICK_UP_PATH: &str = "embedded://fishmans_adventure/../assets/audio/pick_up.ogg";
 pub const SPRITE_SCALE_FACTOR: f32 = 3.0;
 pub const TILE_W: u32 = 16;
 pub const TILE_H: u32 = 16;

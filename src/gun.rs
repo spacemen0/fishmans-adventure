@@ -119,13 +119,10 @@ fn update_gun_transform(
     };
 
     let player_pos = player_transform.translation.truncate();
-    if let Some(nearest_enemy_pos) = get_nearest_enemy_position(player_pos, &enemy_kd_tree) {
-        const MAX_RANGE: f32 = 500.0;
-        if player_pos.distance(nearest_enemy_pos) <= MAX_RANGE {
-            let angle =
-                (player_pos.y - nearest_enemy_pos.y).atan2(player_pos.x - nearest_enemy_pos.x) + PI;
-            gun_transform.rotation = Quat::from_rotation_z(angle);
-        }
+    if let Some(nearest_enemy_pos) = get_nearest_enemy_position(player_pos, &enemy_kd_tree, 500.0) {
+        let angle =
+            (player_pos.y - nearest_enemy_pos.y).atan2(player_pos.x - nearest_enemy_pos.x) + PI;
+        gun_transform.rotation = Quat::from_rotation_z(angle);
     }
     gun_transform.translation = vec3(
         player_pos.x + 5.0, // offset from player, need adjustment
@@ -156,21 +153,26 @@ fn despawn_entities_reach_lifespan(
 fn handle_gun_firing(
     mut commands: Commands,
     time: Res<Time>,
-    player_query: Query<(), With<Player>>,
+    player_query: Query<&Transform, With<Player>>,
     mut gun_query: Query<
         (&Transform, &mut GunTimer, &GunType, &BulletStats, &GunStats),
         With<ActiveGun>,
     >,
     handle: Res<GlobalTextureAtlas>,
     mut ew: EventWriter<AudioEvent>,
+    enemy_kd_tree: Res<EnemyKdTree>,
 ) {
-    if player_query.get_single().is_err() {
+    if player_query.is_empty() {
         return;
     }
 
     if let Ok((gun_transform, mut gun_timer, gun_type, bullet_stats, gun_stats)) =
         gun_query.get_single_mut()
     {
+        let player_pos = player_query.single().translation.truncate();
+        if get_nearest_enemy_position(player_pos, &enemy_kd_tree, 500.0).is_none() {
+            return;
+        }
         gun_timer.0.tick(time.delta());
 
         if gun_timer.0.elapsed_secs() < gun_stats.firing_interval {
@@ -379,14 +381,11 @@ fn move_bullets(
                 };
                 let player_pos = player_transform.translation.truncate();
                 if let Some(nearest_enemy_pos) =
-                    get_nearest_enemy_position(player_pos, &enemy_kd_tree)
+                    get_nearest_enemy_position(player_pos, &enemy_kd_tree, 300.0)
                 {
-                    const MAX_RANGE: f32 = 800.0;
                     let bullet_pos = bullet_transform.translation.truncate();
-                    if bullet_pos.distance(nearest_enemy_pos) <= MAX_RANGE {
-                        let new_direction = (nearest_enemy_pos - bullet_pos).normalize();
-                        bullet_direction.0 = vec3(new_direction.x, new_direction.y, 0.0);
-                    }
+                    let new_direction = (nearest_enemy_pos - bullet_pos).normalize();
+                    bullet_direction.0 = vec3(new_direction.x, new_direction.y, 0.0);
                 }
                 bullet_transform.translation +=
                     bullet_direction.0.normalize() * Vec3::splat(bullet_stats.speed as f32);
