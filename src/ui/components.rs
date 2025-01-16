@@ -76,7 +76,7 @@ impl FloatingTextBox {
 }
 
 #[derive(Component)]
-pub struct DeathScreenRoot;
+pub struct EndScreenRoot;
 
 #[derive(Component)]
 pub struct WinScreenRoot;

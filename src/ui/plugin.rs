@@ -4,8 +4,8 @@ use super::{
         in_game_ui::update_floating_text,
         loot_grid::highlight_active_item,
         menus::{
-            despawn_all_floating_text_boxes, despawn_floating_text_box, handle_control_widget,
-            handle_shop_input, handle_shop_menu_buttons, setup_shop_menu,
+            despawn_floating_text_box, handle_control_widget, handle_shop_input,
+            handle_shop_menu_buttons, setup_shop_menu,
         },
     },
 };
@@ -14,7 +14,7 @@ use crate::{
     game_state::GameState,
     ui::systems::{
         in_game_ui, loot_grid,
-        menus::{self, handle_death_screen_input, set_up_death_screen, set_up_win_screen},
+        menus::{self, handle_end_screen_input, set_up_death_screen, set_up_win_screen},
     },
     utils::cleanup_entities,
     world::init_world,
@@ -90,7 +90,7 @@ impl Plugin for UiPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_death_screen_input
+                    handle_end_screen_input
                         .run_if(in_state(GameState::End).or(in_state(GameState::Win))),
                     update_floating_text,
                 ),
@@ -103,9 +103,10 @@ impl Plugin for UiPlugin {
             )
             .add_systems(
                 Update,
-                (handle_shop_menu_buttons, despawn_floating_text_box)
-                    .run_if(in_state(GameState::Shopping)),
-            )
-            .add_systems(OnExit(GameState::Shopping), despawn_all_floating_text_boxes);
+                (
+                    (handle_shop_menu_buttons).run_if(in_state(GameState::Shopping)),
+                    despawn_floating_text_box,
+                ),
+            );
     }
 }

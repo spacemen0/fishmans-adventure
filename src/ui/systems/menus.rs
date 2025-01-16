@@ -12,7 +12,7 @@ use crate::{
     potion::{Potion, PotionStats, PotionType},
     resources::{GameMode, GlobalTextureAtlas, Level, UiFont},
     ui::components::{
-        BlinkingText, ControlWidget, DeathScreenRoot, FloatingTextBox, MainMenuButton,
+        BlinkingText, ControlWidget, EndScreenRoot, FloatingTextBox, MainMenuButton,
         MainMenuButtonIndex, MainMenuRoot, PauseMenuButton, PauseMenuButtonIndex, PauseMenuRoot,
         ShopMenuButton, ShopMenuButtonIndex, ShopMenuRoot,
     },
@@ -509,6 +509,7 @@ pub fn set_up_death_screen(
                 align_items: AlignItems::Center,
                 ..default()
             },
+            EndScreenRoot,
             BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
         ))
         .with_children(|parent| {
@@ -524,7 +525,6 @@ pub fn set_up_death_screen(
                         ..default()
                     },
                     BorderColor(Color::BLACK),
-                    DeathScreenRoot,
                 ))
                 .with_children(|parent| {
                     parent.spawn((
@@ -565,6 +565,7 @@ pub fn set_up_win_screen(
                 align_items: AlignItems::Center,
                 ..default()
             },
+            EndScreenRoot,
             BackgroundColor(Color::srgb_u8(UI_BG_COLOR.0, UI_BG_COLOR.1, UI_BG_COLOR.2)),
         ))
         .with_children(|parent| {
@@ -580,7 +581,6 @@ pub fn set_up_win_screen(
                         ..default()
                     },
                     BorderColor(Color::BLACK),
-                    DeathScreenRoot,
                 ))
                 .with_children(|parent| {
                     parent.spawn((
@@ -588,6 +588,10 @@ pub fn set_up_win_screen(
                         TextFont {
                             font: font.0.clone(),
                             font_size: 100.0,
+                            ..default()
+                        },
+                        TextLayout {
+                            justify: JustifyText::Center,
                             ..default()
                         },
                         TextColor(Color::linear_rgb(1.0, 0.0, 0.0)),
@@ -606,10 +610,10 @@ pub fn set_up_win_screen(
         });
 }
 
-pub fn handle_death_screen_input(
+pub fn handle_end_screen_input(
     action_state: Res<ActionState<Action>>,
     mut next_state: ResMut<NextState<GameState>>,
-    mut query: Query<Entity, With<DeathScreenRoot>>,
+    mut query: Query<Entity, With<EndScreenRoot>>,
     mut commands: Commands,
     mut ew: EventWriter<AudioEvent>,
 ) {
@@ -1070,6 +1074,7 @@ fn handle_buy_armor(
 fn spawn_floating_text_box(commands: &mut Commands, font: &Handle<Font>, message: String) {
     commands
         .spawn((
+            Name::new("FloatingTextBox"),
             Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
