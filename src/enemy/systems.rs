@@ -6,7 +6,9 @@ use crate::{
     game_state::GameState,
     gun::{BulletDirection, BulletStats, HasLifespan},
     loot::LootPool,
-    player::{Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent},
+    player::{
+        Gold, Health, InvincibilityEffect, Player, PlayerDamagedEvent, PlayerLevelingUpEvent,
+    },
     resources::{GameMode, GlobalTextureAtlas, Level, Wave},
     utils::{apply_movement, clamp_position, get_random_position_around, InGameEntity},
 };
@@ -611,11 +613,11 @@ pub fn handle_enemy_death(
     mut ev_player_damaged: EventWriter<PlayerDamagedEvent>,
     mut level: ResMut<Level>,
     handle: Res<GlobalTextureAtlas>,
-    player_query: Query<(&Transform, Option<&InvincibilityEffect>), With<Player>>,
+    mut player_query: Query<(&Transform, Option<&InvincibilityEffect>, &mut Gold), With<Player>>,
     mut ev_level_up: EventWriter<PlayerLevelingUpEvent>,
     mut ew: EventWriter<AudioEvent>,
 ) {
-    if let Ok((player_transform, is_invincible)) = player_query.get_single() {
+    if let Ok((player_transform, is_invincible, mut gold)) = player_query.get_single_mut() {
         for (entity, enemy, transform, explosion_ability, loot_pool) in enemy_query.iter_mut() {
             if enemy.health == 0 {
                 ew.send(AudioEvent::Kill);
@@ -647,7 +649,7 @@ pub fn handle_enemy_death(
                         );
                     }
                 }
-
+                gold.0 += 5;
                 if level.add_xp(enemy.xp) {
                     ev_level_up.send(PlayerLevelingUpEvent {
                         new_level: level.level(),

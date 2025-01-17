@@ -47,7 +47,6 @@ fn main() {
                         canvas: Some("#fishmans_adventure".to_owned()),
                         title: "Fishman's Adventure".to_owned(),
                         fit_canvas_to_parent: true,
-                        prevent_default_event_handling: false,
                         focused: true,
                         cursor_options: CursorOptions {
                             visible: false,
