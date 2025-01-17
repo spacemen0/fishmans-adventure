@@ -353,7 +353,6 @@ fn move_bullets(
         With<Bullet>,
     >,
     enemy_kd_tree: Res<EnemyKdTree>,
-    player_query: Query<&Transform, (With<Player>, Without<Bullet>)>,
 ) {
     if bullet_query.is_empty() {
         return;
@@ -374,16 +373,10 @@ fn move_bullets(
                 bullet_transform.translation.z = LAYER5;
             }
             GunType::FocusedAim => {
-                let player_transform = if let Ok(transform) = player_query.get_single() {
-                    transform
-                } else {
-                    return;
-                };
-                let player_pos = player_transform.translation.truncate();
+                let bullet_pos = bullet_transform.translation.truncate();
                 if let Some(nearest_enemy_pos) =
-                    get_nearest_enemy_position(player_pos, &enemy_kd_tree, 300.0)
+                    get_nearest_enemy_position(bullet_pos, &enemy_kd_tree, 300.0)
                 {
-                    let bullet_pos = bullet_transform.translation.truncate();
                     let new_direction = (nearest_enemy_pos - bullet_pos).normalize();
                     bullet_direction.0 = vec3(new_direction.x, new_direction.y, 0.0);
                 }

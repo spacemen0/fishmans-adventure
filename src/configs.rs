@@ -30,8 +30,8 @@ pub const NUM_WORLD_DECORATIONS: usize = 100;
 
 // Player
 pub const PLAYER_SPEED: u32 = 10;
-pub const PLAYER_HEALTH: u32 = 50;
-pub const PLAYER_INVINCIBLE_TIME: f32 = 0.75;
+pub const PLAYER_HEALTH: u32 = 30;
+pub const PLAYER_INVINCIBLE_TIME: f32 = 0.5;
 pub const MAX_DEFENSE: u32 = 30;
 
 // Enemy

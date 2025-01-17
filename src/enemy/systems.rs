@@ -649,7 +649,7 @@ pub fn handle_enemy_death(
                         );
                     }
                 }
-                gold.0 += 5;
+                gold.0 += 2;
                 if level.add_xp(enemy.xp) {
                     ev_level_up.send(PlayerLevelingUpEvent {
                         new_level: level.level(),

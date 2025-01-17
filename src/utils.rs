@@ -120,17 +120,17 @@ pub fn apply_movement(position: &mut Vec3, mut movement: Vec2, layer: f32) {
 }
 
 pub fn get_nearest_enemy_position(
-    player_pos: Vec2,
+    pos: Vec2,
     enemy_kd_tree: &EnemyKdTree,
     max_distance: f32,
 ) -> Option<Vec2> {
     enemy_kd_tree
         .0
-        .nearest(&[player_pos.x, player_pos.y])
+        .nearest(&[pos.x, pos.y])
         .into_iter()
         .find(|nearest_enemy| {
-            let distance = Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1])
-                .distance(player_pos);
+            let distance =
+                Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]).distance(pos);
             distance <= max_distance
         })
         .map(|nearest_enemy| Vec2::new(nearest_enemy.item.pos[0], nearest_enemy.item.pos[1]))

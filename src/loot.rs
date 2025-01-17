@@ -127,7 +127,7 @@ pub fn spawn_gun_entity(
                 bullets_per_shot: 1,
                 firing_interval: rng
                     .gen_range(stat_range.firing_interval.0..=stat_range.firing_interval.1)
-                    * 0.7,
+                    * 0.3,
                 bullet_spread: 0.0,
             },
         ),
@@ -140,7 +140,7 @@ pub fn spawn_gun_entity(
                     * 1.5) as usize,
                 firing_interval: rng
                     .gen_range(stat_range.firing_interval.0..=stat_range.firing_interval.1)
-                    * 0.8,
+                    * 0.5,
                 bullet_spread: rng
                     .gen_range(stat_range.bullet_spread.0..=stat_range.bullet_spread.1),
             },
@@ -149,11 +149,14 @@ pub fn spawn_gun_entity(
             GunType::SingleDirectionSpread,
             GunStats {
                 bullets_per_shot: rng
-                    .gen_range(stat_range.bullets_per_shot.0..=stat_range.bullets_per_shot.1),
+                    .gen_range(stat_range.bullets_per_shot.0..=stat_range.bullets_per_shot.1)
+                    * 2,
                 firing_interval: rng
-                    .gen_range(stat_range.firing_interval.0..=stat_range.firing_interval.1),
+                    .gen_range(stat_range.firing_interval.0..=stat_range.firing_interval.1)
+                    * 0.7,
                 bullet_spread: rng
-                    .gen_range(stat_range.bullet_spread.0..=stat_range.bullet_spread.1),
+                    .gen_range(stat_range.bullet_spread.0..=stat_range.bullet_spread.1)
+                    * 1.2,
             },
         ),
         _ => unreachable!(),
